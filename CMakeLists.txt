@@ -4,7 +4,13 @@
 cmake_minimum_required (VERSION 2.6)
 project (test)
 
-include_directories ("${test_SOURCE_DIR}/engine/" "${test_SOURCE_DIR}/engine/linux")
+include_directories ("${test_SOURCE_DIR}/engine/")
+if (WIN32)
+include_directories ("${test_SOURCE_DIR}/engine/windows")
+endif (WIN32)
+if (UNIX)
+include_directories ("${test_SOURCE_DIR}/engine/linux")
+endif (UNIX)
 
 add_executable (test main.cpp render.cpp)
 target_link_libraries (test glfw GLU)
