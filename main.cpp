@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "common/platform_types.h"
 #include "common/macros.h"
 #include "render.h"
 
