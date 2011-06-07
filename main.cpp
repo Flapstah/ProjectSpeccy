@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "engine/common/macros.h"
+#include "common/macros.h"
 #include "render.h"
 
 int main(int argc, char* argv[])
