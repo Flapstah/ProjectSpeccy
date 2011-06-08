@@ -1,3 +1,8 @@
+# Macro to print some message to stdout, useful for debugging purpose.
+MACRO(DBG_MSG _MSG)
+  MESSAGE(STATUS "${CMAKE_CURRENT_LIST_FILE}(${CMAKE_CURRENT_LIST_LINE}): ${_MSG}")
+ENDMACRO(DBG_MSG)
+
 # The name of our project is "test". CMakeLists files in this project can
 # refer to the root source directory of the project as ${test_SOURCE_DIR} and
 # to the root binary directory of the project as ${test_BINARY_DIR}.
@@ -8,7 +13,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
 find_package(GLFW REQUIRED)
 include_directories(${GLFW_INCLUDE_DIR})
-set(LIBS ${LIBS} ${GLFW_LIBRARIES})
+set(LIBS ${LIBS} ${GLFW_LIBRARY})
 
 include_directories ("${test_SOURCE_DIR}/engine/independent")
 if (WIN32)
@@ -19,5 +24,6 @@ if (UNIX)
 endif (UNIX)
 
 add_executable (test main.cpp render.cpp)
-target_link_libraries (test ${LIBS})
+#DBG_MSG("LIBS = [${LIBS}]")
+target_link_libraries (test ${LIBS} GL GLU)
 
