@@ -4,6 +4,12 @@
 cmake_minimum_required (VERSION 2.6)
 project (test)
 
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
+
+find_package(GLFW REQUIRED)
+include_directories(${GLFW_INCLUDE_DIR})
+set(LIBS ${LIBS} ${GLFW_LIBRARIES})
+
 include_directories ("${test_SOURCE_DIR}/engine/independent")
 if (WIN32)
 	include_directories ("${test_SOURCE_DIR}/engine/windows")
@@ -13,5 +19,5 @@ if (UNIX)
 endif (UNIX)
 
 add_executable (test main.cpp render.cpp)
-target_link_libraries (test glfw GLU)
+target_link_libraries (test ${LIBS})
 
