@@ -20,27 +20,18 @@
 # Allow the user to select to link to a shared library or to a static library.
 
 
-# Macro to print some message to stdout, useful for debugging purpose.
-MACRO(DBG_MSG _MSG)
-  MESSAGE(STATUS "${CMAKE_CURRENT_LIST_FILE}(${CMAKE_CURRENT_LIST_LINE}): ${_MSG}")
-ENDMACRO(DBG_MSG)
-
 #Search for the include file...
-FIND_PATH(GLFW_INCLUDE_DIR glfw.h DOC "Path to GLFW include directory."
+FIND_PATH(GLFW_INCLUDE_DIR GL/glfw.h DOC "Path to GLFW include directory."
   HINTS
   $ENV{GLFW_ROOT}
   PATH_SUFFIX include #For finding the include file under the root of the glfw expanded archive, typically on Windows.
   PATHS
   /usr/include/
   /usr/local/include/
-  # By default headers are under GL subfolder
-  /usr/include/GL
-  /usr/local/include/GL
   ${PROJECT_ROOT_DIR}/3pp/include/ # added by ptr
   ${PROJECT_ROOT_DIR}/3pp/include/GL/ # added by ptr
-
 )
-DBG_MSG("GLFW_INCLUDE_DIR = ${GLFW_INCLUDE_DIR}")
+#DBG_MSG("GLFW_INCLUDE_DIR = ${GLFW_INCLUDE_DIR}")
 
 FIND_LIBRARY(GLFW_LIBRARY DOC "Absolute path to GLFW library."
   NAMES glfw
@@ -48,16 +39,15 @@ FIND_LIBRARY(GLFW_LIBRARY DOC "Absolute path to GLFW library."
   $ENV{GLFW_ROOT}
   PATH_SUFFIXES lib/win32 #For finding the library file under the root of the glfw expanded archive, typically on Windows.
   PATHS
-  /usr/local/lib
   /usr/lib
+  /usr/local/lib
   ${PROJECT_ROOT_DIR}/3pp/lib/ # added by ptr
 )
-DBG_MSG("GLFW_LIBRARY = ${GLFW_LIBRARY}")
+#DBG_MSG("GLFW_LIBRARY = ${GLFW_LIBRARY}")
 
 SET(GLFW_FOUND 0)
 IF(GLFW_LIBRARY AND GLFW_INCLUDE_DIR)
   SET(GLFW_FOUND 1)
-  DBG_MSG("GLFW found!")
 ENDIF(GLFW_LIBRARY AND GLFW_INCLUDE_DIR)
 
 
