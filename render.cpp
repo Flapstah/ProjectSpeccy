@@ -46,11 +46,11 @@ bool CRender::Update(void)
 	glfwGetWindowSize(&width, &height);
 	height = (height > 0) ? height : 1;
 
-	//glViewPort(0, 0, width, height);
+	glViewport(0, 0, width, height);
 
 	// Clear back buffer
-	//glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-	//glClear(GL_COLOR_BUFFER_BIT);
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
 	
 	glfwSwapBuffers();
 
