@@ -1,10 +1,10 @@
 #include "common/platform_types.h"
 
-class CRender
+class CDisplay
 {
 public:
-	CRender(uint32 width, uint32 height, const char* title);
-	~CRender(void);
+	CDisplay(uint32 width, uint32 height, const char* title);
+	~CDisplay(void);
 
 	bool Update(void);
 

@@ -3,15 +3,15 @@
 
 #include "common/platform_types.h"
 #include "common/macros.h"
-#include "render.h"
+#include "display.h"
 
 int main(int argc, char* argv[])
 {
 	IGNORE_PARAMETER(argc);
 	IGNORE_PARAMETER(argv);
 
-	CRender render(640, 480, "Test");
-	while (render.Update());
+	CDisplay display(640, 480, "Test");
+	while (display.Update());
 
 	return EXIT_SUCCESS;
 }

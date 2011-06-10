@@ -3,9 +3,9 @@
 
 #include <GL/glfw.h>
 
-#include "render.h"
+#include "display.h"
 
-CRender::CRender(uint32 width, uint32 height, const char* title)
+CDisplay::CDisplay(uint32 width, uint32 height, const char* title)
 : m_state(eS_Uninitialised)
 {
 	if (!glfwInit())
@@ -30,7 +30,7 @@ CRender::CRender(uint32 width, uint32 height, const char* title)
 	glShadeModel(GL_FLAT);
 }
 
-CRender::~CRender(void)
+CDisplay::~CDisplay(void)
 {
 	switch (m_state)
 	{
@@ -41,7 +41,7 @@ CRender::~CRender(void)
 	}
 }
 
-bool CRender::Update(void)
+bool CDisplay::Update(void)
 {
 	int width, height;
 
