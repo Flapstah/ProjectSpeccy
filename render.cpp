@@ -25,6 +25,9 @@ CRender::CRender(uint32 width, uint32 height, const char* title)
 	m_state = eS_Window;
 
 	glfwSetWindowTitle(title);
+
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	glShadeModel(GL_FLAT);
 }
 
 CRender::~CRender(void)
@@ -47,9 +50,11 @@ bool CRender::Update(void)
 	height = (height > 0) ? height : 1;
 
 	glViewport(0, 0, width, height);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	gluOrtho2D(0.0, (GLdouble)width, 0.0, (GLdouble)height);
 
 	// Clear back buffer
-	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 	
 	glfwSwapBuffers();
