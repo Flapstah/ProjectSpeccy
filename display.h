@@ -1,5 +1,8 @@
 #include "common/platform_types.h"
 
+#define WIDTH (256)
+#define HEIGHT (192)
+
 class CDisplay
 {
 public:
@@ -16,5 +19,11 @@ protected:
 		eS_Window
 	};
 
+	enum eTextureID
+	{
+		eTID_Main = 1
+	};
+
 	eState m_state;
+	uint8 m_videoMemory[WIDTH * HEIGHT * sizeof(uint32)];
 };
