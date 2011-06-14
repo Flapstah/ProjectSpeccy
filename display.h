@@ -19,11 +19,7 @@ protected:
 		eS_Window
 	};
 
-	enum eTextureID
-	{
-		eTID_Main = 1
-	};
-
 	eState m_state;
-	uint8 m_videoMemory[WIDTH * HEIGHT * sizeof(uint32)];
+	uint32 m_videoMemory[WIDTH * HEIGHT];
+	uint32 m_textureID;
 };

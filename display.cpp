@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <GL/glfw.h>
 #include "includes/glext.h"
@@ -27,21 +28,20 @@ CDisplay::CDisplay(uint32 width, uint32 height, const char* title)
 
 	glfwSetWindowTitle(title);
 
-	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	glClearColor(0.0f, 1.0f, 0.0f, 0.0f);
 	glShadeModel(GL_FLAT);
 
 	// Do texture stuff (http://www.gamedev.net/page/resources/_/reference/programming/opengl/269/opengl-texture-mapping-an-introduction-r947)
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	glGenTextures(1, (GLuint*)&m_textureID);
+	glBindTexture(GL_TEXTURE_2D, m_textureID);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); // or GL_NEAREST?
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); // or GL_NEAREST?
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, WIDTH, HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_videoMemory);
 
-	for (uint32 index = 0; index < sizeof(m_videoMemory); ++index)
-	{
-		m_videoMemory[index] = 128;
-	}
+	//memset(m_videoMemory, 0, sizeof(m_videoMemory));
 }
 
 CDisplay::~CDisplay(void)
@@ -70,20 +70,26 @@ bool CDisplay::Update(void)
 
 	// Clear back buffer
 	glClear(GL_COLOR_BUFFER_BIT);
+	glEnable(GL_TEXTURE_2D);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+	glBindTexture(GL_TEXTURE_2D, m_textureID);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, WIDTH, HEIGHT, 0, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8, m_videoMemory);
+	int32 x = (width - WIDTH) / 2;
+	int32 y = (height - HEIGHT) / 2;
+
 	glBegin(GL_QUADS);
 	glTexCoord2f(0.0f, 0.0f);
-	glVertex2i((width - WIDTH) / 2, (height - HEIGHT) / 2);
-	glTexCoord2f(1.0f, 0.0f);
-	glVertex2i((width + WIDTH) / 2, (height - HEIGHT) / 2);
-	glTexCoord2f(1.0f, 1.0f);
-	glVertex2i((width + WIDTH) / 2, (height + HEIGHT) / 2);
+	glVertex2i(x, y);
 	glTexCoord2f(0.0f, 1.0f);
-	glVertex2i((width - WIDTH) / 2, (height + HEIGHT) / 2);
+	glVertex2i(x, y + HEIGHT);
+	glTexCoord2f(1.0f, 1.0f);
+	glVertex2i(x + WIDTH, y + HEIGHT);
+	glTexCoord2f(1.0f, 0.0f);
+	glVertex2i(x + WIDTH, y);
 	glEnd();
 
 	glfwSwapBuffers();
+	glDisable(GL_TEXTURE_2D);
 
 	bool cont = ((glfwGetKey(GLFW_KEY_ESC) != GLFW_PRESS) && (glfwGetWindowParam(GLFW_OPENED)));
 
