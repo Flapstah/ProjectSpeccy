@@ -103,49 +103,69 @@ bool CDisplay::Update(void)
 
 bool CDisplay::OpenSCR(const char* fileName)
 {
-	uint8 screenData[(WIDTH * HEIGHT) + ATTR_SIZE];
+	uint8 screenData[((WIDTH / 8) * HEIGHT) + ATTR_SIZE];
 	FILE* pFile = fopen(fileName, "r");
 	bool success = false;
 
 	if (pFile != NULL)
 	{
-//		FILE* pDebug = fopen("./debug.txt", "w");
-
 		// load into memory
 		fread(screenData, sizeof(screenData), 1, pFile);
 		fclose(pFile);
 
 		// swizzle into texture
-		for (uint32 y = 0; y < HEIGHT; ++y)
+		for (uint8 y = 0; y < HEIGHT; ++y)
 		{
-			for (uint32 x = 0; x < WIDTH; ++x)
+			for (uint16 x = 0; x < WIDTH; ++x)
 			{
-				uint32 offset =
-				// ((y & 0xC0) >> 6) = index to which 3rd of the screen we need (0 based)
-				// multiplied by 2048 ( << 11) => shift right by 6 then left by 11 so just left by 5
-				((y & 0xC0) << 5) +
-				// ((y & 0x38) >> 3) = index to which character line of the screen we need (0 based)
-				// multiplied by 32 ( << 5) => shift right by 3 then left by 8 so just left by 2
-				((y & 0x38) << 2) +
-				// (y & 0x07) << 8 = 256 * pixel row
-				((y & 0x07) << 8) +
-				// (x & 0xF8) >> 3 = byte in row
-				((x & 0xF8) >> 3);
+				bool pixel = (screenData[PixelByteIndex(x, y)] & (1 << (7 - (x & 0x07)))) ? true : false;
+				uint32 attrOffset = AttributeByteIndex(x, y);
 
-//				fprintf(pDebug, "x:%i y:%i : ((y & 0xC0) << 5) %i : ((y & 0x38) << 2) %i : ((y & 0x07) << 8) %i : ((x & 0xF8) >> 3) %i : (x & 0x07) %i : offset %i\n", x, y, ((y & 0xC0) << 5), ((y & 0x38) << 2), ((y & 0x07) << 8), ((x & 0xF8) >> 3), (x & 0x07), offset);
+				uint8 ink = (screenData[attrOffset] & 0x07) >> 0;
+				uint8 paper = (screenData[attrOffset] & 0x38) >> 3;
+				uint32 bright = (screenData[attrOffset] & 0x40) ? 0x00FFFFFF : 0x00CDCDCD;
+				bool flash = screenData[attrOffset] & 0x80;
 
-				bool pixel = (screenData[offset] & (1 << (7 - (x & 0x07)))) ? true : false;
-				if (pixel)
-				{
-					m_videoMemory[x + (y * WIDTH)] = 0xff0000ff;
-				}
+				uint32 paperRGB = 0xFF000000;
+				uint32 inkRGB = 0xFF000000;
+				if (paper & 0x01) paperRGB |= 0x00FF0000;
+				if (paper & 0x02) paperRGB |= 0x000000FF;
+				if (paper & 0x04) paperRGB |= 0x0000FF00;
+				paper &= bright;
+				if (ink & 0x01) inkRGB |= 0x00FF0000;
+				if (ink & 0x02) inkRGB |= 0x000000FF;
+				if (ink & 0x04) inkRGB |= 0x0000FF00;
+				ink &= bright;
+
+				m_videoMemory[x + (y * WIDTH)] = (pixel) ? inkRGB : paperRGB;
 			}
 		}
 
 		success = true;
-//		fclose(pDebug);
 	}
 
 	return success;
+}
+
+uint32 CDisplay::PixelByteIndex(uint8 x, uint8 y)
+{
+	uint32 byteOffset =
+		// ((y & 0xC0) >> 6) = index to which 3rd of the screen we need (0 based)
+		// multiplied by 2048 ( << 11) => shift right by 6 then left by 11 so just left by 5
+		((y & 0xC0) << 5) +
+		// ((y & 0x38) >> 3) = index to which character line of the screen we need (0 based)
+		// multiplied by 32 ( << 5) => shift right by 3 then left by 8 so just left by 2
+		((y & 0x38) << 2) +
+		// (y & 0x07) << 8 = 256 * pixel row
+		((y & 0x07) << 8) +
+		// (x & 0xF8) >> 3 = byte in row
+		((x & 0xF8) >> 3);
+	return byteOffset;
+}
+
+uint32 CDisplay::AttributeByteIndex(uint8 x, uint8 y)
+{
+	uint32 byteOffset = ((WIDTH / 8) * HEIGHT) + (((y & 0xF8) >> 3) * (WIDTH / 8)) + ((x & 0xF8) >> 3);
+	return byteOffset;
 }
 

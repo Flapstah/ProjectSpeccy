@@ -15,6 +15,9 @@ public:
 	bool OpenSCR(const char* fileName);
 
 protected:
+	uint32 PixelByteIndex(uint8 x, uint8 y);
+	uint32 AttributeByteIndex(uint8 x, uint8 y);
+
 	enum eState
 	{
 		eS_Uninitialised,
