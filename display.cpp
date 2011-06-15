@@ -3,7 +3,7 @@
 #include <string.h>
 
 #include <GL/glfw.h>
-#include "includes/glext.h"
+//#include "includes/glext.h"
 
 #include "display.h"
 
@@ -33,15 +33,15 @@ CDisplay::CDisplay(uint32 width, uint32 height, const char* title)
 
 	// Do texture stuff (http://www.gamedev.net/page/resources/_/reference/programming/opengl/269/opengl-texture-mapping-an-introduction-r947)
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-	glGenTextures(1, (GLuint*)&m_textureID);
-	glBindTexture(GL_TEXTURE_2D, m_textureID);
+//	glGenTextures(1, (GLuint*)&m_textureID);
+//	fprintf(stdout, "m_textureID %i", m_textureID);
+	glBindTexture(GL_TEXTURE_2D, eTID_Main/*m_textureID*/);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, WIDTH, HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_videoMemory);
 
-	//memset(m_videoMemory, 0, sizeof(m_videoMemory));
+	memset(m_videoMemory, 0, sizeof(m_videoMemory));
 }
 
 CDisplay::~CDisplay(void)
@@ -63,6 +63,7 @@ bool CDisplay::Update(void)
 	glfwGetWindowSize(&width, &height);
 	height = (height > 0) ? height : 1;
 
+	// Set up view
 	glViewport(0, 0, width, height);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
@@ -70,22 +71,26 @@ bool CDisplay::Update(void)
 
 	// Clear back buffer
 	glClear(GL_COLOR_BUFFER_BIT);
+
+	// Select texture
 	glEnable(GL_TEXTURE_2D);
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-	glBindTexture(GL_TEXTURE_2D, m_textureID);
+	glBindTexture(GL_TEXTURE_2D, eTID_Main/*m_textureID*/);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, WIDTH, HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_videoMemory);
 
 	int32 x = (width - WIDTH) / 2;
 	int32 y = (height - HEIGHT) / 2;
 
+	// Render textured quad
 	glBegin(GL_QUADS);
-	glTexCoord2f(0.0f, 0.0f);
-	glVertex2i(x, y);
-	glTexCoord2f(0.0f, 1.0f);
-	glVertex2i(x, y + HEIGHT);
-	glTexCoord2f(1.0f, 1.0f);
-	glVertex2i(x + WIDTH, y + HEIGHT);
-	glTexCoord2f(1.0f, 0.0f);
-	glVertex2i(x + WIDTH, y);
+		glTexCoord2f(0.0f, 1.0f);
+		glVertex2i(x, y);
+		glTexCoord2f(0.0f, 0.0f);
+		glVertex2i(x, y + HEIGHT);
+		glTexCoord2f(1.0f, 0.0f);
+		glVertex2i(x + WIDTH, y + HEIGHT);
+		glTexCoord2f(1.0f, 1.0f);
+		glVertex2i(x + WIDTH, y);
 	glEnd();
 
 	glfwSwapBuffers();
@@ -96,5 +101,51 @@ bool CDisplay::Update(void)
 	return cont;
 }
 
+bool CDisplay::OpenSCR(const char* fileName)
+{
+	uint8 screenData[(WIDTH * HEIGHT) + ATTR_SIZE];
+	FILE* pFile = fopen(fileName, "r");
+	bool success = false;
 
+	if (pFile != NULL)
+	{
+//		FILE* pDebug = fopen("./debug.txt", "w");
+
+		// load into memory
+		fread(screenData, sizeof(screenData), 1, pFile);
+		fclose(pFile);
+
+		// swizzle into texture
+		for (uint32 y = 0; y < HEIGHT; ++y)
+		{
+			for (uint32 x = 0; x < WIDTH; ++x)
+			{
+				uint32 offset =
+				// ((y & 0xC0) >> 6) = index to which 3rd of the screen we need (0 based)
+				// multiplied by 2048 ( << 11) => shift right by 6 then left by 11 so just left by 5
+				((y & 0xC0) << 5) +
+				// ((y & 0x38) >> 3) = index to which character line of the screen we need (0 based)
+				// multiplied by 32 ( << 5) => shift right by 3 then left by 8 so just left by 2
+				((y & 0x38) << 2) +
+				// (y & 0x07) << 8 = 256 * pixel row
+				((y & 0x07) << 8) +
+				// (x & 0xF8) >> 3 = byte in row
+				((x & 0xF8) >> 3);
+
+//				fprintf(pDebug, "x:%i y:%i : ((y & 0xC0) << 5) %i : ((y & 0x38) << 2) %i : ((y & 0x07) << 8) %i : ((x & 0xF8) >> 3) %i : (x & 0x07) %i : offset %i\n", x, y, ((y & 0xC0) << 5), ((y & 0x38) << 2), ((y & 0x07) << 8), ((x & 0xF8) >> 3), (x & 0x07), offset);
+
+				bool pixel = (screenData[offset] & (1 << (7 - (x & 0x07)))) ? true : false;
+				if (pixel)
+				{
+					m_videoMemory[x + (y * WIDTH)] = 0xff0000ff;
+				}
+			}
+		}
+
+		success = true;
+//		fclose(pDebug);
+	}
+
+	return success;
+}
 

@@ -11,6 +11,10 @@ int main(int argc, char* argv[])
 	IGNORE_PARAMETER(argv);
 
 	CDisplay display(640, 480, "Test");
+//	display.OpenSCR("roms/Fairlight.scr");
+//	display.OpenSCR("roms/KnightLore.scr");
+//	display.OpenSCR("roms/LordsOfMidnightThe.scr");
+	display.OpenSCR("roms/SabreWulf.scr");
 	while (display.Update());
 
 	return EXIT_SUCCESS;
