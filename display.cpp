@@ -153,9 +153,7 @@ void CDisplay::UpdateScreen(const uint8* pScreenMemory)
 	{
 		for (uint16 x = 0; x < WIDTH; ++x)
 		{
-			bool pixel = (pScreenMemory[PixelByteIndex(x, y)] & (1 << (7 - (x & 0x07)))) ? true : false;
 			uint32 attrOffset = AttributeByteIndex(x, y);
-
 			uint8 ink = (pScreenMemory[attrOffset] & 0x07) >> 0;
 			uint8 paper = (pScreenMemory[attrOffset] & 0x38) >> 3;
 			uint32 bright = (pScreenMemory[attrOffset] & 0x40) ? 0x00FFFFFF : 0x00CDCDCD;
@@ -172,7 +170,8 @@ void CDisplay::UpdateScreen(const uint8* pScreenMemory)
 			if (ink & 0x04) inkRGB |= 0x0000FF00;
 			inkRGB &= bright;
 
-			m_videoMemory[x + (y * WIDTH)] = (pixel) ? inkRGB : paperRGB;
+			uint32 colour = (pScreenMemory[PixelByteIndex(x, y)] & (1 << (7 - (x & 0x07)))) ? inkRGB : paperRGB;
+			m_videoMemory[x + (y * WIDTH)] = colour;
 		}
 	}
 }
