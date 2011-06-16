@@ -25,7 +25,7 @@ if (UNIX)
 	set(LIBS ${LIBS} GL GLU)
 endif (UNIX)
 
-add_executable (test main.cpp display.cpp)
+add_executable (test main.cpp display.cpp zxspectrum.cpp)
 #DBG_MSG("LIBS = [${LIBS}]")
 target_link_libraries (test ${LIBS})
 
