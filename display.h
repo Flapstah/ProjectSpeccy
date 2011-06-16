@@ -1,8 +1,9 @@
+#if !defined(__DISPLAY_H__)
+#define __DISPLAY_H__
+
 #include "common/platform_types.h"
 
-#define WIDTH (256)
-#define HEIGHT (192)
-#define ATTR_SIZE (768)
+#include "iscreenmemory.h"
 
 class CDisplay
 {
@@ -10,14 +11,10 @@ public:
 	CDisplay(uint32 width, uint32 height, const char* title);
 	~CDisplay(void);
 
-	bool Update(void);
+	bool Update(IScreenMemory* pScreenMemory);
 
-	bool OpenSCR(const char* fileName);
 
 protected:
-	uint32 PixelByteIndex(uint8 x, uint8 y);
-	uint32 AttributeByteIndex(uint8 x, uint8 y);
-	void UpdateScreen(const uint8* pScreenMemory);
 
 	enum eState
 	{
@@ -31,8 +28,8 @@ protected:
 		eTID_Main = 1
 	};
 
-	uint32 m_videoMemory[WIDTH * HEIGHT];
 	eState m_state;
 	float m_displayScale;
-//	uint32 m_textureID;
 };
+
+#endif // !defined(__DISPLAY_H__)
