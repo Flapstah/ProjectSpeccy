@@ -104,7 +104,7 @@ bool CDisplay::Update(void)
 bool CDisplay::OpenSCR(const char* fileName)
 {
 	uint8 screenData[((WIDTH / 8) * HEIGHT) + ATTR_SIZE];
-	FILE* pFile = fopen(fileName, "r");
+	FILE* pFile = fopen(fileName, "rb");
 	bool success = false;
 
 	if (pFile != NULL)
