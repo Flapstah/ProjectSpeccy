@@ -9,6 +9,7 @@
 
 CDisplay::CDisplay(uint32 width, uint32 height, const char* title)
 : m_state(eS_Uninitialised)
+, m_displayScale(1.0f)
 {
 	if (!glfwInit())
 	{
@@ -28,7 +29,7 @@ CDisplay::CDisplay(uint32 width, uint32 height, const char* title)
 
 	glfwSetWindowTitle(title);
 
-	glClearColor(0.0f, 1.0f, 0.0f, 0.0f);
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glShadeModel(GL_FLAT);
 
 	// Do texture stuff (http://www.gamedev.net/page/resources/_/reference/programming/opengl/269/opengl-texture-mapping-an-introduction-r947)
@@ -78,19 +79,21 @@ bool CDisplay::Update(void)
 	glBindTexture(GL_TEXTURE_2D, eTID_Main/*m_textureID*/);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, WIDTH, HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_videoMemory);
 
-	int32 x = (width - WIDTH) / 2;
-	int32 y = (height - HEIGHT) / 2;
+	int32 scaledWidth = m_displayScale * WIDTH;
+	int32 scaledHeight = m_displayScale * HEIGHT;
+	int32 x = (width - scaledWidth) / 2;
+	int32 y = (height - scaledHeight) / 2;
 
 	// Render textured quad
 	glBegin(GL_QUADS);
 		glTexCoord2f(0.0f, 1.0f);
 		glVertex2i(x, y);
 		glTexCoord2f(0.0f, 0.0f);
-		glVertex2i(x, y + HEIGHT);
+		glVertex2i(x, y + scaledHeight);
 		glTexCoord2f(1.0f, 0.0f);
-		glVertex2i(x + WIDTH, y + HEIGHT);
+		glVertex2i(x + scaledWidth, y + scaledHeight);
 		glTexCoord2f(1.0f, 1.0f);
-		glVertex2i(x + WIDTH, y);
+		glVertex2i(x + scaledWidth, y);
 	glEnd();
 
 	glfwSwapBuffers();
@@ -113,33 +116,7 @@ bool CDisplay::OpenSCR(const char* fileName)
 		fread(screenData, sizeof(screenData), 1, pFile);
 		fclose(pFile);
 
-		// swizzle into texture
-		for (uint8 y = 0; y < HEIGHT; ++y)
-		{
-			for (uint16 x = 0; x < WIDTH; ++x)
-			{
-				bool pixel = (screenData[PixelByteIndex(x, y)] & (1 << (7 - (x & 0x07)))) ? true : false;
-				uint32 attrOffset = AttributeByteIndex(x, y);
-
-				uint8 ink = (screenData[attrOffset] & 0x07) >> 0;
-				uint8 paper = (screenData[attrOffset] & 0x38) >> 3;
-				uint32 bright = (screenData[attrOffset] & 0x40) ? 0x00FFFFFF : 0x00CDCDCD;
-				bool flash = screenData[attrOffset] & 0x80;
-
-				uint32 paperRGB = 0xFF000000;
-				uint32 inkRGB = 0xFF000000;
-				if (paper & 0x01) paperRGB |= 0x00FF0000;
-				if (paper & 0x02) paperRGB |= 0x000000FF;
-				if (paper & 0x04) paperRGB |= 0x0000FF00;
-				paper &= bright;
-				if (ink & 0x01) inkRGB |= 0x00FF0000;
-				if (ink & 0x02) inkRGB |= 0x000000FF;
-				if (ink & 0x04) inkRGB |= 0x0000FF00;
-				ink &= bright;
-
-				m_videoMemory[x + (y * WIDTH)] = (pixel) ? inkRGB : paperRGB;
-			}
-		}
+		UpdateScreen(screenData);
 
 		success = true;
 	}
@@ -169,3 +146,33 @@ uint32 CDisplay::AttributeByteIndex(uint8 x, uint8 y)
 	return byteOffset;
 }
 
+void CDisplay::UpdateScreen(const uint8* pScreenMemory)
+{
+	// swizzle into texture
+	for (uint8 y = 0; y < HEIGHT; ++y)
+	{
+		for (uint16 x = 0; x < WIDTH; ++x)
+		{
+			bool pixel = (pScreenMemory[PixelByteIndex(x, y)] & (1 << (7 - (x & 0x07)))) ? true : false;
+			uint32 attrOffset = AttributeByteIndex(x, y);
+
+			uint8 ink = (pScreenMemory[attrOffset] & 0x07) >> 0;
+			uint8 paper = (pScreenMemory[attrOffset] & 0x38) >> 3;
+			uint32 bright = (pScreenMemory[attrOffset] & 0x40) ? 0x00FFFFFF : 0x00CDCDCD;
+			bool flash = pScreenMemory[attrOffset] & 0x80;
+
+			uint32 paperRGB = 0xFF000000;
+			uint32 inkRGB = 0xFF000000;
+			if (paper & 0x01) paperRGB |= 0x00FF0000;
+			if (paper & 0x02) paperRGB |= 0x000000FF;
+			if (paper & 0x04) paperRGB |= 0x0000FF00;
+			paperRGB &= bright;
+			if (ink & 0x01) inkRGB |= 0x00FF0000;
+			if (ink & 0x02) inkRGB |= 0x000000FF;
+			if (ink & 0x04) inkRGB |= 0x0000FF00;
+			inkRGB &= bright;
+
+			m_videoMemory[x + (y * WIDTH)] = (pixel) ? inkRGB : paperRGB;
+		}
+	}
+}

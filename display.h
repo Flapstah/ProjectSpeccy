@@ -17,6 +17,7 @@ public:
 protected:
 	uint32 PixelByteIndex(uint8 x, uint8 y);
 	uint32 AttributeByteIndex(uint8 x, uint8 y);
+	void UpdateScreen(const uint8* pScreenMemory);
 
 	enum eState
 	{
@@ -30,7 +31,8 @@ protected:
 		eTID_Main = 1
 	};
 
-	eState m_state;
 	uint32 m_videoMemory[WIDTH * HEIGHT];
+	eState m_state;
+	float m_displayScale;
 //	uint32 m_textureID;
 };
