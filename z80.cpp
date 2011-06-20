@@ -5,322 +5,124 @@ bool CZ80::Decode(void*& pAddress)
 	return true;
 }
 
-void CreateEmulationTable(void)
+void CZ80::ImplementLDrr(void)
 {
-	{ 0x00, ImplementNOP, DecodeNOP },
-	{ 0x04, ImplementINC, DecodeINC },
-	{ 0x05, ImplementDEC, DecodeDEC },
-	{ 0x0C, ImplementINC, DecodeINC },
-	{ 0x0D, ImplementDEC, DecodeDEC },
-	{ 0x14, ImplementINC, DecodeINC },
-	{ 0x15, ImplementDEC, DecodeDEC },
-	{ 0x1C, ImplementINC, DecodeINC },
-	{ 0x1D, ImplementDEC, DecodeDEC },
-	{ 0x24, ImplementINC, DecodeINC },
-	{ 0x25, ImplementDEC, DecodeDEC },
-	{ 0x2C, ImplementINC, DecodeINC },
-	{ 0x2D, ImplementDEC, DecodeDEC },
-	{ 0x34, ImplementINC, DecodeINC },
-	{ 0x35, ImplementDEC, DecodeDEC },
-	{ 0x3C, ImplementINC, DecodeINC },
-	{ 0x3D, ImplementDEC, DecodeDEC },
-
-	/*
-	Instruction Code List:
-	----------------------
-	(full machine code bytes, in order: opcode number)
-
-	00     NOP          10ee   DJNZ e       20ee   JR NZ,e      30ee   JR NC,e 
-	01nnnn LD BC,nn     11nnnn LD DE,nn     21nnnn LD HL,nn     31nnnn LD SP,nn  
-	02     LD (BC),A    12     LD (DE),A    22nnnn LD (nn),HL   32nnnn LD (nn),A
-	03     INC BC       13     INC DE       23     INC HL       33     INC SP
-	04     INC B        14     INC D        24     INC H        34     INC (HL)
-	05     DEC B        15     DEC D        25     DEC H        35     DEC (HL)
-	06nn   LD B,n       16nn   LD D,n       26nn   LD H,n       36nn   LD (HL),n
-	07     RLCA         17     RLA          27     DAA          37     SCF
-	08     EX AF,AF'    18ee   JR e         28ee   JR Z,e       38ee   JR C,e
-	09     ADD HL,BC    19     ADD HL,DE    29     ADD HL,HL    39     ADD HL,SP
-	0A     LD A,(BC)    1A     LD A,(DE)    2Annnn LD HL,(nn)   3Annnn LD A,(nn)
-	0B     DEC BC       1B     DEC DE       2B     DEC HL       3B     DEC SP
-	0C     INC C        1C     INC E        2C     INC L        3C     INC A
-	0D     DEC C        1D     DEC E        2D     DEC L        3D     DEC A
-	0Enn   LD C,n       1Enn   LD E,n       2Enn   LD L,n       3Enn   LD A,n
-	0F     RRCA         1F     RRA          2F     CPL          3F     CCF
-
- */
-	{ 0x40, ImplementNOP, DecodeNOP },
-	{ 0x41, ImplementLD, DecodeLD },
-	{ 0x42, ImplementLD, DecodeLD },
-	{ 0x43, ImplementLD, DecodeLD },
-	{ 0x44, ImplementLD, DecodeLD },
-	{ 0x45, ImplementLD, DecodeLD },
-	{ 0x46, ImplementLD, DecodeLD },
-	{ 0x47, ImplementLD, DecodeLD },
-	{ 0x48, ImplementLD, DecodeLD },
-	{ 0x49, ImplementNOP, DecodeNOP },
-	{ 0x4A, ImplementLD, DecodeLD },
-	{ 0x4B, ImplementLD, DecodeLD },
-	{ 0x4C, ImplementLD, DecodeLD },
-	{ 0x4D, ImplementLD, DecodeLD },
-	{ 0x4E, ImplementLD, DecodeLD },
-	{ 0x4F, ImplementLD, DecodeLD },
-	{ 0x50, ImplementLD, DecodeLD },
-	{ 0x51, ImplementLD, DecodeLD },
-	{ 0x52, ImplementNOP, DecodeNOP },
-	{ 0x53, ImplementLD, DecodeLD },
-	{ 0x54, ImplementLD, DecodeLD },
-	{ 0x55, ImplementLD, DecodeLD },
-	{ 0x56, ImplementLD, DecodeLD },
-	{ 0x57, ImplementLD, DecodeLD },
-	{ 0x58, ImplementLD, DecodeLD },
-	{ 0x59, ImplementLD, DecodeLD },
-	{ 0x5A, ImplementLD, DecodeLD },
-	{ 0x5B, ImplementNOP, DecodeNOP },
-	{ 0x5C, ImplementLD, DecodeLD },
-	{ 0x5D, ImplementLD, DecodeLD },
-	{ 0x5E, ImplementLD, DecodeLD },
-	{ 0x5F, ImplementLD, DecodeLD },
-	{ 0x60, ImplementLD, DecodeLD },
-	{ 0x61, ImplementLD, DecodeLD },
-	{ 0x62, ImplementLD, DecodeLD },
-	{ 0x63, ImplementLD, DecodeLD },
-	{ 0x64, ImplementNOP, DecodeNOP },
-	{ 0x65, ImplementLD, DecodeLD },
-	{ 0x66, ImplementLD, DecodeLD },
-	{ 0x67, ImplementLD, DecodeLD },
-	{ 0x68, ImplementLD, DecodeLD },
-	{ 0x69, ImplementLD, DecodeLD },
-	{ 0x6A, ImplementLD, DecodeLD },
-	{ 0x6B, ImplementLD, DecodeLD },
-	{ 0x6C, ImplementLD, DecodeLD },
-	{ 0x6D, ImplementNOP, DecodeNOP },
-	{ 0x6E, ImplementLD, DecodeLD },
-	{ 0x6F, ImplementLD, DecodeLD },
-	{ 0x70, ImplementLD, DecodeLD },
-	{ 0x71, ImplementLD, DecodeLD },
-	{ 0x72, ImplementLD, DecodeLD },
-	{ 0x73, ImplementLD, DecodeLD },
-	{ 0x74, ImplementLD, DecodeLD },
-	{ 0x75, ImplementLD, DecodeLD },
-	{ 0x76, ImplementHALT, DecodeHALT },
-	{ 0x77, ImplementLD, DecodeLD },
-	{ 0x78, ImplementLD, DecodeLD },
-	{ 0x79, ImplementLD, DecodeLD },
-	{ 0x7A, ImplementLD, DecodeLD },
-	{ 0x7B, ImplementLD, DecodeLD },
-	{ 0x7C, ImplementLD, DecodeLD },
-	{ 0x7D, ImplementLD, DecodeLD },
-	{ 0x7E, ImplementLD, DecodeLD },
-	{ 0x7F, ImplementNOP, DecodeNOP },
-	{ 0x80, ImplementADD, DecodeADD },
-	{ 0x81, ImplementADD, DecodeADD },
-	{ 0x82, ImplementADD, DecodeADD },
-	{ 0x83, ImplementADD, DecodeADD },
-	{ 0x84, ImplementADD, DecodeADD },
-	{ 0x85, ImplementADD, DecodeADD },
-	{ 0x86, ImplementADD, DecodeADD },
-	{ 0x87, ImplementADD, DecodeADD },
-	{ 0x88, ImplementADC, DecodeADC },
-	{ 0x89, ImplementADC, DecodeADC },
-	{ 0x8A, ImplementADC, DecodeADC },
-	{ 0x8B, ImplementADC, DecodeADC },
-	{ 0x8C, ImplementADC, DecodeADC },
-	{ 0x8D, ImplementADC, DecodeADC },
-	{ 0x8E, ImplementADC, DecodeADC },
-	{ 0x8F, ImplementADC, DecodeADC },
-	{ 0x90, ImplementSUB, DecodeSUB },
-	{ 0x91, ImplementSUB, DecodeSUB },
-	{ 0x92, ImplementSUB, DecodeSUB },
-	{ 0x93, ImplementSUB, DecodeSUB },
-	{ 0x94, ImplementSUB, DecodeSUB },
-	{ 0x95, ImplementSUB, DecodeSUB },
-	{ 0x96, ImplementSUB, DecodeSUB },
-	{ 0x97, ImplementSUB, DecodeSUB },
-	{ 0x98, ImplementSBC, DecodeSBC },
-	{ 0x99, ImplementSBC, DecodeSBC },
-	{ 0x9A, ImplementSBC, DecodeSBC },
-	{ 0x9B, ImplementSBC, DecodeSBC },
-	{ 0x9C, ImplementSBC, DecodeSBC },
-	{ 0x9D, ImplementSBC, DecodeSBC },
-	{ 0x9E, ImplementSBC, DecodeSBC },
-	{ 0x9F, ImplementSBC, DecodeSBC },
-	{ 0xA0, ImplementAND, DecodeAND },
-	{ 0xA1, ImplementAND, DecodeAND },
-	{ 0xA2, ImplementAND, DecodeAND },
-	{ 0xA3, ImplementAND, DecodeAND },
-	{ 0xA4, ImplementAND, DecodeAND },
-	{ 0xA5, ImplementAND, DecodeAND },
-	{ 0xA6, ImplementAND, DecodeAND },
-	{ 0xA7, ImplementAND, DecodeAND },
-	{ 0xA8, ImplementXOR, DecodeXOR },
-	{ 0xA9, ImplementXOR, DecodeXOR },
-	{ 0xAA, ImplementXOR, DecodeXOR },
-	{ 0xAB, ImplementXOR, DecodeXOR },
-	{ 0xAC, ImplementXOR, DecodeXOR },
-	{ 0xAD, ImplementXOR, DecodeXOR },
-	{ 0xAE, ImplementXOR, DecodeXOR },
-	{ 0xAF, ImplementXOR, DecodeXOR },
-	{ 0xB0, ImplementOR, DecodeOR },
-	{ 0xB1, ImplementOR, DecodeOR },
-	{ 0xB2, ImplementOR, DecodeOR },
-	{ 0xB3, ImplementOR, DecodeOR },
-	{ 0xB4, ImplementOR, DecodeOR },
-	{ 0xB5, ImplementOR, DecodeOR },
-	{ 0xB6, ImplementOR, DecodeOR },
-	{ 0xB7, ImplementOR, DecodeOR },
-	{ 0xB8, ImplementCP, DecodeCP },
-	{ 0xB9, ImplementCP, DecodeCP },
-	{ 0xBA, ImplementCP, DecodeCP },
-	{ 0xBB, ImplementCP, DecodeCP },
-	{ 0xBC, ImplementCP, DecodeCP },
-	{ 0xBD, ImplementCP, DecodeCP },
-	{ 0xBE, ImplementCP, DecodeCP },
-	{ 0xBF, ImplementCP, DecodeCP },
-	/*
-	C0     RET NZ       D0     RET NC       E0     RET PO       F0     RET P
-	C1     POP BC       D1     POP DE       E1     POP HL       F1     POP AF
-	C2nnnn JP NZ,nn     D2nnnn JP NC,nn     E2nnnn JP PO,nn     F2nnnn JP P,nn
-	C3nnnn JP nn        D3nn   OUT (n),A    E3     EX (SP),HL   F3     DI
-	C4nnnn CALL NZ,nn   D4nnnn CALL NC,nn   E4nnnn CALL PO,nn   F4nnnn CALL P,nn
-	C5     PUSH BC      D5     PUSH DE      E5     PUSH HL      F5     PUSH AF
-	C6nn   ADD A,n      D6nn   SUB n        E6nn   AND n        F6nn   OR n
-	C7     RST 0        D7     RST 16       E7     RST 32       F7     RST 48
-	C8     RET Z        D8     RET C        E8     RET PE       F8     RET M
-	C9     RET          D9     EXX          E9     JP (HL)      F9     LD SP,HL
-	CAnnnn JP Z,nn      DAnnnn JP C,nn      EAnn   JP PE,nn     FAnnnn JP M,nn
-	CB**   prefixCB     DBnn   IN  A,(n)    EB     EX DE,HL     FB     EI
-	CCnnnn CALL Z,nn    DCnnnn CAll C,nn    ECnnnn CALL PE,nn   FCnnnn CALL M,nn
-	CDnnnn CALL nn      DD**   prefixDD     ED**   prefixED     FD**   prefixFD
-	CEnn   ADC A,n      DEnn   SBC n        EEnn   XOR n        FEnn   CP n
-	CF     RST 8        DF     RST 24       EF     RST 40       FF     RST 56
-
-	CB**: prefixCB, selects further 256 extended "CB" opcodes, table below
-	ED**: prefixED, selects further 256 extended "ED" opcodes, table below
-	DD**: prefixDD, converts HL->IX, (HL)->(IX+d), JP (HL)->(IX)
-	FD**: prefixFD, converts HL->IY, (HL)->(IY+d), JP (HL)->(IY)
-
- */
-	/*
-	Extended "CB" Instructions:
-
-	CB00   RLC B        CB10   RL B         CB20   SLA B        ----   -
-	CB01   RLC C        CB11   RL C         CB21   SLA C        ----   -
-	CB02   RLC D        CB12   RL D         CB22   SLA D        ----   -
-	CB03   RLC E        CB13   RL E         CB23   SLA E        ----   -
-	CB04   RLC H        CB14   RL H         CB24   SLA H        ----   -
-	CB05   RLC L        CB15   RL L         CB25   SLA L        ----   -
-	CB06   RLC (HL)     CB16   RL (HL)      CB26   SLA (HL)     ----   -
-	CB07   RLC A        CB17   RL A         CB27   SLA A        ----   -
-	CB08   RRC B        CB18   RR B         CB28   SRA B        CB38   SRL B
-	CB09   RRC C        CB19   RR C         CB29   SRA C        CB39   SRL C
-	CB0A   RRC D        CB1A   RR D         CB2A   SRA D        CB3A   SRL D
-	CB0B   RRC E        CB1B   RR E         CB2B   SRA E        CB3B   SRL E
-	CB0C   RRC H        CB1C   RR H         CB2C   SRA H        CB3C   SRL H
-	CB0D   RRC L        CB1D   RR L         CB2D   SRA L        CB3D   SRL L
-	CB0E   RRC (HL)    OnSendException CB1E   RR (HL)      CB2E   SRA (HL)     CB3E   SRL (HL)
-	CB0F   RRC A        CB1F   RR A         CB2F   SRA A        CB3F   SRL A
-
-	CB40   BIT 0,B      CB50   BIT 2,B      CB60   BIT 4,B      CB70   BIT 6,B
-	CB41   BIT 0,C      CB51   BIT 2,C      CB61   BIT 4,C      CB71   BIT 6,C
-	CB42   BIT 0,D      CB52   BIT 2,D      CB62   BIT 4,D      CB72   BIT 6,D
-	CB43   BIT 0,E      CB53   BIT 2,E      CB63   BIT 4,E      CB73   BIT 6,E
-	CB44   BIT 0,H      CB54   BIT 2,H      CB64   BIT 4,H      CB74   BIT 6,H
-	CB45   BIT 0,L      CB55   BIT 2,L      CB65   BIT 4,L      CB75   BIT 6,L
-	CB46   BIT 0,(HL)   CB56   BIT 2,(HL)   CB66   BIT 4,(HL)   CB76   BIT 6,(HL)
-	CB47   BIT 0,A      CB57   BIT 2,A      CB67   BIT 4,A      CB77   BIT 6,A
-	CB48   BIT 1,B      CB58   BIT 3,B      CB68   BIT 5,B      CB78   BIT 7,B
-	CB49   BIT 1,C      CB59   BIT 3,C      CB69   BIT 5,C      CB79   BIT 7,C
-	CB4A   BIT 1,D      CB5A   BIT 3,D      CB6A   BIT 5,D      CB7A   BIT 7,D
-	CB4B   BIT 1,E      CB5B   BIT 3,E      CB6B   BIT 5,E      CB7B   BIT 7,E
-	CB4C   BIT 1,H      CB5C   BIT 3,H      CB6C   BIT 5,H      CB7C   BIT 7,H
-	CB4D   BIT 1,L      CB5D   BIT 3,L      CB6D   BIT 5,L      CB7D   BIT 7,L
-	CB4E   BIT 1,(HL)   CB5E   BIT 3,(HL)   CB6E   BIT 5,(HL)   CB7E   BIT 7,(HL)
-	CB4F   BIT 1,A      CB5F   BIT 3,A      CB6F   BIT 5,A      CB7F   BIT 7,A
-
-	CB80   RES 0,B      CB90   RES 2,B      CBA0   RES 4,B      CBB0   RES 6,B
-	CB81   RES 0,C      CB91   RES 2,C      CBA1   RES 4,C      CBB1   RES 6,C
-	CB82   RES 0,D      CB92   RES 2,D      CBA2   RES 4,D      CBB2   RES 6,D
-	CB83   RES 0,E      CB93   RES 2,E      CBA3   RES 4,E      CBB3   RES 6,E
-	CB84   RES 0,H      CB94   RES 2,H      CBA4   RES 4,H      CBB4   RES 6,H
-	CB85   RES 0,L      CB95   RES 2,L      CBA5   RES 4,L      CBB5   RES 6,L
-	CB86   RES 0,(HL)   CB96   RES 2,(HL)   CBA6   RES 4,(HL)   CBB6   RES 6,(HL)
-	CB87   RES 0,A      CB97   RES 2,A      CBA7   RES 4,A      CBB7   RES 6,A
-	CB88   RES 1,B      CB98   RES 3,B      CBA8   RES 5,B      CBB8   RES 7,B
-	CB89   RES 1,C      CB99   RES 3,C      CBA9   RES 5,C      CBB9   RES 7,C
-	CB8A   RES 1,D      CB9A   RES 3,D      CBAA   RES 5,D      CBBA   RES 7,D
-	CB8B   RES 1,E      CB9B   RES 3,E      CBAB   RES 5,E      CBBB   RES 7,E
-	CB8C   RES 1,H      CB9C   RES 3,H      CBAC   RES 5,H      CBBC   RES 7,H
-	CB8D   RES 1,L      CB9D   RES 3,L      CBAD   RES 5,L      CBBD   RES 7,L
-	CB8E   RES 1,(HL)   CB9E   RES 3,(HL)   CBAE   RES 5,(HL)   CBBE   RES 7,(HL)
-	CB8F   RES 1,A      CB9F   RES 3,A      CBAF   RES 5,A      CBBF   RES 7,A
-
-	CBC0   SET 0,B      CBD0   SET 2,B      CBE0   SET 4,B      CBF0   SET 6,B
-	CBC1   SET 0,C      CBD1   SET 2,C      CBE1   SET 4,C      CBF1   SET 6,C
-	CBC2   SET 0,D      CBD2   SET 2,D      CBE2   SET 4,D      CBF2   SET 6,D
-	CBC3   SET 0,E      CBD3   SET 2,E      CBE3   SET 4,E      CBF3   SET 6,E
-	CBC4   SET 0,H      CBD4   SET 2,H      CBE4   SET 4,H      CBF4   SET 6,H
-	CBC5   SET 0,L      CBD5   SET 2,L      CBE5   SET 4,L      CBF5   SET 6,L
-	CBC6   SET 0,(HL)   CBD6   SET 2,(HL)   CBE6   SET 4,(HL)   CBF6   SET 6,(HL)
-	CBC7   SET 0,A      CBD7   SET 2,A      CBE7   SET 4,A      CBF7   SET 6,A
-	CBC8   SET 1,B      CBD8   SET 3,B      CBE8   SET 5,B      CBF8   SET 7,B
-	CBC9   SET 1,C      CBD9   SET 3,C      CBE9   SET 5,C      CBF9   SET 7,C
-	CBCA   SET 1,D      CBDA   SET 3,D      CBEA   SET 5,D      CBFA   SET 7,D
-	CBCB   SET 1,E      CBDB   SET 3,E      CBEB   SET 5,E      CBFB   SET 7,E
-	CBCC   SET 1,H      CBDC   SET 3,H      CBEC   SET 5,H      CBFC   SET 7,H
-	CBCD   SET 1,L      CBDD   SET 3,L      CBED   SET 5,L      CBFD   SET 7,L
-	CBCE   SET 1,(HL)   CBDE   SET 3,(HL)   CBEE   SET 5,(HL)   CBFE   SET 7,(HL)
-	CBCF   SET 1,A      CBDF   SET 3,A      CBEF   SET 5,A      CBFF   SET 7,A
-
- */
-	/*
-	Extended "ED" Instructions:
-
-	ED00..ED3F unused
-
-	ED40   IN B,(C)     ED50   IN D,(C)     ED60   IN H,(C)     ----   -
-	ED41   OUT (C),B    ED51   OUT (C),D    ED61   OUT (C),H    ----   -
-	ED42   SBC HL,BC    ED52   SBC HL,DE    ED62   SBC HL,HL    ED72   SBC HL,SP
-	ED43** LD (nn),BC   ED53** LD (nn),DE   ----   -            ED73** LD (nn),SP
-	ED44   NEG          ----   -            ----   -            ----   -
-	ED45   RETN         ----   -            ----   -            ----   -
-	ED46   IM 0         ED56   IM 1         ----   -            ----   -
-	ED47   LD I,A       ED57   LD A,I       ED67   RRD          ----   -
-	ED48   IN C,(C)     ED58   IN E,(C)     ED68   IN L,(C)     ED78   IN A,(C)
-	ED49   OUT (C),C    ED59   OUT (C),E    ED69   OUT (C),L    ED79   OUT (C),A
-	ED4A   ADC HL,BC    ED5A   ADC HL,DE    ED6A   ADC HL,HL    ED7A   ADC HL,SP
-	ED4B** LD BC,(nn)   ED5B** LD DE,(nn)   ----   -            ED7B** LD SP,(nn)
-	----   -            ----   -            ----   -            ----   -
-	ED4D   RETI         ----   -            ----   -            ----   -
-	----   -            ED5E   IM 2         ----   -            ----   -
-	ED4F   LD R,A       ED5F   LD A,R       ED6F   RLD          ----   -
-
-	EDx3**|EDxB**: actually EDxxnnnn, but no space in table
-
-	ED80..ED9F unused
-
-	EDA0   LDI          EDA8   LDD          EDB0   LDIR         EDB8   LDDR
-	EDA1   CPI          EDA9   CPD          EDB1   CPIR         EDB9   CPDR
-	EDA2   INI          EDAA   IND          EDB2   INIR         EDBA   INDR
-	EDA3   OUTI         EDAB   OUTD         EDB3   OTIR         EDBB   OTDR
-
-	ED[AB][4..7,C..F] unused
-
-	EDC0..EDFF unused
-
-	 */
+	// M Cycles 1
+	// T States 4
+	uint8* pDestination = DecodeRegister(*m_register.PC >> 3);
+	uint8* pSource = DecodeRegister(*m_register.PC++);
+	*pDestination = *pSource;
 }
 
-void CZ80::ImplementNOP(void)
+void CZ80::ImplementLDrHL(void)
 {
+	// M Cycles 2
+	// T States 7 (4, 3)
+	uint8* pDestination = DecodeRegister(*m_register.PC >> 3);
+	uint8* pSource = DecodeRegister(*m_register.PC++);
+	*pDestination = *pSource;
 }
 
-void CZ80::DecodeNOP(void* pAddress, char* pMnemonic)
+void CZ80::ImplementLDrn(void)
 {
-	*pMnemonic++ = 'N';
-OnSendException	*pMnemonic++ = 'O';
-	*pMnemonic++ = 'P';
+	// M Cycles 2
+	// T States 7 (4, 3)
+	uint8* pDestination = DecodeRegister(*m_register.PC++ >> 3);
+	*pDestination = *m_register.PC++;
 }
 
+void CZ80::DecodeLD(const uint8* pAddress, char* pMnemonic)
+{
+	sprintf(pMnemonic, "LD %s,%s", DecodeRegister(*pAddress >> 3), DecodeRegister(*(pAddress + 1)));
+}
+
+void CZ80::DecodeLDn(const uint8* pAddress, char* pMnemonic)
+{
+	sprintf(pMnemonic, "LD %s,%d", DecodeRegister(*pAddress >> 3), *(pAddress + 1));
+}
+
+void CZ80::DecodeLDrIXd(void)
+{
+	// M Cycles 5
+	// T States 19 (4, 4, 3, 5, 3)
+	uint8* pDestination = DecodeRegister(*++m_register.PC++ >> 3);
+	uint8* pSource = static_cast<uint8*>(m_register.IX + *m_register.PC++);
+	*pDestination = *pSource;
+}
+
+void CZ80::DecodeLDrIXd(const uint8* pAddress, char* pMnemonic)
+{
+	sprintf(pMnemonic, "LD %s,(IX+%d)", DecodeRegister(*(pAddress + 1) >> 3), *(pAddress + 2));
+}
+
+void CZ80::DecodeLDrIYd(void)
+{
+	// M Cycles 5
+	// T States 19 (4, 4, 3, 5, 3)
+	uint8* pDestination = DecodeRegister(*++m_register.PC++ >> 3);
+	uint8* pSource = static_cast<uint8*>(m_register.IY + *m_register.PC++);
+	*pDestination = *pSource;
+}
+
+void CZ80::DecodeLDrIYd(const uint8* pAddress, char* pMnemonic)
+{
+	sprintf(pMnemonic, "LD %s,(IY+%d)", DecodeRegister(*(pAddress + 1) >> 3), *(pAddress + 2));
+}
+
+void CZ80::ImplementLDHLr(void)
+{
+	// M Cycles 2
+	// T States 7 (4, 3)
+	uint8* pDestination = (static_cast<uint16>(m_register.H) << 0x100) | m_register.L;
+	uint8* pSource = DecodeRegister(*m_register.PC++);
+	*pDestination = *pSource;
+}
+
+void CZ80::ImplementLDHLr(const uint8* pAddress, char* pMnemonic)
+{
+	sprintf(pMnemonic, "LD (HL),%s", DecodeRegister(*pAddress));
+}
+
+void CZ80::ImplementLDIXdr(void)
+{
+	// M Cycles 5
+	// T States 19 (4, 4, 3, 5, 3)
+	uint8* pSource = DecodeRegister(*++m_register.PC++ >> 3);
+	uint8* pDestination = static_cast<uint8*>(m_register.IX + *m_register.PC++);
+	*pDestination = *pSource;
+}
+
+void CZ80::DecodeLDIXdr(const uint8* pAddress, char* pMnemonic)
+{
+	sprintf(pMnemonic, "LD (IX+%d),%s", *(pAddress + 2), DecodeRegister(*(pAddress + 1) >> 3));
+}
+
+void CZ80::ImplementLDIYdr(void)
+{
+	// M Cycles 5
+	// T States 19 (4, 4, 3, 5, 3)
+	uint8* pSource = DecodeRegister(*++m_register.PC++ >> 3);
+	uint8* pDestination = static_cast<uint8*>(m_register.IY + *m_register.PC++);
+	*pDestination = *pSource;
+}
+
+void CZ80::DecodeLDIYdr(const uint8* pAddress, char* pMnemonic)
+{
+	sprintf(pMnemonic, "LD (IY+%d),%s", *(pAddress + 2), DecodeRegister(*(pAddress + 1) >> 3));
+}
+
+
+
+
+
+
+
+
+
+
+
+
+ 
 void CZ80::ImplementINC(void)
 {
 	// TODO: Flags
@@ -487,24 +289,6 @@ void CZ80::DecodeCP(void)
 	DecodeRegister(*pAddress);
 }
 
-void CZ80::ImplementLD(void)
-{
-	uint8* pDestination = DecodeRegister(*m_register.PC >> 3);
-	uint8* pSource = DecodeRegister(*m_register.PC);
-
-	*pDestination = *pSource;
-}
-
-void CZ80::DecodeLD(void* pAddress, char* pMnemonic)
-{
-	*pMnemonic++ = 'L';
-	*pMnemonic++ = 'D';
-	*pMnemonic++ = ' ';
-	DecodeRegister(*pAddress >> 3);
-	*pMnemonic++ = ',';
-	DecodeRegister(*pAddress);
-}
-
 void CZ80::ImplementHALT(void)
 {
 }
@@ -529,7 +313,7 @@ uint8* DecodeRegister(uint8 threeBits)
 		case 3: pAddress = &m_register.E; break;
 		case 4: pAddress = &m_register.H; break;
 		case 5: pAddress = &m_register.L; break;
-		case 6: pAddress = m_register.H << 0x10 | m_register.L; break;
+		case 6: pAddress = (static_cast<uint16>(m_register.H) << 0x100) | m_register.L; break;
 		case 7: pAddress = &m_register.A; break;
 		default: break;
 	}
@@ -537,23 +321,18 @@ uint8* DecodeRegister(uint8 threeBits)
 	return pAddress;
 }
 
-void DecodeRegister(uint8 threeBits, char* pMnemonic)
+const char* DecodeRegister(uint8 threeBits, char* pMnemonic)
 {
 	switch (threeBits)
 	{
-		case 0: *pMnemonic = 'B'; break;
-		case 1: *pMnemonic = 'C'; break;
-		case 2: *pMnemonic = 'D'; break;
-		case 3: *pMnemonic = 'E'; break;
-		case 4: *pMnemonic = 'H'; break;
-		case 5: *pMnemonic = 'L'; break;
-		case 6:
-			*pMnemonic++ = '(';
-			*pMnemonic++ = 'H';
-			*pMnemonic++ = 'L';
-			*pMnemonic++ = ')';
-			break;
-		case 7: *pMnemonic = 'A'; break;
+		case 0: return "B";			break;
+		case 1: return "C";			break;
+		case 2: return "D";			break;
+		case 3: return "E";			break;
+		case 4: return "H";			break;
+		case 5: return "L";			break;
+		case 6: return "(HL)";	break;
+		case 7: return "A";			break;
 		default: break;
 	}
 }
