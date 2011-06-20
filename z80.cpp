@@ -7,6 +7,47 @@ bool CZ80::Decode(void*& pAddress)
 
 void CreateEmulationTable(void)
 {
+	{ 0x00, ImplementNOP, DecodeNOP },
+	{ 0x04, ImplementINC, DecodeINC },
+	{ 0x05, ImplementDEC, DecodeDEC },
+	{ 0x0C, ImplementINC, DecodeINC },
+	{ 0x0D, ImplementDEC, DecodeDEC },
+	{ 0x14, ImplementINC, DecodeINC },
+	{ 0x15, ImplementDEC, DecodeDEC },
+	{ 0x1C, ImplementINC, DecodeINC },
+	{ 0x1D, ImplementDEC, DecodeDEC },
+	{ 0x24, ImplementINC, DecodeINC },
+	{ 0x25, ImplementDEC, DecodeDEC },
+	{ 0x2C, ImplementINC, DecodeINC },
+	{ 0x2D, ImplementDEC, DecodeDEC },
+	{ 0x34, ImplementINC, DecodeINC },
+	{ 0x35, ImplementDEC, DecodeDEC },
+	{ 0x3C, ImplementINC, DecodeINC },
+	{ 0x3D, ImplementDEC, DecodeDEC },
+
+	/*
+	Instruction Code List:
+	----------------------
+	(full machine code bytes, in order: opcode number)
+
+	00     NOP          10ee   DJNZ e       20ee   JR NZ,e      30ee   JR NC,e 
+	01nnnn LD BC,nn     11nnnn LD DE,nn     21nnnn LD HL,nn     31nnnn LD SP,nn  
+	02     LD (BC),A    12     LD (DE),A    22nnnn LD (nn),HL   32nnnn LD (nn),A
+	03     INC BC       13     INC DE       23     INC HL       33     INC SP
+	04     INC B        14     INC D        24     INC H        34     INC (HL)
+	05     DEC B        15     DEC D        25     DEC H        35     DEC (HL)
+	06nn   LD B,n       16nn   LD D,n       26nn   LD H,n       36nn   LD (HL),n
+	07     RLCA         17     RLA          27     DAA          37     SCF
+	08     EX AF,AF'    18ee   JR e         28ee   JR Z,e       38ee   JR C,e
+	09     ADD HL,BC    19     ADD HL,DE    29     ADD HL,HL    39     ADD HL,SP
+	0A     LD A,(BC)    1A     LD A,(DE)    2Annnn LD HL,(nn)   3Annnn LD A,(nn)
+	0B     DEC BC       1B     DEC DE       2B     DEC HL       3B     DEC SP
+	0C     INC C        1C     INC E        2C     INC L        3C     INC A
+	0D     DEC C        1D     DEC E        2D     DEC L        3D     DEC A
+	0Enn   LD C,n       1Enn   LD E,n       2Enn   LD L,n       3Enn   LD A,n
+	0F     RRCA         1F     RRA          2F     CPL          3F     CCF
+
+ */
 	{ 0x40, ImplementNOP, DecodeNOP },
 	{ 0x41, ImplementLD, DecodeLD },
 	{ 0x42, ImplementLD, DecodeLD },
@@ -71,29 +112,6 @@ void CreateEmulationTable(void)
 	{ 0x7D, ImplementLD, DecodeLD },
 	{ 0x7E, ImplementLD, DecodeLD },
 	{ 0x7F, ImplementNOP, DecodeNOP },
-	/*
-	Instruction Code List:
-	----------------------
-	(full machine code bytes, in order: opcode number)
-
-	00     NOP          10ee   DJNZ e       20ee   JR NZ,e      30ee   JR NC,e 
-	01nnnn LD BC,nn     11nnnn LD DE,nn     21nnnn LD HL,nn     31nnnn LD SP,nn  
-	02     LD (BC),A    12     LD (DE),A    22nnnn LD (nn),HL   32nnnn LD (nn),A
-	03     INC BC       13     INC DE       23     INC HL       33     INC SP
-	04     INC B        14     INC D        24     INC H        34     INC (HL)
-	05     DEC B        15     DEC D        25     DEC H        35     DEC (HL)
-	06nn   LD B,n       16nn   LD D,n       26nn   LD H,n       36nn   LD (HL),n
-	07     RLCA         17     RLA          27     DAA          37     SCF
-	08     EX AF,AF'    18ee   JR e         28ee   JR Z,e       38ee   JR C,e
-	09     ADD HL,BC    19     ADD HL,DE    29     ADD HL,HL    39     ADD HL,SP
-	0A     LD A,(BC)    1A     LD A,(DE)    2Annnn LD HL,(nn)   3Annnn LD A,(nn)
-	0B     DEC BC       1B     DEC DE       2B     DEC HL       3B     DEC SP
-	0C     INC C        1C     INC E        2C     INC L        3C     INC A
-	0D     DEC C        1D     DEC E        2D     DEC L        3D     DEC A
-	0Enn   LD C,n       1Enn   LD E,n       2Enn   LD L,n       3Enn   LD A,n
-	0F     RRCA         1F     RRA          2F     CPL          3F     CCF
-
- */
 	{ 0x80, ImplementADD, DecodeADD },
 	{ 0x81, ImplementADD, DecodeADD },
 	{ 0x82, ImplementADD, DecodeADD },
@@ -126,55 +144,38 @@ void CreateEmulationTable(void)
 	{ 0x9D, ImplementSBC, DecodeSBC },
 	{ 0x9E, ImplementSBC, DecodeSBC },
 	{ 0x9F, ImplementSBC, DecodeSBC },
-	/*
-	 arithmetic/logic 8bit
-		 1sooosss
-		 ..ooo...  opcode  operation
-		 ..000...  ADD A,  A = A + source; FlagsSZHVNC,N=0                       "ADD"
-		 ..001...  ADC A,  A = A + source + FlagC
-											 FlagsSZHVNC,N=0                            "ADd with Carry"
-		 ..010...  SUB     A = A - source; FlagsSZHVNC,N=1                  "SUBtract"
-		 ..011...  SBC A,  A = A - source - FlagC
-											 FlagsSZHVNC,N=1                       "SuBtract with Carry"
-		 ..100...  AND     A = A bitwise-AND source;
-											 FlagsSZHPNC,H=1,N=0,C=0                               "AND"
-		 ..101...  XOR     A = A bitwise-excl-OR source
-											 FlagsSZHPNC,H=0,N=0,C=0                      "eXclusive OR"
-		 ..110...  OR      A = A bitwise-OR source
-											 FlagsSZHPNC,H=0,N=0,C=0                                "OR"
-		 ..111...  CP      FlagsSZHVC = A - source; FlagN=1                  "ComPare"
-		 .s...sss  source
-		 .0...000  B
-		 .0...001  C
-		 .0...010  D
-		 .0...011  E
-		 .0...100  H
-		 .0...101  L
-		 .0...110  (HL)    mem[H,L]
-								 with prefix 11011101 (HL) -> (IX+d)  mem[IX+mem[PC+]] (displace8)
-								 with prefix 11111101 (HL) -> (IY+d)  mem[IY+mem[PC+]] (displace8)
-		 .0...111  A
-		 .1...110  n       mem[PC+] (immediate8)
-	 */
-	/*
-	80     ADD A,B      90     SUB B        A0     AND B        B0     OR B
-	81     ADD A,C      91     SUB C        A1     AND C        B1     OR C
-	82     ADD A,D      92     SUB D        A2     AND D        B2     OR D
-	83     ADD A,E      93     SUB E        A3     AND E        B3     OR E
-	84     ADD A,H      94     SUB H        A4     AND H        B4     OR H
-	85     ADD A,L      95     SUB L        A5     AND L        B5     OR L
-	86     ADD A,(HL)   96     SUB (HL)     A6     AND (HL)     B6     OR (HL)
-	87     ADD A,A      97     SUB A        A7     AND A        B7     OR A
-	88     ADC A,B      98     SBC A,B      A8     XOR B        B8     CP B
-	89     ADC A,C      99     SBC A,C      A9     XOR C        B9     CP C
-	8A     ADC A,D      9A     SBC A,D      AA     XOR D        BA     CP D
-	8B     ADC A,E      9B     SBC A,E      AB     XOR E        BB     CP E
-	8C     ADC A,H      9C     SBC A,H      AC     XOR H        BC     CP H
-	8D     ADC A,L      9D     SBC A,L      AD     XOR L        BD     CP L
-	8E     ADC A,(HL)   9E     SBC A,(HL)   AE     XOR (HL)     BE     CP (HL)
-	8F     ADC A,A      9F     SBC A,A      AF     XOR A        BF     CP A
-
- */
+	{ 0xA0, ImplementAND, DecodeAND },
+	{ 0xA1, ImplementAND, DecodeAND },
+	{ 0xA2, ImplementAND, DecodeAND },
+	{ 0xA3, ImplementAND, DecodeAND },
+	{ 0xA4, ImplementAND, DecodeAND },
+	{ 0xA5, ImplementAND, DecodeAND },
+	{ 0xA6, ImplementAND, DecodeAND },
+	{ 0xA7, ImplementAND, DecodeAND },
+	{ 0xA8, ImplementXOR, DecodeXOR },
+	{ 0xA9, ImplementXOR, DecodeXOR },
+	{ 0xAA, ImplementXOR, DecodeXOR },
+	{ 0xAB, ImplementXOR, DecodeXOR },
+	{ 0xAC, ImplementXOR, DecodeXOR },
+	{ 0xAD, ImplementXOR, DecodeXOR },
+	{ 0xAE, ImplementXOR, DecodeXOR },
+	{ 0xAF, ImplementXOR, DecodeXOR },
+	{ 0xB0, ImplementOR, DecodeOR },
+	{ 0xB1, ImplementOR, DecodeOR },
+	{ 0xB2, ImplementOR, DecodeOR },
+	{ 0xB3, ImplementOR, DecodeOR },
+	{ 0xB4, ImplementOR, DecodeOR },
+	{ 0xB5, ImplementOR, DecodeOR },
+	{ 0xB6, ImplementOR, DecodeOR },
+	{ 0xB7, ImplementOR, DecodeOR },
+	{ 0xB8, ImplementCP, DecodeCP },
+	{ 0xB9, ImplementCP, DecodeCP },
+	{ 0xBA, ImplementCP, DecodeCP },
+	{ 0xBB, ImplementCP, DecodeCP },
+	{ 0xBC, ImplementCP, DecodeCP },
+	{ 0xBD, ImplementCP, DecodeCP },
+	{ 0xBE, ImplementCP, DecodeCP },
+	{ 0xBF, ImplementCP, DecodeCP },
 	/*
 	C0     RET NZ       D0     RET NC       E0     RET PO       F0     RET P
 	C1     POP BC       D1     POP DE       E1     POP HL       F1     POP AF
@@ -216,7 +217,7 @@ void CreateEmulationTable(void)
 	CB0B   RRC E        CB1B   RR E         CB2B   SRA E        CB3B   SRL E
 	CB0C   RRC H        CB1C   RR H         CB2C   SRA H        CB3C   SRL H
 	CB0D   RRC L        CB1D   RR L         CB2D   SRA L        CB3D   SRL L
-	CB0E   RRC (HL)     CB1E   RR (HL)      CB2E   SRA (HL)     CB3E   SRL (HL)
+	CB0E   RRC (HL)    OnSendException CB1E   RR (HL)      CB2E   SRA (HL)     CB3E   SRL (HL)
 	CB0F   RRC A        CB1F   RR A         CB2F   SRA A        CB3F   SRL A
 
 	CB40   BIT 0,B      CB50   BIT 2,B      CB60   BIT 4,B      CB70   BIT 6,B
@@ -316,20 +317,40 @@ void CZ80::ImplementNOP(void)
 void CZ80::DecodeNOP(void* pAddress, char* pMnemonic)
 {
 	*pMnemonic++ = 'N';
-	*pMnemonic++ = 'O';
+OnSendException	*pMnemonic++ = 'O';
 	*pMnemonic++ = 'P';
 }
 
-void CZ80::ImplementHALT(void)
+void CZ80::ImplementINC(void)
 {
+	// TODO: Flags
+	uint8* pDestination = DecodeRegister(*m_register.PC >> 3);
+	++*pDestination;
 }
 
-void CZ80::DecodeHALT(void* pAddress, char* pMnemonic)
+void CZ80::DecodeINC(void* pAddress, char* pMnemonic)
 {
-	*pMnemonic++ = 'H';
-	*pMnemonic++ = 'A';
-	*pMnemonic++ = 'L';
-	*pMnemonic++ = 'T';
+	*pMnemonic++ = 'I';
+	*pMnemonic++ = 'N';
+	*pMnemonic++ = 'C';
+	*pMnemonic++ = ' ';
+	DecodeRegister(*pAddress >> 3);
+}
+
+void CZ80::ImplementDEC(void)
+{
+	// TODO: Flags
+	uint8* pDestination = DecodeRegister(*m_register.PC >> 3);
+	--*pDestination;
+}
+
+void CZ80::DecodeDEC(void* pAddress, char* pMnemonic)
+{
+	*pMnemonic++ = 'D';
+	*pMnemonic++ = 'E';
+	*pMnemonic++ = 'C';
+	*pMnemonic++ = ' ';
+	DecodeRegister(*pAddress >> 3);
 }
 
 void CZ80::ImplementADD(void)
@@ -404,6 +425,68 @@ void CZ80::DecodeSBC(void* pAddress, char* pMnemonic)
 	DecodeRegister(*pAddress);
 }
 
+void CZ80::ImplementAND(void)
+{
+	// TODO: Flags
+	uint8* pSource = DecodeAddress(*m_register.PC);
+	m_register.A &= *pSource;
+}
+
+void CZ80::DecodeAND(void)
+{
+	*pMnemonic++ = 'A';
+	*pMnemonic++ = 'N';
+	*pMnemonic++ = 'D';
+	*pMnemonic++ = ' ';
+	DecodeRegister(*pAddress);
+}
+
+void CZ80::ImplementXOR(void)
+{
+	// TODO: Flags
+	uint8* pSource = DecodeAddress(*m_register.PC);
+	m_register.A ^= *pSource;
+}
+
+void CZ80::DecodeXOR(void)
+{
+	*pMnemonic++ = 'X';
+	*pMnemonic++ = 'O';
+	*pMnemonic++ = 'R';
+	*pMnemonic++ = ' ';
+	DecodeRegister(*pAddress);
+}
+
+void CZ80::ImplementOR(void)
+{
+	// TODO: Flags
+	uint8* pSource = DecodeAddress(*m_register.PC);
+	m_register.A |= *pSource;
+}
+
+void CZ80::DecodeOR(void)
+{
+	*pMnemonic++ = 'O';
+	*pMnemonic++ = 'R';
+	*pMnemonic++ = ' ';
+	DecodeRegister(*pAddress);
+}
+
+void CZ80::ImplementCP(void)
+{
+	// TODO: Flags
+//	uint8* pSource = DecodeAddress(*m_register.PC);
+//	m_register.A |= *pSource;
+}
+
+void CZ80::DecodeCP(void)
+{
+	*pMnemonic++ = 'C';
+	*pMnemonic++ = 'P';
+	*pMnemonic++ = ' ';
+	DecodeRegister(*pAddress);
+}
+
 void CZ80::ImplementLD(void)
 {
 	uint8* pDestination = DecodeRegister(*m_register.PC >> 3);
@@ -420,6 +503,18 @@ void CZ80::DecodeLD(void* pAddress, char* pMnemonic)
 	DecodeRegister(*pAddress >> 3);
 	*pMnemonic++ = ',';
 	DecodeRegister(*pAddress);
+}
+
+void CZ80::ImplementHALT(void)
+{
+}
+
+void CZ80::DecodeHALT(void* pAddress, char* pMnemonic)
+{
+	*pMnemonic++ = 'H';
+	*pMnemonic++ = 'A';
+	*pMnemonic++ = 'L';
+	*pMnemonic++ = 'T';
 }
 
 uint8* DecodeRegister(uint8 threeBits)
@@ -763,7 +858,7 @@ bit test and manipulation
   ........ ..001...  1,
   ........ ..010...  2,
   ........ ..011...  3,
-  ........ ..100...  4,
+  ........ ..100...  4,OnSendException
   ........ ..101...  5,
   ........ ..110...  6,
   ........ ..111...  7,
@@ -814,7 +909,7 @@ load/store/register 8bit
   ..110...  (HL),   mem[H,L]
               with prefix 11011101 (HL) -> (IX+d)  mem[IX+mem[PC+]] (displace8)
               with prefix 11111101 (HL) -> (IY+d)  mem[IY+mem[PC+]] (displace8)
-  ..111...  A,
+  ..111...  A,OnSendException
   .1...sss  source
   .1...000  B
   .1...001  C
