@@ -2,7 +2,7 @@
 
 //
 //	All information contained herein is based on Zilog's "Z80 Family CPU User
-//	Manual".
+//	Manual", with minor corrections.
 //
 
 void CZ80::ImplementLDrr(void)
@@ -111,7 +111,7 @@ void CZ80::ImplementLDrIXd(void)
 	//								A						111
 	//
 	//							M Cycles		T States					MHz E.T.
-	//								5						19 (4,4,3,5,3)		2.50
+	//								5						19 (4,4,3,5,3)		4.75
 	//
 	uint8* pDestination = DecodeRegister(*++m_register.PC++ >> 3);
 	uint8* pSource = static_cast<uint8*>(m_register.IX + *m_register.PC++);
@@ -298,7 +298,7 @@ void CZ80::ImplementLDIYdn(void)
 	//						+-+-+-+-+-+-+-+-+
 	//
 	//							M Cycles		T States					MHz E.T.
-	//								5						19 (4,4,3,5,3)		2.50
+	//								5						19 (4,4,3,5,3)		4.75
 	//
 	m_register.PC += 2;
 	uint8* pDestination = static_cast<uint8*>(m_register.IY + *m_register.PC++);
@@ -362,6 +362,156 @@ void CZ80::ImplementLDAnn(void)
 	m_register.A = *pSource;
 	m_register.PC += 3;
 }
+
+void CZ80::ImplementLDBCA(void)
+{
+	//
+	// Operation:	(BC), <- A
+	// Op Code:		LD
+	// Operands:	(BC), A
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|0|0|0|0|0|1|0| 02
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								2						7 (4,3)						1.75
+	//
+	uint8* pDestination = (static_cast<uint16>(m_register.B) << 0x100) | m_register.C;
+	*pDestination = m_register.A;
+	++m_register.PC; 
+}
+
+void CZ80::ImplementLDDEA(void)
+{
+	//
+	// Operation:	(DE), <- A
+	// Op Code:		LD
+	// Operands:	(DE), A
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|0|0|1|0|0|1|0| 12
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								2						7 (4,3)						1.75
+	//
+	uint8* pDestination = (static_cast<uint16>(m_register.D) << 0x100) | m_register.E;
+	*pDestination = m_register.A;
+	++m_register.PC; 
+}
+
+void CZ80::ImplementLDnnA(void)
+{
+	//
+	// Operation:	(nn), <- A
+	// Op Code:		LD
+	// Operands:	(nn), A
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|0|0|1|0|0|1|0| 12
+	//						+-+-+-+-+-+-+-+-+
+	//						|n|n|n|n|n|n|n|n|
+	//						+-+-+-+-+-+-+-+-+
+	//						|n|n|n|n|n|n|n|n|
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								4						13 (4,3,3,3)			3.25
+	//
+	uint8* pDestination = static_cast<uint16>(*(pAddress + 2) << 0x100) | *(pAddress + 1);
+	*pDestination = m_register.A;
+	++m_register.PC; 
+}
+
+void CZ80::ImplementLDAI(void)
+{
+	//
+	// Operation:	A, <- I
+	// Op Code:		LD
+	// Operands:	A, I 
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|0|1|1|0|1| ED
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|1|0|1|0|1|1|1| 57
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								2						9 (4,5)						2.25
+	//
+	m_register.A = m_register.I;
+	m_register.F &= ~(eF_S | eF_Z | eF_H | eF_N);
+	m_register.F |= (m_register.A & eF_S) | (eF_Z & (m_register.A == 0)) | (eF_PV & IFF2);
+	m_register.PC += 2;
+}
+
+void CZ80::ImplementLDAR(void)
+{
+	//
+	// Operation:	A, <- R
+	// Op Code:		LD
+	// Operands:	A, R 
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|0|1|1|0|1| ED
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|1|0|1|1|1|1|1| 5F
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								2						9 (4,5)						2.25
+	//
+	m_register.A = m_register.R;
+	m_register.F &= ~(eF_S | eF_Z | eF_H | eF_N);
+	m_register.F |= (m_register.A & eF_S) | (eF_Z & (m_register.A == 0)) | (eF_PV & IFF2);
+	m_register.PC += 2;
+}
+
+void CZ80::ImplementLDIA(void)
+{
+	//
+	// Operation:	I, <- A
+	// Op Code:		LD
+	// Operands:	I, A 
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|0|1|1|0|1| ED
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|1|0|0|0|1|1|1| 47
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								2						9 (4,5)						2.25
+	//
+	m_register.I = m_register.A;
+	m_register.PC += 2;
+}
+
+void CZ80::ImplementLDRA(void)
+{
+	//
+	// Operation:	R, <- A
+	// Op Code:		LD
+	// Operands:	R, A 
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|0|1|1|0|1| ED
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|1|0|0|1|1|1|1| 4F
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								2						9 (4,5)						2.25
+	//
+	m_register.A = m_register.R;
+	m_register.PC += 2;
+}
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -432,11 +582,45 @@ void CZ80::DecodeLDADE(const uint8* pAddress, char* pMnemonic)
 	sprintf(pMnemonic, "LD A,(DE)");
 }
 
-void CZ80::DecodeLDADE(const uint8* pAddress, char* pMnemonic)
+void CZ80::DecodeLDAnn(const uint8* pAddress, char* pMnemonic)
 {
 	sprintf(pMnemonic, "LD A,(%d)", static_cast<uint16>(*(pAddress + 2) << 0x100) | *(pAddress + 1));
 }
 
+void CZ80::DecodeLDBCA(const uint8* pAddress, char* pMnemonic)
+{
+	sprintf(pMnemonic, "LD (BC),A");
+}
+
+void CZ80::DecodeLDDEA(const uint8* pAddress, char* pMnemonic)
+{
+	sprintf(pMnemonic, "LD (DE),A");
+}
+
+void CZ80::DecodeLDnnA(const uint8* pAddress, char* pMnemonic)
+{
+	sprintf(pMnemonic, "LD (%d),A", static_cast<uint16>(*(pAddress + 2) << 0x100) | *(pAddress + 1));
+}
+
+void CZ80::DecodeLDAI(const uint8* pAddress, char* pMnemonic)
+{
+	sprintf(pMnemonic, "LD A,I");
+}
+
+void CZ80::DecodeLDAR(const uint8* pAddress, char* pMnemonic)
+{
+	sprintf(pMnemonic, "LD A,R");
+}
+
+void CZ80::DecodeLDIA(const uint8* pAddress, char* pMnemonic)
+{
+	sprintf(pMnemonic, "LD I,A");
+}
+
+void CZ80::DecodeLDRA(const uint8* pAddress, char* pMnemonic)
+{
+	sprintf(pMnemonic, "LD R,A");
+}
 
 
 
