@@ -12,9 +12,9 @@ class CZ80
 			eF_C =	1 << 0,	// Carry
 			eF_N =	1 << 1,	// Add/Subtract flag
 			eF_PV =	1 << 2,	// Parity/Overflow
-//			eF_X =	1 << 3,	// A copy of bit 3 of the result
+			eF_X =	1 << 3,	// A copy of bit 3 of the result
 			eF_H =	1 << 4,	// Half-carry
-//			eF_Y =	1 << 5,	// A copy of bit 5 of the result
+			eF_Y =	1 << 5,	// A copy of bit 5 of the result
 			eF_Z =	1 << 6,	// Zero
 			eF_S =	1 << 7	// Sign
 
@@ -42,8 +42,6 @@ class CZ80
 			uint16 DE_;
 			uint16 HL_;
 		} m_register;
-
-		bool Execute(void);
 
 	private:
 
