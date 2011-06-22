@@ -1,9 +1,19 @@
 #include "z80.h"
 
-//
+//=============================================================================
 //	All information contained herein is based on Zilog's "Z80 Family CPU User
-//	Manual", with minor corrections.
+//	Manual".
 //
+//	Minor timing corrections have been made for instruction execution time where
+//	each T State is assumed to be 0.25 nanoseconds (based on the vast majority
+//	of the instructions) based on a 4MHz clock.
+//=============================================================================
+
+//-----------------------------------------------------------------------------
+//	8-Bit Load Group
+//-----------------------------------------------------------------------------
+
+//=============================================================================
 
 void CZ80::ImplementLDrr(void)
 {
@@ -25,12 +35,16 @@ void CZ80::ImplementLDrr(void)
 	//								A						111
 	//
 	//							M Cycles		T States					MHz E.T.
-	//								1						4									1.0
+	//								1						4									1.00
 	//
-	uint8* pDestination = DecodeRegister(*m_register.PC >> 3);
-	uint8* pSource = DecodeRegister(*m_register.PC++);
+	m_register.R |= ((m_register.R + 1) & 0x7F);
+	uint8* pDestination = GetRegister8Address(*m_register.PC >> 3);
+	uint8* pSource = GetRegister8Address(*m_register.PC++);
 	*pDestination = *pSource;
+	m_tstate += 4;
 }
+
+//=============================================================================
 
 void CZ80::ImplementLDrn(void)
 {
@@ -56,9 +70,13 @@ void CZ80::ImplementLDrn(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						7 (4,3)						1.75
 	//
-	uint8* pDestination = DecodeRegister(*m_register.PC++ >> 3);
+	m_register.R |= ((m_register.R + 1) & 0x7F);
+	uint8* pDestination = GetRegister8Address(*m_register.PC++ >> 3);
 	*pDestination = *m_register.PC++;
+	m_tstate += 7;
 }
+
+//=============================================================================
 
 void CZ80::ImplementLDrHL(void)
 {
@@ -82,10 +100,14 @@ void CZ80::ImplementLDrHL(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						7 (4,3)						1.75
 	//
-	uint8* pDestination = DecodeRegister(*m_register.PC >> 3);
-	uint8* pSource = DecodeRegister(*m_register.PC++);
+	m_register.R |= ((m_register.R + 1) & 0x7F);
+	uint8* pDestination = GetRegister8Address(*m_register.PC >> 3);
+	uint8* pSource = GetRegister8Address(*m_register.PC++);
 	*pDestination = *pSource;
+	m_tstate += 7;
 }
+
+//=============================================================================
 
 void CZ80::ImplementLDrIXd(void)
 {
@@ -113,10 +135,14 @@ void CZ80::ImplementLDrIXd(void)
 	//							M Cycles		T States					MHz E.T.
 	//								5						19 (4,4,3,5,3)		4.75
 	//
-	uint8* pDestination = DecodeRegister(*++m_register.PC++ >> 3);
+	m_register.R |= ((m_register.R + 2) & 0x7F);
+	uint8* pDestination = GetRegister8Address(*(++m_register.PC)++ >> 3);
 	uint8* pSource = static_cast<uint8*>(m_register.IX + *m_register.PC++);
 	*pDestination = *pSource;
+	m_tstate += 19;
 }
+
+//=============================================================================
 
 void CZ80::ImplementLDrIYd(void)
 {
@@ -144,10 +170,14 @@ void CZ80::ImplementLDrIYd(void)
 	//							M Cycles		T States					MHz E.T.
 	//								5						19 (4,4,3,5,3)		4.75
 	//
-	uint8* pDestination = DecodeRegister(*++m_register.PC++ >> 3);
+	m_register.R |= ((m_register.R + 2) & 0x7F);
+	uint8* pDestination = GetRegister8Address(*(++m_register.PC)++ >> 3);
 	uint8* pSource = static_cast<uint8*>(m_register.IY + *m_register.PC++);
 	*pDestination = *pSource;
+	m_tstate += 19;
 }
+
+//=============================================================================
 
 void CZ80::ImplementLDHLr(void)
 {
@@ -171,10 +201,14 @@ void CZ80::ImplementLDHLr(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						7 (4,3)						1.75
 	//
+	m_register.R |= ((m_register.R + 1) & 0x7F);
 	uint8* pDestination = (static_cast<uint16>(m_register.H) << 0x100) | m_register.L;
-	uint8* pSource = DecodeRegister(*m_register.PC++);
+	uint8* pSource = GetRegister8Address(*m_register.PC++);
 	*pDestination = *pSource;
+	m_tstate += 7;
 }
+
+//=============================================================================
 
 void CZ80::ImplementLDIXdr(void)
 {
@@ -202,10 +236,14 @@ void CZ80::ImplementLDIXdr(void)
 	//							M Cycles		T States					MHz E.T.
 	//								5						19 (4,4,3,5,3)		4.75
 	//
-	uint8* pSource = DecodeRegister(*++m_register.PC++ >> 3);
+	m_register.R |= ((m_register.R + 2) & 0x7F);
+	uint8* pSource = GetRegister8Address(*(++m_register.PC)++ >> 3);
 	uint8* pDestination = static_cast<uint8*>(m_register.IX + *m_register.PC++);
 	*pDestination = *pSource;
+	m_tstate += 19;
 }
+
+//=============================================================================
 
 void CZ80::ImplementLDIYdr(void)
 {
@@ -233,10 +271,14 @@ void CZ80::ImplementLDIYdr(void)
 	//							M Cycles		T States					MHz E.T.
 	//								5						19 (4,4,3,5,3)		4.75
 	//
-	uint8* pSource = DecodeRegister(*++m_register.PC++ >> 3);
+	m_register.R |= ((m_register.R + 2) & 0x7F);
+	uint8* pSource = GetRegister8Address(*(++m_register.PC)++ >> 3);
 	uint8* pDestination = static_cast<uint8*>(m_register.IY + *m_register.PC++);
 	*pDestination = *pSource;
+	m_tstate += 19;
 }
+
+//=============================================================================
 
 void CZ80::ImplementLDHLn(void)
 {
@@ -253,9 +295,13 @@ void CZ80::ImplementLDHLn(void)
 	//							M Cycles		T States					MHz E.T.
 	//								3						10 (4,3,3)				2.50
 	//
+	m_register.R |= ((m_register.R + 1) & 0x7F);
 	uint8* pDestination = (static_cast<uint16>(m_register.H) << 0x100) | m_register.L;
-	*pDestination = *++m_register.PC++;
+	*pDestination = *(++m_register.PC)++;
+	m_tstate += 10;
 }
+
+//=============================================================================
 
 void CZ80::ImplementLDIXdn(void)
 {
@@ -276,10 +322,14 @@ void CZ80::ImplementLDIXdn(void)
 	//							M Cycles		T States					MHz E.T.
 	//								5						19 (4,4,3,5,3)		4.75
 	//
-	m_register.PC += 2;
+	m_register.R |= ((m_register.R + 2) & 0x7F);
+	++++m_register.PC;
 	uint8* pDestination = static_cast<uint8*>(m_register.IX + *m_register.PC++);
 	*pDestination = *m_register.PC++;
+	m_tstate += 19;
 }
+
+//=============================================================================
 
 void CZ80::ImplementLDIYdn(void)
 {
@@ -300,10 +350,14 @@ void CZ80::ImplementLDIYdn(void)
 	//							M Cycles		T States					MHz E.T.
 	//								5						19 (4,4,3,5,3)		4.75
 	//
-	m_register.PC += 2;
+	m_register.R |= ((m_register.R + 2) & 0x7F);
+	++++m_register.PC;
 	uint8* pDestination = static_cast<uint8*>(m_register.IY + *m_register.PC++);
 	*pDestination = *m_register.PC++;
+	m_tstate += 19;
 }
+
+//=============================================================================
 
 void CZ80::ImplementLDABC(void)
 {
@@ -318,10 +372,14 @@ void CZ80::ImplementLDABC(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						7 (4,3)						1.75
 	//
+	m_register.R |= ((m_register.R + 1) & 0x7F);
 	uint8* pSource = (static_cast<uint16>(m_register.B) << 0x100) | m_register.C;
 	m_register.A = *pSource;
 	++m_register.PC; 
+	m_tstate += 7;
 }
+
+//=============================================================================
 
 void CZ80::ImplementLDADE(void)
 {
@@ -336,12 +394,16 @@ void CZ80::ImplementLDADE(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						7 (4,3)						1.75
 	//
+	m_register.R |= ((m_register.R + 1) & 0x7F);
 	uint8* pSource = (static_cast<uint16>(m_register.D) << 0x100) | m_register.E;
 	m_register.A = *pSource;
 	++m_register.PC; 
+	m_tstate += 7;
 }
 
-void CZ80::ImplementLDAnn(void)
+//=============================================================================
+
+void CZ80::ImplementLDA_nn_(void)
 {
 	//
 	// Operation:	A, <- (nn)
@@ -358,10 +420,15 @@ void CZ80::ImplementLDAnn(void)
 	//							M Cycles		T States					MHz E.T.
 	//								4						13 (4,3,3,3)			3.25
 	//
-	uint8* pSource = (static_cast<uint16>(*(m_register.PC + 2) << 0x100)) | *(m_register.PC + 1);
+	m_register.R |= ((m_register.R + 1) & 0x7F);
+	++m_register.PC;
+	uint8* pSource = (static_cast<uint16>(*(m_register.PC + 1) << 0x100)) | *m_register.PC;
 	m_register.A = *pSource;
-	m_register.PC += 3;
+	++++m_register.PC;
+	m_tstate += 13;
 }
+
+//=============================================================================
 
 void CZ80::ImplementLDBCA(void)
 {
@@ -376,10 +443,14 @@ void CZ80::ImplementLDBCA(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						7 (4,3)						1.75
 	//
+	m_register.R |= ((m_register.R + 1) & 0x7F);
 	uint8* pDestination = (static_cast<uint16>(m_register.B) << 0x100) | m_register.C;
 	*pDestination = m_register.A;
 	++m_register.PC; 
+	m_tstate += 7;
 }
+
+//=============================================================================
 
 void CZ80::ImplementLDDEA(void)
 {
@@ -394,12 +465,16 @@ void CZ80::ImplementLDDEA(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						7 (4,3)						1.75
 	//
+	m_register.R |= ((m_register.R + 1) & 0x7F);
 	uint8* pDestination = (static_cast<uint16>(m_register.D) << 0x100) | m_register.E;
 	*pDestination = m_register.A;
 	++m_register.PC; 
+	m_tstate += 7;
 }
 
-void CZ80::ImplementLDnnA(void)
+//=============================================================================
+
+void CZ80::ImplementLD_nn_A(void)
 {
 	//
 	// Operation:	(nn), <- A
@@ -416,10 +491,14 @@ void CZ80::ImplementLDnnA(void)
 	//							M Cycles		T States					MHz E.T.
 	//								4						13 (4,3,3,3)			3.25
 	//
+	m_register.R |= ((m_register.R + 1) & 0x7F);
 	uint8* pDestination = static_cast<uint16>(*(pAddress + 2) << 0x100) | *(pAddress + 1);
 	*pDestination = m_register.A;
 	++m_register.PC; 
+	m_tstate += 13;
 }
+
+//=============================================================================
 
 void CZ80::ImplementLDAI(void)
 {
@@ -436,11 +515,15 @@ void CZ80::ImplementLDAI(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						9 (4,5)						2.25
 	//
+	m_register.R |= ((m_register.R + 2) & 0x7F);
 	m_register.A = m_register.I;
 	m_register.F &= ~(eF_S | eF_Z | eF_H | eF_N);
 	m_register.F |= (m_register.A & eF_S) | (eF_Z & (m_register.A == 0)) | (eF_PV & IFF2);
-	m_register.PC += 2;
+	++++m_register.PC;
+	m_tstate += 9;
 }
+
+//=============================================================================
 
 void CZ80::ImplementLDAR(void)
 {
@@ -457,11 +540,16 @@ void CZ80::ImplementLDAR(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						9 (4,5)						2.25
 	//
+	m_register.R |= ((m_register.R + 2) & 0x7F);
+	m_register.A = m_register.I;
 	m_register.A = m_register.R;
 	m_register.F &= ~(eF_S | eF_Z | eF_H | eF_N);
 	m_register.F |= (m_register.A & eF_S) | (eF_Z & (m_register.A == 0)) | (eF_PV & IFF2);
-	m_register.PC += 2;
+	++++m_register.PC;
+	m_tstate += 9;
 }
+
+//=============================================================================
 
 void CZ80::ImplementLDIA(void)
 {
@@ -478,9 +566,13 @@ void CZ80::ImplementLDIA(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						9 (4,5)						2.25
 	//
+	m_register.R |= ((m_register.R + 2) & 0x7F);
 	m_register.I = m_register.A;
-	m_register.PC += 2;
+	++++m_register.PC;
+	m_tstate += 9;
 }
+
+//=============================================================================
 
 void CZ80::ImplementLDRA(void)
 {
@@ -497,10 +589,208 @@ void CZ80::ImplementLDRA(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						9 (4,5)						2.25
 	//
-	m_register.A = m_register.R;
-	m_register.PC += 2;
+	m_register.R |= ((m_register.R + 2) & 0x7F);
+	m_register.R = m_register.A;
+	++++m_register.PC;
+	m_tstate += 9;
 }
 
+//=============================================================================
+
+//-----------------------------------------------------------------------------
+//	16-Bit Load Group
+//-----------------------------------------------------------------------------
+
+//=============================================================================
+
+void CZ80::ImplementLDddnn(void)
+{
+	//
+	// Operation:	dd, <- nn
+	// Op Code:		LD
+	// Operands:	dd, nn
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|0|d|d|0|0|0|1|
+	//						+-+-+-+-+-+-+-+-+
+	//						|n|n|n|n|n|n|n|n|
+	//						+-+-+-+-+-+-+-+-+
+	//						|n|n|n|n|n|n|n|n|
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//						where dd is any of:
+	//								BC					00
+	//								DE					01
+	//								HL					10
+	//								SP					11
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								3						10 (4,3,3)				2.50
+	//
+	m_register.R |= ((m_register.R + 1) & 0x7F);
+	*GetRegister16Address(m_register.PC >> 4, false) = *(++m_register.PC);
+	*GetRegister16Address(m_register.PC >> 4, true) = *(++m_register.PC)++;
+	m_tstate += 10;
+}
+
+//=============================================================================
+
+void CZ80::ImplementLDIXnn(void)
+{
+	//
+	// Operation:	IX, <- nn
+	// Op Code:		LD
+	// Operands:	IX, nn
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|1|1|1|0|1| DD
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|0|1|0|0|0|0|1| 21
+	//						+-+-+-+-+-+-+-+-+
+	//						|n|n|n|n|n|n|n|n|
+	//						+-+-+-+-+-+-+-+-+
+	//						|n|n|n|n|n|n|n|n|
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								4						14 (4,4,3,3)			3.50
+	//
+	m_register.R |= ((m_register.R + 2) & 0x7F);
+	++++m_register.PC;
+	m_register.IX = (static_cast<uint16>(*(m_register.PC + 1) << 0x100)) | *m_register.PC;
+	++++m_register.PC;
+	m_tstate += 14;
+}
+
+//=============================================================================
+
+void CZ80::ImplementLDIYnn(void)
+{
+	//
+	// Operation:	IY, <- nn
+	// Op Code:		LD
+	// Operands:	IY, nn
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|1|1|1|0|1| FD
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|0|1|0|0|0|0|1| 21
+	//						+-+-+-+-+-+-+-+-+
+	//						|n|n|n|n|n|n|n|n|
+	//						+-+-+-+-+-+-+-+-+
+	//						|n|n|n|n|n|n|n|n|
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								4						14 (4,4,3,3)			3.50
+	//
+	m_register.R |= ((m_register.R + 2) & 0x7F);
+	++++m_register.PC;
+	m_register.IY = (static_cast<uint16>(*(m_register.PC + 1) << 0x100)) | *m_register.PC;
+	++++m_register.PC;
+	m_tstate += 14;
+}
+
+//=============================================================================
+
+void CZ80::ImplementLDHL_nn_(void)
+{
+}
+
+//=============================================================================
+
+void CZ80::ImplementLDdd_nn_(void)
+{
+}
+
+//=============================================================================
+
+void CZ80::ImplementLDIX_nn_(void)
+{
+}
+
+//=============================================================================
+
+void CZ80::ImplementLDIY_nn_(void)
+{
+}
+
+//=============================================================================
+
+void CZ80::ImplementLD_nn_HL(void)
+{
+}
+
+//=============================================================================
+
+void CZ80::ImplementLD_nn_dd(void)
+{
+}
+
+//=============================================================================
+
+void CZ80::ImplementLD_nn_IX(void)
+{
+}
+
+//=============================================================================
+
+void CZ80::ImplementLD_nn_IY(void)
+{
+}
+
+//=============================================================================
+
+void CZ80::ImplementLDSPHL(void)
+{
+}
+
+//=============================================================================
+
+void CZ80::ImplementLDSPIX(void)
+{
+}
+
+//=============================================================================
+
+void CZ80::ImplementLDSPIY(void)
+{
+}
+
+//=============================================================================
+
+void CZ80::ImplementPUSHqq(void)
+{
+}
+
+//=============================================================================
+
+void CZ80::ImplementPUSHIX(void)
+{
+}
+
+//=============================================================================
+
+void CZ80::ImplementPUSHIY(void)
+{
+}
+
+//=============================================================================
+
+void CZ80::ImplementPOPqq(void)
+{
+}
+
+//=============================================================================
+
+void CZ80::ImplementPOPIX(void)
+{
+}
+
+//=============================================================================
+
+void CZ80::ImplementPOPIY(void)
+{
+}
+
+//=============================================================================
 
 
 
@@ -521,107 +811,169 @@ void CZ80::ImplementLDRA(void)
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//-----------------------------------------------------------------------------
+//	8-Bit Load Group
+//-----------------------------------------------------------------------------
+
+//=============================================================================
 
 void CZ80::DecodeLD(const uint8* pAddress, char* pMnemonic)
 {
-	sprintf(pMnemonic, "LD %s,%s", DecodeRegister(*pAddress >> 3), DecodeRegister(*(pAddress + 1)));
+	sprintf(pMnemonic, "LD %s,%s", GetRegister8String(*pAddress >> 3), GetRegister8String(*(pAddress + 1)));
 }
+
+//=============================================================================
 
 void CZ80::DecodeLDn(const uint8* pAddress, char* pMnemonic)
 {
-	sprintf(pMnemonic, "LD %s,%d", DecodeRegister(*pAddress >> 3), *(pAddress + 1));
+	sprintf(pMnemonic, "LD %s,%d", GetRegister8String(*pAddress >> 3), *(pAddress + 1));
 }
+
+//=============================================================================
 
 void CZ80::DecodeLDrIXd(const uint8* pAddress, char* pMnemonic)
 {
-	sprintf(pMnemonic, "LD %s,(IX+%d)", DecodeRegister(*(pAddress + 1) >> 3), *(pAddress + 2));
+	sprintf(pMnemonic, "LD %s,(IX+%d)", GetRegister8String(*(pAddress + 1) >> 3), *(pAddress + 2));
 }
+
+//=============================================================================
 
 void CZ80::DecodeLDrIYd(const uint8* pAddress, char* pMnemonic)
 {
-	sprintf(pMnemonic, "LD %s,(IY+%d)", DecodeRegister(*(pAddress + 1) >> 3), *(pAddress + 2));
+	sprintf(pMnemonic, "LD %s,(IY+%d)", GetRegister8String(*(pAddress + 1) >> 3), *(pAddress + 2));
 }
+
+//=============================================================================
 
 void CZ80::DecodeLDHLr(const uint8* pAddress, char* pMnemonic)
 {
-	sprintf(pMnemonic, "LD (HL),%s", DecodeRegister(*pAddress));
+	sprintf(pMnemonic, "LD (HL),%s", GetRegister8String(*pAddress));
 }
+
+//=============================================================================
 
 void CZ80::DecodeLDIXdr(const uint8* pAddress, char* pMnemonic)
 {
-	sprintf(pMnemonic, "LD (IX+%d),%s", *(pAddress + 2), DecodeRegister(*(pAddress + 1) >> 3));
+	sprintf(pMnemonic, "LD (IX+%d),%s", *(pAddress + 2), GetRegister8String(*(pAddress + 1) >> 3));
 }
+
+//=============================================================================
 
 void CZ80::DecodeLDIYdr(const uint8* pAddress, char* pMnemonic)
 {
-	sprintf(pMnemonic, "LD (IY+%d),%s", *(pAddress + 2), DecodeRegister(*(pAddress + 1) >> 3));
+	sprintf(pMnemonic, "LD (IY+%d),%s", *(pAddress + 2), GetRegister8String(*(pAddress + 1) >> 3));
 }
+
+//=============================================================================
 
 void CZ80::DecodeLDHLn(const uint8* pAddress, char* pMnemonic)
 {
 	sprintf(pMnemonic, "LD (HL),%d", *(pAddress + 1));
 }
 
+//=============================================================================
+
 void CZ80::DecodeLDIXdn(const uint8* pAddress, char* pMnemonic)
 {
 	sprintf(pMnemonic, "LD (IX+%d),%d", *(pAddress + 2), *(pAddress + 3));
 }
+
+//=============================================================================
 
 void CZ80::DecodeLDIYdn(const uint8* pAddress, char* pMnemonic)
 {
 	sprintf(pMnemonic, "LD (IY+%d),%d", *(pAddress + 2), *(pAddress + 3));
 }
 
+//=============================================================================
+
 void CZ80::DecodeLDABC(const uint8* pAddress, char* pMnemonic)
 {
 	sprintf(pMnemonic, "LD A,(BC)");
 }
+
+//=============================================================================
 
 void CZ80::DecodeLDADE(const uint8* pAddress, char* pMnemonic)
 {
 	sprintf(pMnemonic, "LD A,(DE)");
 }
 
-void CZ80::DecodeLDAnn(const uint8* pAddress, char* pMnemonic)
+//=============================================================================
+
+void CZ80::DecodeLDA_nn_(const uint8* pAddress, char* pMnemonic)
 {
 	sprintf(pMnemonic, "LD A,(%d)", static_cast<uint16>(*(pAddress + 2) << 0x100) | *(pAddress + 1));
 }
+
+//=============================================================================
 
 void CZ80::DecodeLDBCA(const uint8* pAddress, char* pMnemonic)
 {
 	sprintf(pMnemonic, "LD (BC),A");
 }
 
+//=============================================================================
+
 void CZ80::DecodeLDDEA(const uint8* pAddress, char* pMnemonic)
 {
 	sprintf(pMnemonic, "LD (DE),A");
 }
 
-void CZ80::DecodeLDnnA(const uint8* pAddress, char* pMnemonic)
+//=============================================================================
+
+void CZ80::DecodeLD_nn_A(const uint8* pAddress, char* pMnemonic)
 {
 	sprintf(pMnemonic, "LD (%d),A", static_cast<uint16>(*(pAddress + 2) << 0x100) | *(pAddress + 1));
 }
+
+//=============================================================================
 
 void CZ80::DecodeLDAI(const uint8* pAddress, char* pMnemonic)
 {
 	sprintf(pMnemonic, "LD A,I");
 }
 
+//=============================================================================
+
 void CZ80::DecodeLDAR(const uint8* pAddress, char* pMnemonic)
 {
 	sprintf(pMnemonic, "LD A,R");
 }
+
+//=============================================================================
 
 void CZ80::DecodeLDIA(const uint8* pAddress, char* pMnemonic)
 {
 	sprintf(pMnemonic, "LD I,A");
 }
 
+//=============================================================================
+
 void CZ80::DecodeLDRA(const uint8* pAddress, char* pMnemonic)
 {
 	sprintf(pMnemonic, "LD R,A");
 }
 
+//=============================================================================
+
+//-----------------------------------------------------------------------------
+//	16-Bit Load Group
+//-----------------------------------------------------------------------------
 
 
 
@@ -636,189 +988,26 @@ void CZ80::DecodeLDRA(const uint8* pAddress, char* pMnemonic)
 
 
 
-void CZ80::ImplementINC(void)
-{
-	// TODO: Flags
-	uint8* pDestination = DecodeRegister(*m_register.PC >> 3);
-	++*pDestination;
-}
 
-void CZ80::DecodeINC(void* pAddress, char* pMnemonic)
-{
-	*pMnemonic++ = 'I';
-	*pMnemonic++ = 'N';
-	*pMnemonic++ = 'C';
-	*pMnemonic++ = ' ';
-	DecodeRegister(*pAddress >> 3);
-}
 
-void CZ80::ImplementDEC(void)
-{
-	// TODO: Flags
-	uint8* pDestination = DecodeRegister(*m_register.PC >> 3);
-	--*pDestination;
-}
 
-void CZ80::DecodeDEC(void* pAddress, char* pMnemonic)
-{
-	*pMnemonic++ = 'D';
-	*pMnemonic++ = 'E';
-	*pMnemonic++ = 'C';
-	*pMnemonic++ = ' ';
-	DecodeRegister(*pAddress >> 3);
-}
 
-void CZ80::ImplementADD(void)
-{
-	// TODO: Flags
-	uint8* pSource = DecodeAddress(*m_register.PC);
-	m_register.A += *pSource;
-}
 
-void CZ80::DecodeADD(void* pAddress, char* pMnemonic)
-{
-	*pMnemonic++ = 'A';
-	*pMnemonic++ = 'D';
-	*pMnemonic++ = 'D';
-	*pMnemonic++ = ' ';
-	*pMnemonic++ = 'A';
-	*pMnemonic++ = ',';
-	DecodeRegister(*pAddress);
-}
 
-void CZ80::ImplementADC(void)
-{
-	// TODO: Flags
-	uint8* pSource = DecodeAddress(*m_register.PC);
-	m_register.A += *pSource;
-}
 
-void CZ80::DecodeADC(void* pAddress, char* pMnemonic)
-{
-	*pMnemonic++ = 'A';
-	*pMnemonic++ = 'D';
-	*pMnemonic++ = 'C';
-	*pMnemonic++ = ' ';
-	*pMnemonic++ = 'A';
-	*pMnemonic++ = ',';
-	DecodeRegister(*pAddress);
-}
 
-void CZ80::ImplementSUB(void)
-{
-	// TODO: Flags
-	uint8* pSource = DecodeAddress(*m_register.PC);
-	m_register.A -= *pSource;
-}
 
-void CZ80::DecodeSUB(void* pAddress, char* pMnemonic)
-{
-	*pMnemonic++ = 'S';
-	*pMnemonic++ = 'U';
-	*pMnemonic++ = 'B';
-	*pMnemonic++ = ' ';
-	*pMnemonic++ = 'A';
-	*pMnemonic++ = ',';
-	DecodeRegister(*pAddress);
-}
 
-void CZ80::ImplementSBC(void)
-{
-	// TODO: Flags
-	uint8* pSource = DecodeAddress(*m_register.PC);
-	m_register.A -= *pSource;
-}
 
-void CZ80::DecodeSBC(void* pAddress, char* pMnemonic)
-{
-	*pMnemonic++ = 'S';
-	*pMnemonic++ = 'B';
-	*pMnemonic++ = 'C';
-	*pMnemonic++ = ' ';
-	*pMnemonic++ = 'A';
-	*pMnemonic++ = ',';
-	DecodeRegister(*pAddress);
-}
 
-void CZ80::ImplementAND(void)
-{
-	// TODO: Flags
-	uint8* pSource = DecodeAddress(*m_register.PC);
-	m_register.A &= *pSource;
-}
 
-void CZ80::DecodeAND(void)
-{
-	*pMnemonic++ = 'A';
-	*pMnemonic++ = 'N';
-	*pMnemonic++ = 'D';
-	*pMnemonic++ = ' ';
-	DecodeRegister(*pAddress);
-}
+//=============================================================================
 
-void CZ80::ImplementXOR(void)
-{
-	// TODO: Flags
-	uint8* pSource = DecodeAddress(*m_register.PC);
-	m_register.A ^= *pSource;
-}
-
-void CZ80::DecodeXOR(void)
-{
-	*pMnemonic++ = 'X';
-	*pMnemonic++ = 'O';
-	*pMnemonic++ = 'R';
-	*pMnemonic++ = ' ';
-	DecodeRegister(*pAddress);
-}
-
-void CZ80::ImplementOR(void)
-{
-	// TODO: Flags
-	uint8* pSource = DecodeAddress(*m_register.PC);
-	m_register.A |= *pSource;
-}
-
-void CZ80::DecodeOR(void)
-{
-	*pMnemonic++ = 'O';
-	*pMnemonic++ = 'R';
-	*pMnemonic++ = ' ';
-	DecodeRegister(*pAddress);
-}
-
-void CZ80::ImplementCP(void)
-{
-	// TODO: Flags
-	//	uint8* pSource = DecodeAddress(*m_register.PC);
-	//	m_register.A |= *pSource;
-}
-
-void CZ80::DecodeCP(void)
-{
-	*pMnemonic++ = 'C';
-	*pMnemonic++ = 'P';
-	*pMnemonic++ = ' ';
-	DecodeRegister(*pAddress);
-}
-
-void CZ80::ImplementHALT(void)
-{
-}
-
-void CZ80::DecodeHALT(void* pAddress, char* pMnemonic)
-{
-	*pMnemonic++ = 'H';
-	*pMnemonic++ = 'A';
-	*pMnemonic++ = 'L';
-	*pMnemonic++ = 'T';
-}
-
-uint8* DecodeRegister(uint8 threeBits)
+uint8* GetRegister8Address(uint8 threeBits)
 {
 	uint8* pAddress = NULL;
 
-	switch (threeBits)
+	switch (threeBits & 0x07)
 	{
 		case 0: pAddress = &m_register.B; break;
 		case 1: pAddress = &m_register.C; break;
@@ -834,9 +1023,11 @@ uint8* DecodeRegister(uint8 threeBits)
 	return pAddress;
 }
 
-const char* DecodeRegister(uint8 threeBits, char* pMnemonic)
+//=============================================================================
+
+const char* GetRegister8String(uint8 threeBits)
 {
-	switch (threeBits)
+	switch (threeBits & 0x07)
 	{
 		case 0: return "B";			break;
 		case 1: return "C";			break;
@@ -850,12 +1041,39 @@ const char* DecodeRegister(uint8 threeBits, char* pMnemonic)
 	}
 }
 
-bool CZ80::Execute(void)
-{
+//=============================================================================
 
-	return true;
+uint8* GetRegister16Address(uint8 twoBits, bool high)
+{
+	uint8* pAddress = NULL;
+
+	switch (twoBits & 0x03)
+	{
+		case 0: pAddress = (high) ? &m_register.B : &m_register.C; break;
+		case 1: pAddress = (high) ? &m_register.D : &m_register.E; break;
+		case 2: pAddress = (high) ? &m_register.H : &m_register.L; break;
+		case 3: pAddress = (high) ? &m_register.S : &m_register.P; break;
+		default: break;
+	}
+
+	return pAddress;
 }
 
+//=============================================================================
+
+const char* DecodeRegister16(uint8 twoBits)
+{
+	switch (twoBits & 0x03)
+	{
+		case 0: return "BC";		break;
+		case 1: return "DE";		break;
+		case 2: return "HL";		break;
+		case 3: return "SP";		break;
+		default: break;
+	}
+}
+
+//=============================================================================
 
 /*
 	 Z80 Instruction Set

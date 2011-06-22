@@ -43,6 +43,8 @@ class CZ80
 			uint16 HL_;
 		} m_register;
 
+		uint32 m_tstate;
+
 	private:
 
 };
