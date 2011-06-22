@@ -21,6 +21,8 @@ class CZ80
 			// N.B. The only way to read XF, YF and NF is PUSH AF
 		};
 
+		// TODO: Define a union for uint16 and 2x uint8 to describe a register
+
 		struct SRegisters
 		{
 			uint8 A;

@@ -18,7 +18,7 @@
 void CZ80::ImplementLDrr(void)
 {
 	//
-	// Operation:	r, <- r'
+	// Operation:	r <- r'
 	// Op Code:		LD
 	// Operands:	r, r'
 	//						+-+-+-+-+-+-+-+-+
@@ -49,7 +49,7 @@ void CZ80::ImplementLDrr(void)
 void CZ80::ImplementLDrn(void)
 {
 	//
-	// Operation:	r, <- n
+	// Operation:	r <- n
 	// Op Code:		LD
 	// Operands:	r, n
 	//						+-+-+-+-+-+-+-+-+
@@ -81,7 +81,7 @@ void CZ80::ImplementLDrn(void)
 void CZ80::ImplementLDrHL(void)
 {
 	//
-	// Operation:	r, <- (HL)
+	// Operation:	r <- (HL)
 	// Op Code:		LD
 	// Operands:	r, (HL) 
 	//						+-+-+-+-+-+-+-+-+
@@ -112,7 +112,7 @@ void CZ80::ImplementLDrHL(void)
 void CZ80::ImplementLDrIXd(void)
 {
 	//
-	// Operation:	r, <- (IX+d)
+	// Operation:	r <- (IX+d)
 	// Op Code:		LD
 	// Operands:	r, (IX+d) 
 	//						+-+-+-+-+-+-+-+-+
@@ -147,7 +147,7 @@ void CZ80::ImplementLDrIXd(void)
 void CZ80::ImplementLDrIYd(void)
 {
 	//
-	// Operation:	r, <- (IY+d)
+	// Operation:	r <- (IY+d)
 	// Op Code:		LD
 	// Operands:	r, (IY+d) 
 	//						+-+-+-+-+-+-+-+-+
@@ -182,7 +182,7 @@ void CZ80::ImplementLDrIYd(void)
 void CZ80::ImplementLDHLr(void)
 {
 	//
-	// Operation:	(HL), <- r
+	// Operation:	(HL) <- r
 	// Op Code:		LD
 	// Operands:	(HL), r
 	//						+-+-+-+-+-+-+-+-+
@@ -213,7 +213,7 @@ void CZ80::ImplementLDHLr(void)
 void CZ80::ImplementLDIXdr(void)
 {
 	//
-	// Operation:	(IX+d), <- r
+	// Operation:	(IX+d) <- r
 	// Op Code:		LD
 	// Operands:	(IX+d), r
 	//						+-+-+-+-+-+-+-+-+
@@ -248,7 +248,7 @@ void CZ80::ImplementLDIXdr(void)
 void CZ80::ImplementLDIYdr(void)
 {
 	//
-	// Operation:	(IY+d), <- r
+	// Operation:	(IY+d) <- r
 	// Op Code:		LD
 	// Operands:	(IY+d), r
 	//						+-+-+-+-+-+-+-+-+
@@ -283,7 +283,7 @@ void CZ80::ImplementLDIYdr(void)
 void CZ80::ImplementLDHLn(void)
 {
 	//
-	// Operation:	(HL), <- n
+	// Operation:	(HL) <- n
 	// Op Code:		LD
 	// Operands:	(HL), n
 	//						+-+-+-+-+-+-+-+-+
@@ -306,7 +306,7 @@ void CZ80::ImplementLDHLn(void)
 void CZ80::ImplementLDIXdn(void)
 {
 	//
-	// Operation:	(IX+d), <- n
+	// Operation:	(IX+d) <- n
 	// Op Code:		LD
 	// Operands:	(IX+d), n
 	//						+-+-+-+-+-+-+-+-+
@@ -334,7 +334,7 @@ void CZ80::ImplementLDIXdn(void)
 void CZ80::ImplementLDIYdn(void)
 {
 	//
-	// Operation:	(IY+d), <- n
+	// Operation:	(IY+d) <- n
 	// Op Code:		LD
 	// Operands:	(IY+d), n
 	//						+-+-+-+-+-+-+-+-+
@@ -362,7 +362,7 @@ void CZ80::ImplementLDIYdn(void)
 void CZ80::ImplementLDABC(void)
 {
 	//
-	// Operation:	A, <- (BC)
+	// Operation:	A <- (BC)
 	// Op Code:		LD
 	// Operands:	A, (BC) 
 	//						+-+-+-+-+-+-+-+-+
@@ -384,7 +384,7 @@ void CZ80::ImplementLDABC(void)
 void CZ80::ImplementLDADE(void)
 {
 	//
-	// Operation:	A, <- (DE)
+	// Operation:	A <- (DE)
 	// Op Code:		LD
 	// Operands:	A, (DE) 
 	//						+-+-+-+-+-+-+-+-+
@@ -406,7 +406,7 @@ void CZ80::ImplementLDADE(void)
 void CZ80::ImplementLDA_nn_(void)
 {
 	//
-	// Operation:	A, <- (nn)
+	// Operation:	A <- (nn)
 	// Op Code:		LD
 	// Operands:	A, (nn) 
 	//						+-+-+-+-+-+-+-+-+
@@ -433,7 +433,7 @@ void CZ80::ImplementLDA_nn_(void)
 void CZ80::ImplementLDBCA(void)
 {
 	//
-	// Operation:	(BC), <- A
+	// Operation:	(BC) <- A
 	// Op Code:		LD
 	// Operands:	(BC), A
 	//						+-+-+-+-+-+-+-+-+
@@ -455,7 +455,7 @@ void CZ80::ImplementLDBCA(void)
 void CZ80::ImplementLDDEA(void)
 {
 	//
-	// Operation:	(DE), <- A
+	// Operation:	(DE) <- A
 	// Op Code:		LD
 	// Operands:	(DE), A
 	//						+-+-+-+-+-+-+-+-+
@@ -477,7 +477,7 @@ void CZ80::ImplementLDDEA(void)
 void CZ80::ImplementLD_nn_A(void)
 {
 	//
-	// Operation:	(nn), <- A
+	// Operation:	(nn) <- A
 	// Op Code:		LD
 	// Operands:	(nn), A
 	//						+-+-+-+-+-+-+-+-+
@@ -503,7 +503,7 @@ void CZ80::ImplementLD_nn_A(void)
 void CZ80::ImplementLDAI(void)
 {
 	//
-	// Operation:	A, <- I
+	// Operation:	A <- I
 	// Op Code:		LD
 	// Operands:	A, I 
 	//						+-+-+-+-+-+-+-+-+
@@ -528,7 +528,7 @@ void CZ80::ImplementLDAI(void)
 void CZ80::ImplementLDAR(void)
 {
 	//
-	// Operation:	A, <- R
+	// Operation:	A <- R
 	// Op Code:		LD
 	// Operands:	A, R 
 	//						+-+-+-+-+-+-+-+-+
@@ -554,7 +554,7 @@ void CZ80::ImplementLDAR(void)
 void CZ80::ImplementLDIA(void)
 {
 	//
-	// Operation:	I, <- A
+	// Operation:	I <- A
 	// Op Code:		LD
 	// Operands:	I, A 
 	//						+-+-+-+-+-+-+-+-+
@@ -577,7 +577,7 @@ void CZ80::ImplementLDIA(void)
 void CZ80::ImplementLDRA(void)
 {
 	//
-	// Operation:	R, <- A
+	// Operation:	R <- A
 	// Op Code:		LD
 	// Operands:	R, A 
 	//						+-+-+-+-+-+-+-+-+
@@ -606,7 +606,7 @@ void CZ80::ImplementLDRA(void)
 void CZ80::ImplementLDddnn(void)
 {
 	//
-	// Operation:	dd, <- nn
+	// Operation:	dd <- nn
 	// Op Code:		LD
 	// Operands:	dd, nn
 	//						+-+-+-+-+-+-+-+-+
@@ -627,8 +627,9 @@ void CZ80::ImplementLDddnn(void)
 	//								3						10 (4,3,3)				2.50
 	//
 	m_register.R |= ((m_register.R + 1) & 0x7F);
-	*GetRegister16Address(m_register.PC >> 4, false) = *(++m_register.PC);
-	*GetRegister16Address(m_register.PC >> 4, true) = *(++m_register.PC)++;
+	uint8 opcode = *m_register.PC++;
+	*GetRegister16Address(opcode >> 4, false) = *m_register.PC++;
+	*GetRegister16Address(opcode >> 4, true) = *m_register.PC++;
 	m_tstate += 10;
 }
 
@@ -637,7 +638,7 @@ void CZ80::ImplementLDddnn(void)
 void CZ80::ImplementLDIXnn(void)
 {
 	//
-	// Operation:	IX, <- nn
+	// Operation:	IX <- nn
 	// Op Code:		LD
 	// Operands:	IX, nn
 	//						+-+-+-+-+-+-+-+-+
@@ -665,7 +666,7 @@ void CZ80::ImplementLDIXnn(void)
 void CZ80::ImplementLDIYnn(void)
 {
 	//
-	// Operation:	IY, <- nn
+	// Operation:	IY <- nn
 	// Op Code:		LD
 	// Operands:	IY, nn
 	//						+-+-+-+-+-+-+-+-+
@@ -692,103 +693,518 @@ void CZ80::ImplementLDIYnn(void)
 
 void CZ80::ImplementLDHL_nn_(void)
 {
+	// Operation:	H <- (nn+1), L <- (nn)
+	// Op Code:		LD
+	// Operands:	HL, (nn)
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|0|1|0|1|0|1|0| 2A
+	//						+-+-+-+-+-+-+-+-+
+	//						|n|n|n|n|n|n|n|n|
+	//						+-+-+-+-+-+-+-+-+
+	//						|n|n|n|n|n|n|n|n|
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								5						16 (4,3,3,3,3)		4.00
+	//
+	m_register.R |= ((m_register.R + 1) & 0x7F);
+	++m_register.PC;
+	uint8* pSource = (static_cast<uint16>(*(m_register.PC + 1) << 0x100)) | *m_register.PC;
+	m_register.L = *pSource++;
+	m_register.H = *pSource;
+	++++m_register.PC;
+	m_tstate += 16;
 }
 
 //=============================================================================
 
 void CZ80::ImplementLDdd_nn_(void)
 {
+	//
+	// Operation:	ddh <- (nn+1), ddl <- (nn)
+	// Op Code:		LD
+	// Operands:	dd, (nn)
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|0|1|1|0|1| ED
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|1|d|d|1|0|1|1|
+	//						+-+-+-+-+-+-+-+-+
+	//						|n|n|n|n|n|n|n|n|
+	//						+-+-+-+-+-+-+-+-+
+	//						|n|n|n|n|n|n|n|n|
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//						where dd is any of:
+	//								BC					00
+	//								DE					01
+	//								HL					10
+	//								SP					11
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								6						20 (4,4,3,3,3,3)	5.00
+	//
+	m_register.R |= ((m_register.R + 2) & 0x7F);
+	uint8 opcode = *(++m_register.PC)++;
+	uint8* pSource = (static_cast<uint16>(*(m_register.PC + 1) << 0x100)) | *m_register.PC;
+	*GetRegister16Address(opcode >> 4, false) = *pSource++;
+	*GetRegister16Address(opcode >> 4, true) = *pSource;
+	++++m_register.PC;
+	m_tstate += 20;
 }
 
 //=============================================================================
 
 void CZ80::ImplementLDIX_nn_(void)
 {
+	//
+	// Operation:	IXh <- (nn+1), IXl <- (nn)
+	// Op Code:		LD
+	// Operands:	IX, (nn)
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|1|1|1|0|1| DD
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|1|1|0|1|0|1|0| 2A
+	//						+-+-+-+-+-+-+-+-+
+	//						|n|n|n|n|n|n|n|n|
+	//						+-+-+-+-+-+-+-+-+
+	//						|n|n|n|n|n|n|n|n|
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								6						20 (4,4,3,3,3,3)	5.00
+	//
+	m_register.R |= ((m_register.R + 2) & 0x7F);
+	uint8 opcode = *(++m_register.PC)++;
+	uint8* pSource = (static_cast<uint16>(*(m_register.PC + 1) << 0x100)) | *m_register.PC;
+	m_register.IX = (static_cast<uint16>(*(pSource + 1) << 0x100)) | *pSource;
+	++++m_register.PC;
+	m_tstate += 20;
 }
 
 //=============================================================================
 
 void CZ80::ImplementLDIY_nn_(void)
 {
+	//
+	// Operation:	IYh <- (nn+1), IYl <- (nn)
+	// Op Code:		LD
+	// Operands:	IY, (nn)
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|1|1|1|0|1| FD
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|1|1|0|1|0|1|0| 2A
+	//						+-+-+-+-+-+-+-+-+
+	//						|n|n|n|n|n|n|n|n|
+	//						+-+-+-+-+-+-+-+-+
+	//						|n|n|n|n|n|n|n|n|
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								6						20 (4,4,3,3,3,3)	5.00
+	//
+	m_register.R |= ((m_register.R + 2) & 0x7F);
+	uint8 opcode = *(++m_register.PC)++;
+	uint8* pSource = (static_cast<uint16>(*(m_register.PC + 1) << 0x100)) | *m_register.PC;
+	m_register.IY = (static_cast<uint16>(*(pSource + 1) << 0x100)) | *pSource;
+	++++m_register.PC;
+	m_tstate += 20;
 }
 
 //=============================================================================
 
 void CZ80::ImplementLD_nn_HL(void)
 {
+	// Operation:	(nn+1) <- H, (nn) <- L
+	// Op Code:		LD
+	// Operands:	(nn), HL
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|0|1|0|0|0|1|0| 22
+	//						+-+-+-+-+-+-+-+-+
+	//						|n|n|n|n|n|n|n|n|
+	//						+-+-+-+-+-+-+-+-+
+	//						|n|n|n|n|n|n|n|n|
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								5						16 (4,3,3,3,3)		4.00
+	//
+	m_register.R |= ((m_register.R + 1) & 0x7F);
+	++m_register.PC;
+	uint8* pDestination = (static_cast<uint16>(*(m_register.PC + 1) << 0x100)) | *m_register.PC;
+	*pSource++ = m_register.L;
+	*pSource = m_register.H;
+	++++m_register.PC;
+	m_tstate += 16;
 }
 
 //=============================================================================
 
 void CZ80::ImplementLD_nn_dd(void)
 {
+	//
+	// Operation:	(nn+1) <- ddh, (nn) <- ddl
+	// Op Code:		LD
+	// Operands:	(nn), dd
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|0|1|1|0|1| ED
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|0|d|d|0|0|1|1|
+	//						+-+-+-+-+-+-+-+-+
+	//						|n|n|n|n|n|n|n|n|
+	//						+-+-+-+-+-+-+-+-+
+	//						|n|n|n|n|n|n|n|n|
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//						where dd is any of:
+	//								BC					00
+	//								DE					01
+	//								HL					10
+	//								SP					11
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								6						20 (4,4,3,3,3,3)	5.00
+	//
+	m_register.R |= ((m_register.R + 2) & 0x7F);
+	uint8 opcode = *(++m_register.PC)++;
+	uint8* pDestination = (static_cast<uint16>(*(m_register.PC + 1) << 0x100)) | *m_register.PC;
+	*pDestination = *GetRegister16Address(opcode >> 4, false);
+	*pDestination = *GetRegister16Address(opcode >> 4, true);
+	++++m_register.PC;
+	m_tstate += 20;
 }
 
 //=============================================================================
 
 void CZ80::ImplementLD_nn_IX(void)
 {
+	//
+	// Operation:	(nn+1) <- IXh, (nn) <- IXl
+	// Op Code:		LD
+	// Operands:	(nn), IX
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|1|1|1|0|1| DD
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|1|1|0|0|0|1|0| 22
+	//						+-+-+-+-+-+-+-+-+
+	//						|n|n|n|n|n|n|n|n|
+	//						+-+-+-+-+-+-+-+-+
+	//						|n|n|n|n|n|n|n|n|
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								6						20 (4,4,3,3,3,3)	5.00
+	//
+	m_register.R |= ((m_register.R + 2) & 0x7F);
+	uint8 opcode = *(++m_register.PC)++;
+	uint8* pDestination = (static_cast<uint16>(*(m_register.PC + 1) << 0x100)) | *m_register.PC;
+	*pDestination++ = m_register.IX & 0xFF;
+	*pDestination = m_register.IX >> 8;
+	++++m_register.PC;
+	m_tstate += 20;
 }
 
 //=============================================================================
 
 void CZ80::ImplementLD_nn_IY(void)
 {
+	//
+	// Operation:	(nn+1) <- IYh, (nn) <- IYl
+	// Op Code:		LD
+	// Operands:	(nn), IY
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|1|1|1|0|1| FD
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|1|1|0|0|0|1|0| 22
+	//						+-+-+-+-+-+-+-+-+
+	//						|n|n|n|n|n|n|n|n|
+	//						+-+-+-+-+-+-+-+-+
+	//						|n|n|n|n|n|n|n|n|
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								6						20 (4,4,3,3,3,3)	5.00
+	//
+	m_register.R |= ((m_register.R + 2) & 0x7F);
+	uint8 opcode = *(++m_register.PC)++;
+	uint8* pDestination = (static_cast<uint16>(*(m_register.PC + 1) << 0x100)) | *m_register.PC;
+	*pDestination++ = m_register.IY & 0xFF;
+	*pDestination = m_register.IY >> 8;
+	++++m_register.PC;
+	m_tstate += 20;
 }
 
 //=============================================================================
 
 void CZ80::ImplementLDSPHL(void)
 {
+	// Operation:	SP <- HL
+	// Op Code:		LD
+	// Operands:	SP, HL
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|1|1|0|0|1| F9
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								1						6									1.50
+	//
+	m_register.R |= ((m_register.R + 1) & 0x7F);
+	m_register.SP = (static_cast<uint16>(m_register.H) << 0x100) | m_register.L;
+	++m_register.PC;
+	m_tstate += 6;
 }
 
 //=============================================================================
 
 void CZ80::ImplementLDSPIX(void)
 {
+	// Operation:	SP <- IX
+	// Op Code:		LD
+	// Operands:	SP, IX
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|0|1|1|1|1|0|1| DD
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|1|1|0|0|1| F9
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								2						10 (4,6)					2.50
+	//
+	m_register.R |= ((m_register.R + 2) & 0x7F);
+	m_register.SP = m_register.IX;
+	++++m_register.PC;
+	m_tstate += 10;
 }
 
 //=============================================================================
 
 void CZ80::ImplementLDSPIY(void)
 {
+	// Operation:	SP <- IY
+	// Op Code:		LD
+	// Operands:	SP, IY
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|1|1|1|0|1| FD
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|1|1|0|0|1| F9
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								2						10 (4,6)					2.50
+	//
+	m_register.R |= ((m_register.R + 2) & 0x7F);
+	m_register.SP = m_register.IY;
+	++++m_register.PC;
+	m_tstate += 10;
 }
 
 //=============================================================================
 
 void CZ80::ImplementPUSHqq(void)
 {
+	// Operation:	(SP-2) <- qql, (SP-1) <- qqh
+	// Op Code:		PUSH
+	// Operands:	qq
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|q|q|0|1|0|1|
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//						where dd is any of:
+	//								BC					00
+	//								DE					01
+	//								HL					10
+	//								AF					11
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								3						11 (5,3,3)				2.75
+	//
+	m_register.R |= ((m_register.R + 1) & 0x7F);
+	*--m_register.SP = *GetRegister16Address(m_register.PC >> 4, true);
+	*--m_register.SP = *GetRegister16Address(m_register.PC++ >> 4, false);
+	m_tstate += 11;
 }
 
 //=============================================================================
 
 void CZ80::ImplementPUSHIX(void)
 {
+	// Operation:	(SP-2) <- IXl, (SP-1) <- IXh
+	// Op Code:		PUSH
+	// Operands:	IX
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|1|1|1|0|1| DD
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|0|0|1|0|1| E5
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								4						15 (4,5,3,3)			3.75
+	//
+	m_register.R |= ((m_register.R + 2) & 0x7F);
+	*--m_register.SP = m_register.IX >> 8;
+	*--m_register.SP = m_register.IX & 0xFF;
+	m_tstate += 15;
 }
 
 //=============================================================================
 
 void CZ80::ImplementPUSHIY(void)
 {
+	// Operation:	(SP-2) <- IYl, (SP-1) <- IYh
+	// Op Code:		PUSH
+	// Operands:	IY
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|1|1|1|0|1| FD
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|0|0|1|0|1| E5
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								4						15 (4,5,3,3)			3.75
+	//
+	m_register.R |= ((m_register.R + 2) & 0x7F);
+	*--m_register.SP = m_register.IY >> 8;
+	*--m_register.SP = m_register.IY & 0xFF;
+	m_tstate += 15;
 }
 
 //=============================================================================
 
 void CZ80::ImplementPOPqq(void)
 {
+	// Operation:	qql <- (SP-2), qqh <- (SP-1)
+	// Op Code:		POP
+	// Operands:	qq
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|q|q|0|0|0|1|
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//						where dd is any of:
+	//								BC					00
+	//								DE					01
+	//								HL					10
+	//								AF					11
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								3						10 (4,3,3)				2.75
+	//
+	m_register.R |= ((m_register.R + 1) & 0x7F);
+	*GetRegister16Address(m_register.PC >> 4, false) = *m_register.SP++;
+	*GetRegister16Address(m_register.PC++ >> 4, true) = *m_register.SP++;
+	m_tstate += 10;
 }
 
 //=============================================================================
 
 void CZ80::ImplementPOPIX(void)
 {
+	// Operation:	IXl <- (SP-2), IXh <- (SP-1)
+	// Op Code:		POP
+	// Operands:	IX
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|1|1|1|0|1| DD
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|0|0|0|0|1| E1
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								4						14 (4,4,3,3)			3.50
+	//
+	m_register.R |= ((m_register.R + 2) & 0x7F);
+	m_register.IX = *m_register.SP++;
+	m_register.IX |= *m_register.SP++ << 8;
+	m_tstate += 14;
 }
 
 //=============================================================================
 
 void CZ80::ImplementPOPIY(void)
 {
+	// Operation:	IYl <- (SP-2), IYh <- (SP-1)
+	// Op Code:		POP
+	// Operands:	IY
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|1|1|1|0|1| FD
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|0|0|0|0|1| E1
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								4						14 (4,4,3,3)			3.50
+	//
+	m_register.R |= ((m_register.R + 2) & 0x7F);
+	m_register.IY = *m_register.SP++;
+	m_register.IY |= *m_register.SP++ << 8;
+	m_tstate += 14;
 }
+
+//=============================================================================
+
+//-----------------------------------------------------------------------------
+//	Exchange, Block Transfer and Search Group
+//-----------------------------------------------------------------------------
+
+//=============================================================================
+
+void CZ80::ImplementEXDEHL(void)
+{
+	// TODO: Define a union for uint16 and 2x uint8 to describe a register
+
+	//
+	// Operation:	DE <-> HL
+	// Op Code:		EX
+	// Operands:	DE, HL
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|0|1|0|1|1| EB
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								1						4									1.00
+	//
+	m_register.R |= ((m_register.R + 1) & 0x7F);
+	m_register.D ^= m_register.H;
+	m_register.H ^= m_register.D;
+	m_register.D ^= m_register.H;
+	m_register.E ^= m_register.L;
+	m_register.L ^= m_register.E;
+	m_register.E ^= m_register.L;
+	m_tstate += 4;
+}
+
+//=============================================================================
+
+
+//=============================================================================
+
+
+//=============================================================================
+
+
+//=============================================================================
+
+
+//=============================================================================
+
+
+//=============================================================================
+
+
+//=============================================================================
+
+
+//=============================================================================
+
+
+//=============================================================================
+
+
+//=============================================================================
+
+
+//=============================================================================
+
+
+//=============================================================================
+
 
 //=============================================================================
 
@@ -840,21 +1256,21 @@ void CZ80::DecodeLD(const uint8* pAddress, char* pMnemonic)
 
 void CZ80::DecodeLDn(const uint8* pAddress, char* pMnemonic)
 {
-	sprintf(pMnemonic, "LD %s,%d", GetRegister8String(*pAddress >> 3), *(pAddress + 1));
+	sprintf(pMnemonic, "LD %s,0x%02X", GetRegister8String(*pAddress >> 3), *(pAddress + 1));
 }
 
 //=============================================================================
 
 void CZ80::DecodeLDrIXd(const uint8* pAddress, char* pMnemonic)
 {
-	sprintf(pMnemonic, "LD %s,(IX+%d)", GetRegister8String(*(pAddress + 1) >> 3), *(pAddress + 2));
+	sprintf(pMnemonic, "LD %s,(IX+0x%02X)", GetRegister8String(*(pAddress + 1) >> 3), *(pAddress + 2));
 }
 
 //=============================================================================
 
 void CZ80::DecodeLDrIYd(const uint8* pAddress, char* pMnemonic)
 {
-	sprintf(pMnemonic, "LD %s,(IY+%d)", GetRegister8String(*(pAddress + 1) >> 3), *(pAddress + 2));
+	sprintf(pMnemonic, "LD %s,(IY+0x%02X)", GetRegister8String(*(pAddress + 1) >> 3), *(pAddress + 2));
 }
 
 //=============================================================================
@@ -868,35 +1284,35 @@ void CZ80::DecodeLDHLr(const uint8* pAddress, char* pMnemonic)
 
 void CZ80::DecodeLDIXdr(const uint8* pAddress, char* pMnemonic)
 {
-	sprintf(pMnemonic, "LD (IX+%d),%s", *(pAddress + 2), GetRegister8String(*(pAddress + 1) >> 3));
+	sprintf(pMnemonic, "LD (IX+0x%02X),%s", *(pAddress + 2), GetRegister8String(*(pAddress + 1) >> 3));
 }
 
 //=============================================================================
 
 void CZ80::DecodeLDIYdr(const uint8* pAddress, char* pMnemonic)
 {
-	sprintf(pMnemonic, "LD (IY+%d),%s", *(pAddress + 2), GetRegister8String(*(pAddress + 1) >> 3));
+	sprintf(pMnemonic, "LD (IY+0x%02X),%s", *(pAddress + 2), GetRegister8String(*(pAddress + 1) >> 3));
 }
 
 //=============================================================================
 
 void CZ80::DecodeLDHLn(const uint8* pAddress, char* pMnemonic)
 {
-	sprintf(pMnemonic, "LD (HL),%d", *(pAddress + 1));
+	sprintf(pMnemonic, "LD (HL),0x%02X", *(pAddress + 1));
 }
 
 //=============================================================================
 
 void CZ80::DecodeLDIXdn(const uint8* pAddress, char* pMnemonic)
 {
-	sprintf(pMnemonic, "LD (IX+%d),%d", *(pAddress + 2), *(pAddress + 3));
+	sprintf(pMnemonic, "LD (IX+0x%02X),0x%02X", *(pAddress + 2), *(pAddress + 3));
 }
 
 //=============================================================================
 
 void CZ80::DecodeLDIYdn(const uint8* pAddress, char* pMnemonic)
 {
-	sprintf(pMnemonic, "LD (IY+%d),%d", *(pAddress + 2), *(pAddress + 3));
+	sprintf(pMnemonic, "LD (IY+0x%02X),0x%02X", *(pAddress + 2), *(pAddress + 3));
 }
 
 //=============================================================================
@@ -917,7 +1333,7 @@ void CZ80::DecodeLDADE(const uint8* pAddress, char* pMnemonic)
 
 void CZ80::DecodeLDA_nn_(const uint8* pAddress, char* pMnemonic)
 {
-	sprintf(pMnemonic, "LD A,(%d)", static_cast<uint16>(*(pAddress + 2) << 0x100) | *(pAddress + 1));
+	sprintf(pMnemonic, "LD A,(0x%02X%02X)", *(pAddress + 2), *(pAddress + 1));
 }
 
 //=============================================================================
@@ -938,7 +1354,7 @@ void CZ80::DecodeLDDEA(const uint8* pAddress, char* pMnemonic)
 
 void CZ80::DecodeLD_nn_A(const uint8* pAddress, char* pMnemonic)
 {
-	sprintf(pMnemonic, "LD (%d),A", static_cast<uint16>(*(pAddress + 2) << 0x100) | *(pAddress + 1));
+	sprintf(pMnemonic, "LD (0x%02X%02X),A", *(pAddress + 2), *(pAddress + 1));
 }
 
 //=============================================================================
@@ -975,6 +1391,147 @@ void CZ80::DecodeLDRA(const uint8* pAddress, char* pMnemonic)
 //	16-Bit Load Group
 //-----------------------------------------------------------------------------
 
+//=============================================================================
+
+void CZ80::DecodeLDddnn(const uint8* pAddress, char* pMnemonic)
+{
+	sprintf(pMnemonic, "LD %s,0x%02X%02X", GetRegister16String(*pAddress >> 4), *(pAddress + 2), *(pAddress + 1));
+}
+
+//=============================================================================
+
+void CZ80::DecodeLDIXnn(const uint8* pAddress, char* pMnemonic)
+{
+	sprintf(pMnemonic, "LD IX,0x%02X%02X", *(pAddress + 3), *(pAddress + 2));
+}
+
+//=============================================================================
+
+void CZ80::DecodeLDIYnn(const uint8* pAddress, char* pMnemonic)
+{
+	sprintf(pMnemonic, "LD IY,0x%02X%02X", *(pAddress + 3), *(pAddress + 2));
+}
+
+//=============================================================================
+
+void CZ80::DecodeLDHL_nn_(const uint8* pAddress, char* pMnemonic)
+{
+	sprintf(pMnemonic, "LD HL,(0x%02X%02X)", *(pAddress + 2), *(pAddress + 1));
+}
+
+//=============================================================================
+
+void CZ80::DecodeLDdd_nn_(const uint8* pAddress, char* pMnemonic)
+{
+	sprintf(pMnemonic, "LD %s,(0x%02X%02X)", GetRegister16String(*(pAddress + 1) >> 4), *(pAddress + 3), *(pAddress + 2));
+}
+
+//=============================================================================
+
+void CZ80::DecodeLDIX_nn_(const uint8* pAddress, char* pMnemonic)
+{
+	sprintf(pMnemonic, "LD IX,(0x%02X%02X)", *(pAddress + 3), *(pAddress + 2));
+}
+
+//=============================================================================
+
+void CZ80::DecodeLDIY_nn_(const uint8* pAddress, char* pMnemonic)
+{
+	sprintf(pMnemonic, "LD IY,(0x%02X%02X)", *(pAddress + 3), *(pAddress + 2));
+}
+
+//=============================================================================
+
+void CZ80::DecodeLD_nn_HL(const uint8* pAddress, char* pMnemonic)
+{
+	sprintf(pMnemonic, "LD (0x%02X%02X),HL", *(pAddress + 2), *(pAddress + 1));
+}
+
+//=============================================================================
+
+void CZ80::DecodeLD_nn_dd(const uint8* pAddress, char* pMnemonic)
+{
+	sprintf(pMnemonic, "LD (0x%02X%02X),%s", *(pAddress + 3), *(pAddress + 2), GetRegister16String(*(pAddress + 1) >> 4));
+}
+
+//=============================================================================
+
+void CZ80::DecodeLD_nn_IX(const uint8* pAddress, char* pMnemonic)
+{
+	sprintf(pMnemonic, "LD (0x%02X%02X),IX", *(pAddress + 3), *(pAddress + 2));
+}
+
+//=============================================================================
+
+void CZ80::DecodeLD_nn_IY(const uint8* pAddress, char* pMnemonic)
+{
+	sprintf(pMnemonic, "LD (0x%02X%02X),IY", *(pAddress + 3), *(pAddress + 2));
+}
+
+//=============================================================================
+
+void CZ80::DecodeLDSPHL(const uint8* pAddress, char* pMnemonic)
+{
+	sprintf(pMnemonic, "LD SP,HL");
+}
+
+//=============================================================================
+
+void CZ80::DecodeLDSPIX(const uint8* pAddress, char* pMnemonic)
+{
+	sprintf(pMnemonic, "LD SP,IX");
+}
+
+//=============================================================================
+
+void CZ80::DecodeLDSPIY(const uint8* pAddress, char* pMnemonic)
+{
+	sprintf(pMnemonic, "LD SP,IY");
+}
+
+//=============================================================================
+
+void CZ80::DecodePUSHqq(const uint8* pAddress, char* pMnemonic)
+{
+	sprintf(pMnemonic, "PUSH %s", GetRegister16String(pAddress >> 4));
+}
+
+//=============================================================================
+
+void CZ80::DecodePUSHIX(const uint8* pAddress, char* pMnemonic)
+{
+	sprintf(pMnemonic, "PUSH IX");
+}
+
+//=============================================================================
+
+void CZ80::DecodePUSHIY(const uint8* pAddress, char* pMnemonic)
+{
+	sprintf(pMnemonic, "PUSH IY");
+}
+
+//=============================================================================
+
+void CZ80::DecodePOPqq(const uint8* pAddress, char* pMnemonic)
+{
+	sprintf(pMnemonic, "POP %s", GetRegister16String(pAddress >> 4));
+}
+
+//=============================================================================
+
+void CZ80::DecodePOPIX(const uint8* pAddress, char* pMnemonic)
+{
+	sprintf(pMnemonic, "POP IX");
+}
+
+//=============================================================================
+
+void CZ80::DecodePOPIY(const uint8* pAddress, char* pMnemonic)
+{
+	sprintf(pMnemonic, "POP IY");
+}
+
+//=============================================================================
 
 
 
@@ -1847,78 +2404,78 @@ ED4B** LD BC,(nn)   ED5B** LD DE,(nn)   ----   -            ED7B** LD SP,(nn)
 	78   LD A,B   LD A,C   LD A,D   LD A,E   LD A,H   LD A,L   LD A,(HL)LD A,A
 
 	80   ADD A,B  ADD A,C  ADD A,D  ADD A,E  ADD A,H  ADD A,L  ADD A,(HLADD A,A
-			88   ADC A,B  ADC A,C  ADC A,D  ADC A,E  ADC A,H  ADC A,L  ADC A,(HLADC A,A
-				90   SUB B    SUB C    SUB D    SUB E    SUB H    SUB L    SUB (HL) SUB A
-				98   SBC A,B  SBC A,C  SBC A,D  SBC A,E  SBC A,H  SBC A,L  SBC A,(HLSBC A,A
-					A0   AND B    AND C    AND D    AND E    AND H    AND L    AND (HL) AND A
-					A8   XOR B    XOR C    XOR D    XOR E    XOR H    XOR L    XOR (HL) XOR A
-					B0   OR B     OR C     OR D     OR E     OR H     OR L     OR (HL)  OR A
-					B8   CP B     CP C     CP D     CP E     CP H     CP L     CP (HL)  CP A
+	88   ADC A,B  ADC A,C  ADC A,D  ADC A,E  ADC A,H  ADC A,L  ADC A,(HLADC A,A
+	90   SUB B    SUB C    SUB D    SUB E    SUB H    SUB L    SUB (HL) SUB A
+	98   SBC A,B  SBC A,C  SBC A,D  SBC A,E  SBC A,H  SBC A,L  SBC A,(HLSBC A,A
+	A0   AND B    AND C    AND D    AND E    AND H    AND L    AND (HL) AND A
+	A8   XOR B    XOR C    XOR D    XOR E    XOR H    XOR L    XOR (HL) XOR A
+	B0   OR B     OR C     OR D     OR E     OR H     OR L     OR (HL)  OR A
+	B8   CP B     CP C     CP D     CP E     CP H     CP L     CP (HL)  CP A
 
-					C0   RET NZ   POP BC   JP NZ,   JP       CALL NZ, PUSH BC  ADD A,   RST 0
-					C8   RET Z    RET      JP Z,    prefixCB CALL Z,  CALL     ADC A,   RST 8
-					D0   RET NC   POP DE   JP NC,   OUT (),A CALL NC, PUSH DE  SUB      RST 16
-					D8   RET C    EXX      JP C,    IN A,()  CALL C,  prefixDD SBC A,   RST 24
-					E0   RET PO   POP HL   JP PO,   EX (SP),HCALL PO, PUSH HL  AND      RST 32
-					E8   RET PE   JP       JP PE,   EX DE,HL CALL PE, prefixED XOR      RST 40
-					F0   RET P    POP AF   JP P,    DI       CALL P,  PUSH AF  XOR      RST 48
-					F8   RET M    LD SP,HL JP M,    EI       CALL M,  prefixFD CP       RST 56
+	C0   RET NZ   POP BC   JP NZ,   JP       CALL NZ, PUSH BC  ADD A,   RST 0
+	C8   RET Z    RET      JP Z,    prefixCB CALL Z,  CALL     ADC A,   RST 8
+	D0   RET NC   POP DE   JP NC,   OUT (),A CALL NC, PUSH DE  SUB      RST 16
+	D8   RET C    EXX      JP C,    IN A,()  CALL C,  prefixDD SBC A,   RST 24
+	E0   RET PO   POP HL   JP PO,   EX (SP),HCALL PO, PUSH HL  AND      RST 32
+	E8   RET PE   JP       JP PE,   EX DE,HL CALL PE, prefixED XOR      RST 40
+	F0   RET P    POP AF   JP P,    DI       CALL P,  PUSH AF  XOR      RST 48
+	F8   RET M    LD SP,HL JP M,    EI       CALL M,  prefixFD CP       RST 56
 
-					Extended "CB" Instructions:
+	Extended "CB" Instructions:
 
-					+    00       01       02       03       04       05       06         07
+	+    00       01       02       03       04       05       06         07
 
-					00   RLC B    RLC C    RLC D    RLC E    RLC H    RLC L    RLC (HL)   RLC A
-					08   RRC B    RRC C    RRC D    RRC E    RRC H    RRC L    RRC (HL)   RRC A
-				10   RL B     RL C     RL D     RL E     RL H     RL L     RL (HL)    RL A
-				18   RR B     RR C     RR D     RR E     RR H     RR L     RR (HL)    RR A
-				20   SLA B    SLA C    SLA D    SLA E    SLA H    SLA L    SLA (HL)   SLA A
-				28   SRA B    SRA C    SRA D    SRA E    SRA H    SRA L    SRA (HL)   SRA A
-				30   -        -        -        -        -        -        -          -  
-				38   SRL B    SRL C    SRL  D   SRL E    SRL H    SRL L    SRL (HL)   SRL A
+	00   RLC B    RLC C    RLC D    RLC E    RLC H    RLC L    RLC (HL)   RLC A
+	08   RRC B    RRC C    RRC D    RRC E    RRC H    RRC L    RRC (HL)   RRC A
+	10   RL B     RL C     RL D     RL E     RL H     RL L     RL (HL)    RL A
+	18   RR B     RR C     RR D     RR E     RR H     RR L     RR (HL)    RR A
+	20   SLA B    SLA C    SLA D    SLA E    SLA H    SLA L    SLA (HL)   SLA A
+	28   SRA B    SRA C    SRA D    SRA E    SRA H    SRA L    SRA (HL)   SRA A
+	30   -        -        -        -        -        -        -          -  
+	38   SRL B    SRL C    SRL  D   SRL E    SRL H    SRL L    SRL (HL)   SRL A
 
-				40   BIT 0,B  BIT 0,C  BIT 0,D  BIT 0,E  BIT 0,H  BIT 0,L  BIT 0,(HL) BIT 0,A
-				48   BIT 1,B  BIT 1,C  BIT 1,D  BIT 1,E  BIT 1,H  BIT 1,L  BIT 1,(HL) BIT 2,A
-				50   BIT 2,B  BIT 2,C  BIT 2,D  BIT 2,E  BIT 2,H  BIT 2,L  BIT 2,(HL) BIT 3,A
-				58   BIT 3,B  BIT 3,C  BIT 3,D  BIT 3,E  BIT 3,H  BIT 3,L  BIT 3,(HL) BIT 3,A
-				60   BIT 4,B  BIT 4,C  BIT 4,D  BIT 4,E  BIT 4,H  BIT 4,L  BIT 4,(HL) BIT 4,A
-				68   BIT 5,B  BIT 5,C  BIT 5,D  BIT 5,E  BIT 5,H  BIT 5,L  BIT 5,(HL) BIT 5,A
-				70   BIT 6,B  BIT 6,C  BIT 6,D  BIT 6,E  BIT 6,H  BIT 6,L  BIT 6,(HL) BIT 6,A
-				78   BIT 7,B  BIT 7,C  BIT 7,D  BIT 7,E  BIT 7,H  BIT 7,L  BIT 7,(HL) BIT 7,A
+	40   BIT 0,B  BIT 0,C  BIT 0,D  BIT 0,E  BIT 0,H  BIT 0,L  BIT 0,(HL) BIT 0,A
+	48   BIT 1,B  BIT 1,C  BIT 1,D  BIT 1,E  BIT 1,H  BIT 1,L  BIT 1,(HL) BIT 2,A
+	50   BIT 2,B  BIT 2,C  BIT 2,D  BIT 2,E  BIT 2,H  BIT 2,L  BIT 2,(HL) BIT 3,A
+	58   BIT 3,B  BIT 3,C  BIT 3,D  BIT 3,E  BIT 3,H  BIT 3,L  BIT 3,(HL) BIT 3,A
+	60   BIT 4,B  BIT 4,C  BIT 4,D  BIT 4,E  BIT 4,H  BIT 4,L  BIT 4,(HL) BIT 4,A
+	68   BIT 5,B  BIT 5,C  BIT 5,D  BIT 5,E  BIT 5,H  BIT 5,L  BIT 5,(HL) BIT 5,A
+	70   BIT 6,B  BIT 6,C  BIT 6,D  BIT 6,E  BIT 6,H  BIT 6,L  BIT 6,(HL) BIT 6,A
+	78   BIT 7,B  BIT 7,C  BIT 7,D  BIT 7,E  BIT 7,H  BIT 7,L  BIT 7,(HL) BIT 7,A
 
-				80   RES 0,B  RES 0,C  RES 0,D  RES 0,E  RES 0,H  RES 0,L  RES 0,(HL) RES 0,A
-				88   RES 1,B  RES 1,C  RES 1,D  RES 1,E  RES 1,H  RES 1,L  RES 1,(HL) RES 1,A
-				90   RES 2,B  RES 2,C  RES 2,D  RES 2,E  RES 2,H  RES 2,L  RES 2,(HL) RES 2,A
-				98   RES 3,B  RES 3,C  RES 3,D  RES 3,E  RES 3,H  RES 3,L  RES 3,(HL) RES 3,A
-				A0   RES 4,B  RES 4,C  RES 4,D  RES 4,E  RES 4,H  RES 4,L  RES 4,(HL) RES 4,A
-				A8   RES 5,B  RES 5,C  RES 5,D  RES 5,E  RES 5,H  RES 5,L  RES 5,(HL) RES 5,A
-				B0   RES 6,B  RES 6,C  RES 6,D  RES 6,E  RES 6,H  RES 6,L  RES 6,(HL) RES 6,A
-				B8   RES 7,B  RES 7,C  RES 7,D  RES 7,E  RES 7,H  RES 7,L  RES 7,(HL) RES 7,A
+	80   RES 0,B  RES 0,C  RES 0,D  RES 0,E  RES 0,H  RES 0,L  RES 0,(HL) RES 0,A
+	88   RES 1,B  RES 1,C  RES 1,D  RES 1,E  RES 1,H  RES 1,L  RES 1,(HL) RES 1,A
+	90   RES 2,B  RES 2,C  RES 2,D  RES 2,E  RES 2,H  RES 2,L  RES 2,(HL) RES 2,A
+	98   RES 3,B  RES 3,C  RES 3,D  RES 3,E  RES 3,H  RES 3,L  RES 3,(HL) RES 3,A
+	A0   RES 4,B  RES 4,C  RES 4,D  RES 4,E  RES 4,H  RES 4,L  RES 4,(HL) RES 4,A
+	A8   RES 5,B  RES 5,C  RES 5,D  RES 5,E  RES 5,H  RES 5,L  RES 5,(HL) RES 5,A
+	B0   RES 6,B  RES 6,C  RES 6,D  RES 6,E  RES 6,H  RES 6,L  RES 6,(HL) RES 6,A
+	B8   RES 7,B  RES 7,C  RES 7,D  RES 7,E  RES 7,H  RES 7,L  RES 7,(HL) RES 7,A
 
-				C0   SET 0,B  SET 0,C  SET 0,D  SET 0,E  SET 0,H  SET 0,L  SET 0,(HL) SET 0,A
-				C8   SET 1,B  SET 1,C  SET 1,D  SET 1,E  SET 1,H  SET 1,L  SET 1,(HL) SET 1,A
-				D0   SET 2,B  SET 2,C  SET 2,D  SET 2,E  SET 2,H  SET 2,L  SET 2,(HL) SET 2,A
-				D8   SET 3,B  SET 3,C  SET 3,D  SET 3,E  SET 3,H  SET 3,L  SET 3,(HL) SET 3,A
-				E0   SET 4,B  SET 4,C  SET 4,D  SET 4,E  SET 4,H  SET 4,L  SET 4,(HL) SET 4,A
-				E8   SET 5,B  SET 5,C  SET 5,D  SET 5,E  SET 5,H  SET 5,L  SET 5,(HL) SET 5,A
-				F0   SET 6,B  SET 6,C  SET 6,D  SET 6,E  SET 6,H  SET 6,L  SET 6,(HL) SET 6,A
-				F8   SET 7,B  SET 7,C  SET 7,D  SET 7,E  SET 7,H  SET 7,L  SET 7,(HL) SET 7,A
+	C0   SET 0,B  SET 0,C  SET 0,D  SET 0,E  SET 0,H  SET 0,L  SET 0,(HL) SET 0,A
+	C8   SET 1,B  SET 1,C  SET 1,D  SET 1,E  SET 1,H  SET 1,L  SET 1,(HL) SET 1,A
+	D0   SET 2,B  SET 2,C  SET 2,D  SET 2,E  SET 2,H  SET 2,L  SET 2,(HL) SET 2,A
+	D8   SET 3,B  SET 3,C  SET 3,D  SET 3,E  SET 3,H  SET 3,L  SET 3,(HL) SET 3,A
+	E0   SET 4,B  SET 4,C  SET 4,D  SET 4,E  SET 4,H  SET 4,L  SET 4,(HL) SET 4,A
+	E8   SET 5,B  SET 5,C  SET 5,D  SET 5,E  SET 5,H  SET 5,L  SET 5,(HL) SET 5,A
+	F0   SET 6,B  SET 6,C  SET 6,D  SET 6,E  SET 6,H  SET 6,L  SET 6,(HL) SET 6,A
+	F8   SET 7,B  SET 7,C  SET 7,D  SET 7,E  SET 7,H  SET 7,L  SET 7,(HL) SET 7,A
 
-				Extended "ED" Instructions (nothing in 00-3F and 80-9F and C0-FF):
+	Extended "ED" Instructions (nothing in 00-3F and 80-9F and C0-FF):
 
-					+    00       01        02        03       04       05       06       07
+	+    00       01        02        03       04       05       06       07
 
-					40   IN B,(C) OUT (C),B SBC HL,BC LD (),BC NEG      RETN     IM 0     LD I,A
-					48   IN C,(C) OUT (C),C ADC HL,BC LD BC,() -        -        -        LD R,A
-					50   IN D,(C) OUT (C),D SBC HL,DE LD (),DE -        -        IM 1     LD A,I
-					58   IN E,(C) OUT (C),E ADC HL,DE LD DE,() -        -        IM 2     LD A,R
-					60   IN H,(C) OUT (C),H SBC HL,HL -        -        RETI     -        RRD
-					68   IN L,(C) OUT (C),L ADC HL,HL -        -        -        -        RLD
-					70   -        -         SBC HL,SP LD (),SP -        -        -        -
-					78   IN A,(C) OUT (C),A ADC HL,SP LD SP,() -        -        -        -
+	40   IN B,(C) OUT (C),B SBC HL,BC LD (),BC NEG      RETN     IM 0     LD I,A
+	48   IN C,(C) OUT (C),C ADC HL,BC LD BC,() -        -        -        LD R,A
+	50   IN D,(C) OUT (C),D SBC HL,DE LD (),DE -        -        IM 1     LD A,I
+	58   IN E,(C) OUT (C),E ADC HL,DE LD DE,() -        -        IM 2     LD A,R
+	60   IN H,(C) OUT (C),H SBC HL,HL -        -        RETI     -        RRD
+	68   IN L,(C) OUT (C),L ADC HL,HL -        -        -        -        RLD
+	70   -        -         SBC HL,SP LD (),SP -        -        -        -
+	78   IN A,(C) OUT (C),A ADC HL,SP LD SP,() -        -        -        -
 
-					A0   LDI      CPI      INI      OUTI     -        -        -        -
-					A8   LDD      CPD      IND      OUTD     -        -        -        -
-					B0   LDIR     CPIR     INIR     OTIR     -        -        -        -
-					B8   LDDR     CPDR     INDR     OTDR     -        -        -        -
+	A0   LDI      CPI      INI      OUTI     -        -        -        -
+	A8   LDD      CPD      IND      OUTD     -        -        -        -
+	B0   LDIR     CPIR     INIR     OTIR     -        -        -        -
+	B8   LDDR     CPDR     INDR     OTDR     -        -        -        -
 					*/
