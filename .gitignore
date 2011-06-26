@@ -1,7 +1,8 @@
+CMakeFiles/
+docs/
 *~
 *.swp
 CMakeCache.txt
-CMakeFiles/
 Makefile
 cmake_install.cmake
 debug.txt
