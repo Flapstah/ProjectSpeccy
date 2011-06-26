@@ -3,10 +3,128 @@
 
 #include "common/platform_types.h"
 
+#define LITTLE_ENDIAN
+
 class CZ80
 {
 	public:
 	protected:
+		uint8	Get8BitRegister(uint8 threeBits) const;
+		void	Set8BitRegister(uint8 threeBits, uint8 value);
+		const char* Get8BitRegisterString(uint8 threeBits);
+
+		uint16	Get16BitRegister(uint8 twoBits) const;
+		void	Set16BitRegister(uint8 twoBits, uint16 value);
+		const char* Get16BitRegisterString(uint8 twoBits);
+
+		//-----------------------------------------------------------------------------
+		//	8-Bit Load Group
+		//-----------------------------------------------------------------------------
+
+		void ImplementLDrr(void);
+		void ImplementLDrn(void);
+/*
+		void ImplementLDrHL(void);
+		void ImplementLDrIXd(void);
+		void ImplementLDrIYd(void);
+		void ImplementLDHLr(void);
+		void ImplementLDIXdr(void);
+		void ImplementLDIYdr(void);
+		void ImplementLDHLn(void);
+		void ImplementLDIXdn(void);
+		void ImplementLDIYdn(void);
+		void ImplementLDABC(void);
+		void ImplementLDADE(void);
+		void ImplementLDA_nn_(void);
+		void ImplementLDBCA(void);
+		void ImplementLDDEA(void);
+		void ImplementLD_nn_A(void);
+		void ImplementLDAI(void);
+		void ImplementLDAR(void);
+		void ImplementLDIA(void);
+		void ImplementLDRA(void);
+
+		//-----------------------------------------------------------------------------
+		//	16-Bit Load Group
+		//-----------------------------------------------------------------------------
+
+		void ImplementLDddnn(void);
+		void ImplementLDIXnn(void);
+		void ImplementLDIYnn(void);
+		void ImplementLDHL_nn_(void);
+		void ImplementLDdd_nn_(void);
+		void ImplementLDIX_nn_(void);
+		void ImplementLDIY_nn_(void);
+		void ImplementLD_nn_HL(void);
+		void ImplementLD_nn_dd(void);
+		void ImplementLD_nn_IX(void);
+		void ImplementLD_nn_IY(void);
+		void ImplementLDSPHL(void);
+		void ImplementLDSPIX(void);
+		void ImplementLDSPIY(void);
+		void ImplementPUSHqq(void);
+		void ImplementPUSHIX(void);
+		void ImplementPUSHIY(void);
+		void ImplementPOPqq(void);
+		void ImplementPOPIX(void);
+		void ImplementPOPIY(void);
+
+		//-----------------------------------------------------------------------------
+		//	Exchange, Block Transfer and Search Group
+		//-----------------------------------------------------------------------------
+
+		void ImplementEXDEHL(void);
+
+		//-----------------------------------------------------------------------------
+		//	8-Bit Load Group
+		//-----------------------------------------------------------------------------
+
+		void DecodeLD(const uint8* pAddress, char* pMnemonic);
+		void DecodeLDn(const uint8* pAddress, char* pMnemonic);
+		void DecodeLDrIXd(const uint8* pAddress, char* pMnemonic);
+		void DecodeLDrIYd(const uint8* pAddress, char* pMnemonic);
+		void DecodeLDHLr(const uint8* pAddress, char* pMnemonic);
+		void DecodeLDIXdr(const uint8* pAddress, char* pMnemonic);
+		void DecodeLDIYdr(const uint8* pAddress, char* pMnemonic);
+		void DecodeLDHLn(const uint8* pAddress, char* pMnemonic);
+		void DecodeLDIXdn(const uint8* pAddress, char* pMnemonic);
+		void DecodeLDIYdn(const uint8* pAddress, char* pMnemonic);
+		void DecodeLDABC(const uint8* pAddress, char* pMnemonic);
+		void DecodeLDADE(const uint8* pAddress, char* pMnemonic);
+		void DecodeLDA_nn_(const uint8* pAddress, char* pMnemonic);
+		void DecodeLDBCA(const uint8* pAddress, char* pMnemonic);
+		void DecodeLDDEA(const uint8* pAddress, char* pMnemonic);
+		void DecodeLD_nn_A(const uint8* pAddress, char* pMnemonic);
+		void DecodeLDAI(const uint8* pAddress, char* pMnemonic);
+		void DecodeLDAR(const uint8* pAddress, char* pMnemonic);
+		void DecodeLDIA(const uint8* pAddress, char* pMnemonic);
+		void DecodeLDRA(const uint8* pAddress, char* pMnemonic);
+
+		//-----------------------------------------------------------------------------
+		//	16-Bit Load Group
+		//-----------------------------------------------------------------------------
+
+		void DecodeLDddnn(const uint8* pAddress, char* pMnemonic);
+		void DecodeLDIXnn(const uint8* pAddress, char* pMnemonic);
+		void DecodeLDIYnn(const uint8* pAddress, char* pMnemonic);
+		void DecodeLDHL_nn_(const uint8* pAddress, char* pMnemonic);
+		void DecodeLDdd_nn_(const uint8* pAddress, char* pMnemonic);
+		void DecodeLDIX_nn_(const uint8* pAddress, char* pMnemonic);
+		void DecodeLDIY_nn_(const uint8* pAddress, char* pMnemonic);
+		void DecodeLD_nn_HL(const uint8* pAddress, char* pMnemonic);
+		void DecodeLD_nn_dd(const uint8* pAddress, char* pMnemonic);
+		void DecodeLD_nn_IX(const uint8* pAddress, char* pMnemonic);
+		void DecodeLD_nn_IY(const uint8* pAddress, char* pMnemonic);
+		void DecodeLDSPHL(const uint8* pAddress, char* pMnemonic);
+		void DecodeLDSPIX(const uint8* pAddress, char* pMnemonic);
+		void DecodeLDSPIY(const uint8* pAddress, char* pMnemonic);
+		void DecodePUSHqq(const uint8* pAddress, char* pMnemonic);
+		void DecodePUSHIX(const uint8* pAddress, char* pMnemonic);
+		void DecodePUSHIY(const uint8* pAddress, char* pMnemonic);
+		void DecodePOPqq(const uint8* pAddress, char* pMnemonic);
+		void DecodePOPIX(const uint8* pAddress, char* pMnemonic);
+		void DecodePOPIY(const uint8* pAddress, char* pMnemonic);
+
 		enum eFlags
 		{
 			eF_C =	1 << 0,	// Carry
@@ -18,37 +136,66 @@ class CZ80
 			eF_Z =	1 << 6,	// Zero
 			eF_S =	1 << 7	// Sign
 
-			// N.B. The only way to read XF, YF and NF is PUSH AF
+				// N.B. The only way to read XF, YF and NF is PUSH AF
 		};
 
-		// TODO: Define a union for uint16 and 2x uint8 to describe a register
+		*/
 
-		struct SRegisters
-		{
-			uint8 A;
-			uint8 F;
-			uint8 B;
-			uint8 C;
-			uint8 D;
-			uint8 E;
-			uint8 H;
-			uint8 L;
-			uint16 IX;
-			uint16 IY;
-			uint16 PC;
-			uint16 SP;
-			uint8 I;
-			uint8 R;
-			uint16 AF_;
-			uint16 BC_;
-			uint16 DE_;
-			uint16 HL_;
-		} m_register;
+	void	IncrementR(uint8 value)		{ m_R |= ((m_R + value) & 0x7F); }
+
+	struct SRegister16Bit
+	{
+		uint16	m_register;
+		uint8*					operator&(void) const				{ return reinterpret_cast<uint8*>(m_register);					}
+		uint8						operator*(void) const				{ return *(reinterpret_cast<uint8*>(m_register));				}
+		SRegister16Bit	operator++(void)						{	SRegister16Bit temp; temp.m_register = m_register++; return temp;	}
+		SRegister16Bit	operator--(void)						{	SRegister16Bit temp; temp.m_register = m_register--; return temp;	}
+		SRegister16Bit&	operator++(int)							{ ++m_register; return *this;																	}
+		SRegister16Bit&	operator--(int)							{ --m_register; return *this;																	}
+		SRegister16Bit&	operator=(uint16 value)			{ m_register = value; return *this;											}
+										operator uint16(void) const	{ return m_register;																		}
+	};
+
+#if defined(LITTLE_ENDIAN)
+#define REGISTER_ORDER(_hi_, _lo_)	\
+	struct														\
+	{																	\
+		uint8 m_ ## _lo_;								\
+		uint8 m_ ## _hi_;								\
+	};
+#else
+#define REGISTER_ORDER(_hi_, _lo_)	\
+	struct														\
+	{																	\
+		uint8 m_ ## _hi_;								\
+		uint8 m_ ## _lo_;								\
+	};
+#endif // defined(LITTLE_ENDIAN)
+
+#define REGISTER_PAIR(_hi_, _lo_)				\
+	union																	\
+	{																			\
+		SRegister16Bit m_ ## _hi_ ## _lo_;	\
+		REGISTER_ORDER(_hi_, _lo_);					\
+	};
+
+		REGISTER_PAIR(A,F);
+		REGISTER_PAIR(B,C);
+		REGISTER_PAIR(D,E);
+		REGISTER_PAIR(H,L);
+		SRegister16Bit m_IX;
+		SRegister16Bit m_IY;
+		REGISTER_PAIR(I,R);
+		SRegister16Bit m_SP;
+		SRegister16Bit m_PC;
+		uint16 _AF_;
+		uint16 _BC_;
+		uint16 _DE_;
+		uint16 _HL_;
 
 		uint32 m_tstate;
 
 	private:
-
 };
 
 #endif // !defined(__Z80_H__)

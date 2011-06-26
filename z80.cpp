@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 #include "z80.h"
 
 //=============================================================================
@@ -7,6 +9,109 @@
 //	Minor timing corrections have been made for instruction execution time where
 //	each T State is assumed to be 0.25 nanoseconds (based on the vast majority
 //	of the instructions) based on a 4MHz clock.
+//=============================================================================
+
+//=============================================================================
+
+uint8	CZ80::Get8BitRegister(uint8 threeBits) const
+{
+	uint8 value = 0;
+
+	switch (threeBits & 0x07)
+	{
+		case 0: value = m_B;		break;
+		case 1: value = m_C;		break;
+		case 2: value = m_D;		break;
+		case 3: value = m_E;		break;
+		case 4: value = m_H;		break;
+		case 5: value = m_L;		break;
+		case 6: value = *m_HL;	break;
+		case 7: value = m_A;		break;
+		default:								break;
+	}
+
+	return value;
+}
+
+//=============================================================================
+
+void	CZ80::Set8BitRegister(uint8 threeBits, uint8 value)
+{
+	switch (threeBits & 0x07)
+	{
+		case 0: m_B = value;		break;
+		case 1: m_C = value;		break;
+		case 2: m_D = value;		break;
+		case 3: m_E = value;		break;
+		case 4: m_H = value;		break;
+		case 5: m_L = value;		break;
+		case 6: *&m_HL = value;	break;
+		case 7: m_A = value;		break;
+		default:								break;
+	}
+
+}
+
+//=============================================================================
+
+const char* CZ80::Get8BitRegisterString(uint8 threeBits)
+{
+	switch (threeBits & 0x07)
+	{
+		case 0: return "B";			break;
+		case 1: return "C";			break;
+		case 2: return "D";			break;
+		case 3: return "E";			break;
+		case 4: return "H";			break;
+		case 5: return "L";			break;
+		case 6: return "(HL)";	break;
+		case 7: return "A";			break;
+		default: break;
+	}
+}
+
+//=============================================================================
+
+uint16	CZ80::Get16BitRegister(uint8 twoBits) const
+{
+	switch (twoBits & 0x03)
+	{
+		case 0: return m_BC;	break;
+		case 1: return m_DE;	break;
+		case 2: return m_HL;	break;
+		case 3: return m_SP;	break;
+		default:							break;
+	}
+}
+
+//=============================================================================
+
+void	CZ80::Set16BitRegister(uint8 twoBits, uint16 value)
+{
+	switch (twoBits & 0x03)
+	{
+		case 0: m_BC = value;	break;
+		case 1: m_DE = value;	break;
+		case 2: m_HL = value;	break;
+		case 3: m_SP = value;	break;
+		default:							break;
+	}
+}
+
+//=============================================================================
+
+const char* CZ80::Get16BitRegisterString(uint8 twoBits)
+{
+	switch (twoBits & 0x03)
+	{
+		case 0: return "BC";		break;
+		case 1: return "DE";		break;
+		case 2: return "HL";		break;
+		case 3: return "SP";		break;
+		default: break;
+	}
+}
+
 //=============================================================================
 
 //-----------------------------------------------------------------------------
@@ -37,10 +142,9 @@ void CZ80::ImplementLDrr(void)
 	//							M Cycles		T States					MHz E.T.
 	//								1						4									1.00
 	//
-	m_register.R |= ((m_register.R + 1) & 0x7F);
-	uint8* pDestination = GetRegister8Address(*m_register.PC >> 3);
-	uint8* pSource = GetRegister8Address(*m_register.PC++);
-	*pDestination = *pSource;
+	IncrementR(1);
+	Set8BitRegister(*m_PC >> 3, Get8BitRegister(*m_PC));
+	++m_PC;
 	m_tstate += 4;
 }
 
@@ -70,12 +174,13 @@ void CZ80::ImplementLDrn(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						7 (4,3)						1.75
 	//
-	m_register.R |= ((m_register.R + 1) & 0x7F);
-	uint8* pDestination = GetRegister8Address(*m_register.PC++ >> 3);
-	*pDestination = *m_register.PC++;
+	IncrementR(1);
+	uint8 opcode = *m_PC++;
+	Set8BitRegister(opcode, *m_PC++);
 	m_tstate += 7;
 }
 
+/*
 //=============================================================================
 
 void CZ80::ImplementLDrHL(void)
@@ -1533,6 +1638,7 @@ void CZ80::DecodePOPIY(const uint8* pAddress, char* pMnemonic)
 
 //=============================================================================
 
+*/
 
 
 
@@ -1556,81 +1662,6 @@ void CZ80::DecodePOPIY(const uint8* pAddress, char* pMnemonic)
 
 
 
-
-
-//=============================================================================
-
-uint8* GetRegister8Address(uint8 threeBits)
-{
-	uint8* pAddress = NULL;
-
-	switch (threeBits & 0x07)
-	{
-		case 0: pAddress = &m_register.B; break;
-		case 1: pAddress = &m_register.C; break;
-		case 2: pAddress = &m_register.D; break;
-		case 3: pAddress = &m_register.E; break;
-		case 4: pAddress = &m_register.H; break;
-		case 5: pAddress = &m_register.L; break;
-		case 6: pAddress = (static_cast<uint16>(m_register.H) << 0x100) | m_register.L; break;
-		case 7: pAddress = &m_register.A; break;
-		default: break;
-	}
-
-	return pAddress;
-}
-
-//=============================================================================
-
-const char* GetRegister8String(uint8 threeBits)
-{
-	switch (threeBits & 0x07)
-	{
-		case 0: return "B";			break;
-		case 1: return "C";			break;
-		case 2: return "D";			break;
-		case 3: return "E";			break;
-		case 4: return "H";			break;
-		case 5: return "L";			break;
-		case 6: return "(HL)";	break;
-		case 7: return "A";			break;
-		default: break;
-	}
-}
-
-//=============================================================================
-
-uint8* GetRegister16Address(uint8 twoBits, bool high)
-{
-	uint8* pAddress = NULL;
-
-	switch (twoBits & 0x03)
-	{
-		case 0: pAddress = (high) ? &m_register.B : &m_register.C; break;
-		case 1: pAddress = (high) ? &m_register.D : &m_register.E; break;
-		case 2: pAddress = (high) ? &m_register.H : &m_register.L; break;
-		case 3: pAddress = (high) ? &m_register.S : &m_register.P; break;
-		default: break;
-	}
-
-	return pAddress;
-}
-
-//=============================================================================
-
-const char* DecodeRegister16(uint8 twoBits)
-{
-	switch (twoBits & 0x03)
-	{
-		case 0: return "BC";		break;
-		case 1: return "DE";		break;
-		case 2: return "HL";		break;
-		case 3: return "SP";		break;
-		default: break;
-	}
-}
-
-//=============================================================================
 
 /*
 	 Z80 Instruction Set
