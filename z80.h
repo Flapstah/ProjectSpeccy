@@ -9,14 +9,6 @@ class CZ80
 {
 	public:
 	protected:
-		uint8	Get8BitRegister(uint8 threeBits) const;
-		void	Set8BitRegister(uint8 threeBits, uint8 value);
-		const char* Get8BitRegisterString(uint8 threeBits);
-
-		uint16	Get16BitRegister(uint8 twoBits) const;
-		void	Set16BitRegister(uint8 twoBits, uint16 value);
-		const char* Get16BitRegisterString(uint8 twoBits);
-
 		//-----------------------------------------------------------------------------
 		//	8-Bit Load Group
 		//-----------------------------------------------------------------------------
@@ -43,7 +35,6 @@ class CZ80
 		void ImplementLDIA(void);
 		void ImplementLDRA(void);
 
-/*
 		//-----------------------------------------------------------------------------
 		//	16-Bit Load Group
 		//-----------------------------------------------------------------------------
@@ -69,6 +60,7 @@ class CZ80
 		void ImplementPOPIX(void);
 		void ImplementPOPIY(void);
 
+/*
 		//-----------------------------------------------------------------------------
 		//	Exchange, Block Transfer and Search Group
 		//-----------------------------------------------------------------------------
@@ -153,6 +145,7 @@ class CZ80
 			SRegister16Bit&	operator--(int)							{ --m_register; return *this;																				}
 			SRegister16Bit&	operator=(uint16 value)			{ m_register = value; return *this;																	}
 											operator uint16(void) const	{ return m_register;																								}
+			void						SetRegisterPair(uint8& hi, uint8& lo) const { uint8* p = reinterpret_cast<uint8*>(m_register); lo = *p; hi = *++p; }
 		};
 
 #if defined(LITTLE_ENDIAN)
@@ -177,6 +170,12 @@ class CZ80
 			SRegister16Bit m_ ## _hi_ ## _lo_;	\
 			REGISTER_ORDER(_hi_, _lo_);					\
 		};
+
+		uint8&	Get8BitRegister(uint8 threeBits);
+		const char* Get8BitRegisterString(uint8 threeBits);
+
+		SRegister16Bit&	Get16BitRegister(uint8 twoBits);
+		const char* Get16BitRegisterString(uint8 twoBits);
 
 		REGISTER_PAIR(A,F);
 		REGISTER_PAIR(B,C);

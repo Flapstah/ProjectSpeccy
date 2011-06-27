@@ -13,43 +13,19 @@
 
 //=============================================================================
 
-uint8	CZ80::Get8BitRegister(uint8 threeBits) const
-{
-	uint8 value = 0;
-
-	switch (threeBits & 0x07)
-	{
-		case 0: value = m_B;		break;
-		case 1: value = m_C;		break;
-		case 2: value = m_D;		break;
-		case 3: value = m_E;		break;
-		case 4: value = m_H;		break;
-		case 5: value = m_L;		break;
-		case 6: value = *m_HL;	break;
-		case 7: value = m_A;		break;
-		default:								break;
-	}
-
-	return value;
-}
-
-//=============================================================================
-
-void	CZ80::Set8BitRegister(uint8 threeBits, uint8 value)
+uint8&	CZ80::Get8BitRegister(uint8 threeBits)
 {
 	switch (threeBits & 0x07)
 	{
-		case 0: m_B = value;		break;
-		case 1: m_C = value;		break;
-		case 2: m_D = value;		break;
-		case 3: m_E = value;		break;
-		case 4: m_H = value;		break;
-		case 5: m_L = value;		break;
-		case 6: *&m_HL = value;	break;
-		case 7: m_A = value;		break;
-		default:								break;
+		case 0: return m_B;		break;
+		case 1: return m_C;		break;
+		case 2: return m_D;		break;
+		case 3: return m_E;		break;
+		case 4: return m_H;		break;
+		case 5: return m_L;		break;
+		case 6: return *&m_HL;	break;
+		case 7: return m_A;		break;
 	}
-
 }
 
 //=============================================================================
@@ -66,13 +42,12 @@ const char* CZ80::Get8BitRegisterString(uint8 threeBits)
 		case 5: return "L";			break;
 		case 6: return "(HL)";	break;
 		case 7: return "A";			break;
-		default: break;
 	}
 }
 
 //=============================================================================
 
-uint16	CZ80::Get16BitRegister(uint8 twoBits) const
+CZ80::SRegister16Bit&	CZ80::Get16BitRegister(uint8 twoBits)
 {
 	switch (twoBits & 0x03)
 	{
@@ -80,21 +55,6 @@ uint16	CZ80::Get16BitRegister(uint8 twoBits) const
 		case 1: return m_DE;	break;
 		case 2: return m_HL;	break;
 		case 3: return m_SP;	break;
-		default:							break;
-	}
-}
-
-//=============================================================================
-
-void	CZ80::Set16BitRegister(uint8 twoBits, uint16 value)
-{
-	switch (twoBits & 0x03)
-	{
-		case 0: m_BC = value;	break;
-		case 1: m_DE = value;	break;
-		case 2: m_HL = value;	break;
-		case 3: m_SP = value;	break;
-		default:							break;
 	}
 }
 
@@ -108,7 +68,6 @@ const char* CZ80::Get16BitRegisterString(uint8 twoBits)
 		case 1: return "DE";		break;
 		case 2: return "HL";		break;
 		case 3: return "SP";		break;
-		default: break;
 	}
 }
 
@@ -143,7 +102,7 @@ void CZ80::ImplementLDrr(void)
 	//								1						4									1.00
 	//
 	IncrementR(1);
-	Set8BitRegister(*m_PC >> 3, Get8BitRegister(*m_PC));
+	Get8BitRegister(*m_PC >> 3) = Get8BitRegister(*m_PC);
 	++m_PC;
 	m_tstate += 4;
 }
@@ -176,7 +135,7 @@ void CZ80::ImplementLDrn(void)
 	//
 	IncrementR(1);
 	uint8 opcode = *m_PC++;
-	Set8BitRegister(opcode, *m_PC++);
+	Get8BitRegister(opcode) = *m_PC++;
 	m_tstate += 7;
 }
 
@@ -205,7 +164,7 @@ void CZ80::ImplementLDrHL(void)
 	//								2						7 (4,3)						1.75
 	//
 	IncrementR(1);
-	Set8BitRegister(*m_PC >> 3, Get8BitRegister(*m_PC));
+	Get8BitRegister(*m_PC >> 3) = Get8BitRegister(*m_PC);
 	++m_PC;
 	m_tstate += 7;
 }
@@ -240,7 +199,7 @@ void CZ80::ImplementLDrIXd(void)
 	//
 	IncrementR(2);
 	uint8 opcode = *++m_PC;
-	Set8BitRegister(opcode >> 3, *(&m_IX + *++m_PC++));
+	Get8BitRegister(opcode >> 3) = *(&m_IX + *++m_PC++);
 	m_tstate += 19;
 }
 
@@ -274,7 +233,7 @@ void CZ80::ImplementLDrIYd(void)
 	//
 	IncrementR(2);
 	uint8 opcode = *++m_PC;
-	Set8BitRegister(opcode >> 3, *(&m_IY + *++m_PC++));
+	Get8BitRegister(opcode >> 3) = *(&m_IY + *++m_PC++);
 	m_tstate += 19;
 }
 
@@ -689,7 +648,6 @@ void CZ80::ImplementLDRA(void)
 
 //=============================================================================
 
-/*
 //-----------------------------------------------------------------------------
 //	16-Bit Load Group
 //-----------------------------------------------------------------------------
@@ -719,10 +677,11 @@ void CZ80::ImplementLDddnn(void)
 	//							M Cycles		T States					MHz E.T.
 	//								3						10 (4,3,3)				2.50
 	//
-	m_register.R |= ((m_register.R + 1) & 0x7F);
-	uint8 opcode = *m_register.PC++;
-	*GetRegister16Address(opcode >> 4, false) = *m_register.PC++;
-	*GetRegister16Address(opcode >> 4, true) = *m_register.PC++;
+	IncrementR(1);
+	uint8 opcode = *m_PC;
+	m_M = *++m_PC;
+	m_T = *++m_PC;
+	Get16BitRegister(opcode >> 4) = m_TM;
 	m_tstate += 10;
 }
 
@@ -747,10 +706,11 @@ void CZ80::ImplementLDIXnn(void)
 	//							M Cycles		T States					MHz E.T.
 	//								4						14 (4,4,3,3)			3.50
 	//
-	m_register.R |= ((m_register.R + 2) & 0x7F);
-	++++m_register.PC;
-	m_register.IX = (static_cast<uint16>(*(m_register.PC + 1) << 0x100)) | *m_register.PC;
-	++++m_register.PC;
+	IncrementR(2);
+	++++m_PC;
+	m_M = *++m_PC;
+	m_T = *++m_PC;
+	m_IX = m_TM;
 	m_tstate += 14;
 }
 
@@ -775,10 +735,11 @@ void CZ80::ImplementLDIYnn(void)
 	//							M Cycles		T States					MHz E.T.
 	//								4						14 (4,4,3,3)			3.50
 	//
-	m_register.R |= ((m_register.R + 2) & 0x7F);
-	++++m_register.PC;
-	m_register.IY = (static_cast<uint16>(*(m_register.PC + 1) << 0x100)) | *m_register.PC;
-	++++m_register.PC;
+	IncrementR(2);
+	++++m_PC;
+	m_M = *++m_PC;
+	m_T = *++m_PC;
+	m_IY = m_TM;
 	m_tstate += 14;
 }
 
@@ -800,12 +761,10 @@ void CZ80::ImplementLDHL_nn_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								5						16 (4,3,3,3,3)		4.00
 	//
-	m_register.R |= ((m_register.R + 1) & 0x7F);
-	++m_register.PC;
-	uint8* pSource = (static_cast<uint16>(*(m_register.PC + 1) << 0x100)) | *m_register.PC;
-	m_register.L = *pSource++;
-	m_register.H = *pSource;
-	++++m_register.PC;
+	IncrementR(1);
+	m_L = *++m_PC;
+	m_H = *++m_PC;
+	++m_PC;
 	m_tstate += 16;
 }
 
@@ -836,12 +795,12 @@ void CZ80::ImplementLDdd_nn_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								6						20 (4,4,3,3,3,3)	5.00
 	//
-	m_register.R |= ((m_register.R + 2) & 0x7F);
-	uint8 opcode = *(++m_register.PC)++;
-	uint8* pSource = (static_cast<uint16>(*(m_register.PC + 1) << 0x100)) | *m_register.PC;
-	*GetRegister16Address(opcode >> 4, false) = *pSource++;
-	*GetRegister16Address(opcode >> 4, true) = *pSource;
-	++++m_register.PC;
+	IncrementR(2);
+	uint8 opcode = *++m_PC++;
+	m_PC.SetRegisterPair(m_T, m_M);
+	m_TM.SetRegisterPair(m_T, m_M);
+	Get16BitRegister(opcode >> 4) = m_TM;
+	++++m_PC;
 	m_tstate += 20;
 }
 
@@ -866,11 +825,11 @@ void CZ80::ImplementLDIX_nn_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								6						20 (4,4,3,3,3,3)	5.00
 	//
-	m_register.R |= ((m_register.R + 2) & 0x7F);
-	uint8 opcode = *(++m_register.PC)++;
-	uint8* pSource = (static_cast<uint16>(*(m_register.PC + 1) << 0x100)) | *m_register.PC;
-	m_register.IX = (static_cast<uint16>(*(pSource + 1) << 0x100)) | *pSource;
-	++++m_register.PC;
+	IncrementR(2);
+	++++m_PC;
+	m_PC.SetRegisterPair(m_T, m_M);
+	m_TM.SetRegisterPair(m_T, m_M);
+	m_IX = m_TM;
 	m_tstate += 20;
 }
 
@@ -895,11 +854,11 @@ void CZ80::ImplementLDIY_nn_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								6						20 (4,4,3,3,3,3)	5.00
 	//
-	m_register.R |= ((m_register.R + 2) & 0x7F);
-	uint8 opcode = *(++m_register.PC)++;
-	uint8* pSource = (static_cast<uint16>(*(m_register.PC + 1) << 0x100)) | *m_register.PC;
-	m_register.IY = (static_cast<uint16>(*(pSource + 1) << 0x100)) | *pSource;
-	++++m_register.PC;
+	IncrementR(2);
+	++++m_PC;
+	m_PC.SetRegisterPair(m_T, m_M);
+	m_TM.SetRegisterPair(m_T, m_M);
+	m_IY = m_TM;
 	m_tstate += 20;
 }
 
@@ -921,12 +880,12 @@ void CZ80::ImplementLD_nn_HL(void)
 	//							M Cycles		T States					MHz E.T.
 	//								5						16 (4,3,3,3,3)		4.00
 	//
-	m_register.R |= ((m_register.R + 1) & 0x7F);
-	++m_register.PC;
-	uint8* pDestination = (static_cast<uint16>(*(m_register.PC + 1) << 0x100)) | *m_register.PC;
-	*pSource++ = m_register.L;
-	*pSource = m_register.H;
-	++++m_register.PC;
+	IncrementR(1);
+	++m_PC;
+	m_PC.SetRegisterPair(m_T, m_M);
+	*&m_TM = m_L;
+	*&++m_TM = m_H;
+	++++m_PC;
 	m_tstate += 16;
 }
 
@@ -957,12 +916,13 @@ void CZ80::ImplementLD_nn_dd(void)
 	//							M Cycles		T States					MHz E.T.
 	//								6						20 (4,4,3,3,3,3)	5.00
 	//
-	m_register.R |= ((m_register.R + 2) & 0x7F);
-	uint8 opcode = *(++m_register.PC)++;
-	uint8* pDestination = (static_cast<uint16>(*(m_register.PC + 1) << 0x100)) | *m_register.PC;
-	*pDestination = *GetRegister16Address(opcode >> 4, false);
-	*pDestination = *GetRegister16Address(opcode >> 4, true);
-	++++m_register.PC;
+	IncrementR(2);
+	uint8 opcode = *++m_PC++;
+	m_PC.SetRegisterPair(m_T, m_M);
+	uint16 value = Get16BitRegister(opcode >> 4);
+	*&m_TM = value & 0xFF;
+	*&++m_TM = value >> 8;
+	++++m_PC;
 	m_tstate += 20;
 }
 
@@ -987,12 +947,12 @@ void CZ80::ImplementLD_nn_IX(void)
 	//							M Cycles		T States					MHz E.T.
 	//								6						20 (4,4,3,3,3,3)	5.00
 	//
-	m_register.R |= ((m_register.R + 2) & 0x7F);
-	uint8 opcode = *(++m_register.PC)++;
-	uint8* pDestination = (static_cast<uint16>(*(m_register.PC + 1) << 0x100)) | *m_register.PC;
-	*pDestination++ = m_register.IX & 0xFF;
-	*pDestination = m_register.IX >> 8;
-	++++m_register.PC;
+	IncrementR(2);
+	++++m_PC;
+	m_PC.SetRegisterPair(m_T, m_M);
+	*&m_TM = m_IX & 0xFF;
+	*&++m_TM = m_IX >> 8;
+	++++m_PC;
 	m_tstate += 20;
 }
 
@@ -1017,12 +977,12 @@ void CZ80::ImplementLD_nn_IY(void)
 	//							M Cycles		T States					MHz E.T.
 	//								6						20 (4,4,3,3,3,3)	5.00
 	//
-	m_register.R |= ((m_register.R + 2) & 0x7F);
-	uint8 opcode = *(++m_register.PC)++;
-	uint8* pDestination = (static_cast<uint16>(*(m_register.PC + 1) << 0x100)) | *m_register.PC;
-	*pDestination++ = m_register.IY & 0xFF;
-	*pDestination = m_register.IY >> 8;
-	++++m_register.PC;
+	IncrementR(2);
+	++++m_PC;
+	m_PC.SetRegisterPair(m_T, m_M);
+	*&m_TM = m_IY & 0xFF;
+	*&++m_TM = m_IY >> 8;
+	++++m_PC;
 	m_tstate += 20;
 }
 
@@ -1040,9 +1000,9 @@ void CZ80::ImplementLDSPHL(void)
 	//							M Cycles		T States					MHz E.T.
 	//								1						6									1.50
 	//
-	m_register.R |= ((m_register.R + 1) & 0x7F);
-	m_register.SP = (static_cast<uint16>(m_register.H) << 0x100) | m_register.L;
-	++m_register.PC;
+	IncrementR(1);
+	m_SP = m_HL;
+	++m_PC;
 	m_tstate += 6;
 }
 
@@ -1062,9 +1022,9 @@ void CZ80::ImplementLDSPIX(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						10 (4,6)					2.50
 	//
-	m_register.R |= ((m_register.R + 2) & 0x7F);
-	m_register.SP = m_register.IX;
-	++++m_register.PC;
+	IncrementR(2);
+	m_SP = m_IX;
+	++m_PC;
 	m_tstate += 10;
 }
 
@@ -1084,9 +1044,9 @@ void CZ80::ImplementLDSPIY(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						10 (4,6)					2.50
 	//
-	m_register.R |= ((m_register.R + 2) & 0x7F);
-	m_register.SP = m_register.IY;
-	++++m_register.PC;
+	IncrementR(2);
+	m_SP = m_IY;
+	++m_PC;
 	m_tstate += 10;
 }
 
@@ -1110,9 +1070,11 @@ void CZ80::ImplementPUSHqq(void)
 	//							M Cycles		T States					MHz E.T.
 	//								3						11 (5,3,3)				2.75
 	//
-	m_register.R |= ((m_register.R + 1) & 0x7F);
-	*--m_register.SP = *GetRegister16Address(m_register.PC >> 4, true);
-	*--m_register.SP = *GetRegister16Address(m_register.PC++ >> 4, false);
+	IncrementR(1);
+	uint16 value = Get16BitRegister(*m_PC >> 4);
+	*&--m_SP = value >> 8;
+	*&--m_SP = value & 0xFF;
+	++m_PC;
 	m_tstate += 11;
 }
 
@@ -1132,9 +1094,10 @@ void CZ80::ImplementPUSHIX(void)
 	//							M Cycles		T States					MHz E.T.
 	//								4						15 (4,5,3,3)			3.75
 	//
-	m_register.R |= ((m_register.R + 2) & 0x7F);
-	*--m_register.SP = m_register.IX >> 8;
-	*--m_register.SP = m_register.IX & 0xFF;
+	IncrementR(2);
+	*&--m_SP = m_IX >> 8;
+	*&--m_SP = m_IX & 0xFF;
+	++++m_PC;
 	m_tstate += 15;
 }
 
@@ -1154,9 +1117,10 @@ void CZ80::ImplementPUSHIY(void)
 	//							M Cycles		T States					MHz E.T.
 	//								4						15 (4,5,3,3)			3.75
 	//
-	m_register.R |= ((m_register.R + 2) & 0x7F);
-	*--m_register.SP = m_register.IY >> 8;
-	*--m_register.SP = m_register.IY & 0xFF;
+	IncrementR(2);
+	*&--m_SP = m_IY >> 8;
+	*&--m_SP = m_IY & 0xFF;
+	++++m_PC;
 	m_tstate += 15;
 }
 
@@ -1164,7 +1128,7 @@ void CZ80::ImplementPUSHIY(void)
 
 void CZ80::ImplementPOPqq(void)
 {
-	// Operation:	qql <- (SP-2), qqh <- (SP-1)
+	// Operation:	qqh <- (SP+1), qql <- (SP)
 	// Op Code:		POP
 	// Operands:	qq
 	//						+-+-+-+-+-+-+-+-+
@@ -1180,9 +1144,11 @@ void CZ80::ImplementPOPqq(void)
 	//							M Cycles		T States					MHz E.T.
 	//								3						10 (4,3,3)				2.75
 	//
-	m_register.R |= ((m_register.R + 1) & 0x7F);
-	*GetRegister16Address(m_register.PC >> 4, false) = *m_register.SP++;
-	*GetRegister16Address(m_register.PC++ >> 4, true) = *m_register.SP++;
+	IncrementR(1);
+	uint16 value = *&m_SP;
+	value |= *&++m_SP << 8;
+	Get16BitRegister(*m_PC >> 4) = value;
+	++m_PC;
 	m_tstate += 10;
 }
 
@@ -1190,7 +1156,7 @@ void CZ80::ImplementPOPqq(void)
 
 void CZ80::ImplementPOPIX(void)
 {
-	// Operation:	IXl <- (SP-2), IXh <- (SP-1)
+	// Operation:	IXh <- (SP+1), IXl <- (SP)
 	// Op Code:		POP
 	// Operands:	IX
 	//						+-+-+-+-+-+-+-+-+
@@ -1202,9 +1168,11 @@ void CZ80::ImplementPOPIX(void)
 	//							M Cycles		T States					MHz E.T.
 	//								4						14 (4,4,3,3)			3.50
 	//
-	m_register.R |= ((m_register.R + 2) & 0x7F);
-	m_register.IX = *m_register.SP++;
-	m_register.IX |= *m_register.SP++ << 8;
+	IncrementR(2);
+	uint16 value = *&m_SP;
+	value |= *&++m_SP << 8;
+	m_IX = value;
+	++++m_PC;
 	m_tstate += 14;
 }
 
@@ -1212,7 +1180,7 @@ void CZ80::ImplementPOPIX(void)
 
 void CZ80::ImplementPOPIY(void)
 {
-	// Operation:	IYl <- (SP-2), IYh <- (SP-1)
+	// Operation:	IYh <- (SP+1), IYh <- (SP)
 	// Op Code:		POP
 	// Operands:	IY
 	//						+-+-+-+-+-+-+-+-+
@@ -1224,14 +1192,17 @@ void CZ80::ImplementPOPIY(void)
 	//							M Cycles		T States					MHz E.T.
 	//								4						14 (4,4,3,3)			3.50
 	//
-	m_register.R |= ((m_register.R + 2) & 0x7F);
-	m_register.IY = *m_register.SP++;
-	m_register.IY |= *m_register.SP++ << 8;
+	IncrementR(2);
+	uint16 value = *&m_SP;
+	value |= *&++m_SP << 8;
+	m_IY = value;
+	++++m_PC;
 	m_tstate += 14;
 }
 
 //=============================================================================
 
+/*
 //-----------------------------------------------------------------------------
 //	Exchange, Block Transfer and Search Group
 //-----------------------------------------------------------------------------
