@@ -23,7 +23,6 @@ class CZ80
 
 		void ImplementLDrr(void);
 		void ImplementLDrn(void);
-/*
 		void ImplementLDrHL(void);
 		void ImplementLDrIXd(void);
 		void ImplementLDrIYd(void);
@@ -44,6 +43,7 @@ class CZ80
 		void ImplementLDIA(void);
 		void ImplementLDRA(void);
 
+/*
 		//-----------------------------------------------------------------------------
 		//	16-Bit Load Group
 		//-----------------------------------------------------------------------------
@@ -125,6 +125,7 @@ class CZ80
 		void DecodePOPIX(const uint8* pAddress, char* pMnemonic);
 		void DecodePOPIY(const uint8* pAddress, char* pMnemonic);
 
+		*/
 		enum eFlags
 		{
 			eF_C =	1 << 0,	// Carry
@@ -136,48 +137,46 @@ class CZ80
 			eF_Z =	1 << 6,	// Zero
 			eF_S =	1 << 7	// Sign
 
-				// N.B. The only way to read XF, YF and NF is PUSH AF
+				// N.B. The only way to read X, Y and N is PUSH AF
 		};
 
-		*/
+		void	IncrementR(uint8 value)		{ m_R |= ((m_R + value) & 0x7F); }
 
-	void	IncrementR(uint8 value)		{ m_R |= ((m_R + value) & 0x7F); }
-
-	struct SRegister16Bit
-	{
-		uint16	m_register;
-		uint8*					operator&(void) const				{ return reinterpret_cast<uint8*>(m_register);					}
-		uint8						operator*(void) const				{ return *(reinterpret_cast<uint8*>(m_register));				}
-		SRegister16Bit	operator++(void)						{	SRegister16Bit temp; temp.m_register = m_register++; return temp;	}
-		SRegister16Bit	operator--(void)						{	SRegister16Bit temp; temp.m_register = m_register--; return temp;	}
-		SRegister16Bit&	operator++(int)							{ ++m_register; return *this;																	}
-		SRegister16Bit&	operator--(int)							{ --m_register; return *this;																	}
-		SRegister16Bit&	operator=(uint16 value)			{ m_register = value; return *this;											}
-										operator uint16(void) const	{ return m_register;																		}
-	};
+		struct SRegister16Bit
+		{
+			uint16	m_register;
+			uint8*					operator&(void) const				{ return reinterpret_cast<uint8*>(m_register);											}
+			uint8						operator*(void) const				{ return *(reinterpret_cast<uint8*>(m_register));										}
+			SRegister16Bit	operator++(void)						{	SRegister16Bit temp; temp.m_register = m_register++; return temp;	}
+			SRegister16Bit	operator--(void)						{	SRegister16Bit temp; temp.m_register = m_register--; return temp;	}
+			SRegister16Bit&	operator++(int)							{ ++m_register; return *this;																				}
+			SRegister16Bit&	operator--(int)							{ --m_register; return *this;																				}
+			SRegister16Bit&	operator=(uint16 value)			{ m_register = value; return *this;																	}
+											operator uint16(void) const	{ return m_register;																								}
+		};
 
 #if defined(LITTLE_ENDIAN)
 #define REGISTER_ORDER(_hi_, _lo_)	\
-	struct														\
-	{																	\
-		uint8 m_ ## _lo_;								\
-		uint8 m_ ## _hi_;								\
-	};
+		struct													\
+		{																\
+			uint8 m_ ## _lo_;							\
+			uint8 m_ ## _hi_;							\
+		};
 #else
 #define REGISTER_ORDER(_hi_, _lo_)	\
-	struct														\
-	{																	\
-		uint8 m_ ## _hi_;								\
-		uint8 m_ ## _lo_;								\
-	};
+		struct													\
+		{																\
+			uint8 m_ ## _hi_;							\
+			uint8 m_ ## _lo_;							\
+		};
 #endif // defined(LITTLE_ENDIAN)
 
-#define REGISTER_PAIR(_hi_, _lo_)				\
-	union																	\
-	{																			\
-		SRegister16Bit m_ ## _hi_ ## _lo_;	\
-		REGISTER_ORDER(_hi_, _lo_);					\
-	};
+#define REGISTER_PAIR(_hi_, _lo_)					\
+		union																	\
+		{																			\
+			SRegister16Bit m_ ## _hi_ ## _lo_;	\
+			REGISTER_ORDER(_hi_, _lo_);					\
+		};
 
 		REGISTER_PAIR(A,F);
 		REGISTER_PAIR(B,C);
@@ -192,7 +191,10 @@ class CZ80
 		uint16 _BC_;
 		uint16 _DE_;
 		uint16 _HL_;
+		uint8 IFF1; // Only the bit that corresponds to the eF_PV flag is used
+		uint8 IFF2; // Only the bit that corresponds to the eF_PV flag is used
 
+		REGISTER_PAIR(T,M); // Temporary register pair used for nn/(nn) type instructions
 		uint32 m_tstate;
 
 	private:

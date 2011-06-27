@@ -180,7 +180,6 @@ void CZ80::ImplementLDrn(void)
 	m_tstate += 7;
 }
 
-/*
 //=============================================================================
 
 void CZ80::ImplementLDrHL(void)
@@ -205,10 +204,9 @@ void CZ80::ImplementLDrHL(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						7 (4,3)						1.75
 	//
-	m_register.R |= ((m_register.R + 1) & 0x7F);
-	uint8* pDestination = GetRegister8Address(*m_register.PC >> 3);
-	uint8* pSource = GetRegister8Address(*m_register.PC++);
-	*pDestination = *pSource;
+	IncrementR(1);
+	Set8BitRegister(*m_PC >> 3, Get8BitRegister(*m_PC));
+	++m_PC;
 	m_tstate += 7;
 }
 
@@ -240,10 +238,9 @@ void CZ80::ImplementLDrIXd(void)
 	//							M Cycles		T States					MHz E.T.
 	//								5						19 (4,4,3,5,3)		4.75
 	//
-	m_register.R |= ((m_register.R + 2) & 0x7F);
-	uint8* pDestination = GetRegister8Address(*(++m_register.PC)++ >> 3);
-	uint8* pSource = static_cast<uint8*>(m_register.IX + *m_register.PC++);
-	*pDestination = *pSource;
+	IncrementR(2);
+	uint8 opcode = *++m_PC;
+	Set8BitRegister(opcode >> 3, *(&m_IX + *++m_PC++));
 	m_tstate += 19;
 }
 
@@ -275,10 +272,9 @@ void CZ80::ImplementLDrIYd(void)
 	//							M Cycles		T States					MHz E.T.
 	//								5						19 (4,4,3,5,3)		4.75
 	//
-	m_register.R |= ((m_register.R + 2) & 0x7F);
-	uint8* pDestination = GetRegister8Address(*(++m_register.PC)++ >> 3);
-	uint8* pSource = static_cast<uint8*>(m_register.IY + *m_register.PC++);
-	*pDestination = *pSource;
+	IncrementR(2);
+	uint8 opcode = *++m_PC;
+	Set8BitRegister(opcode >> 3, *(&m_IY + *++m_PC++));
 	m_tstate += 19;
 }
 
@@ -306,10 +302,8 @@ void CZ80::ImplementLDHLr(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						7 (4,3)						1.75
 	//
-	m_register.R |= ((m_register.R + 1) & 0x7F);
-	uint8* pDestination = (static_cast<uint16>(m_register.H) << 0x100) | m_register.L;
-	uint8* pSource = GetRegister8Address(*m_register.PC++);
-	*pDestination = *pSource;
+	IncrementR(1);
+	*&m_HL = Get8BitRegister(*m_PC++);
 	m_tstate += 7;
 }
 
@@ -341,10 +335,9 @@ void CZ80::ImplementLDIXdr(void)
 	//							M Cycles		T States					MHz E.T.
 	//								5						19 (4,4,3,5,3)		4.75
 	//
-	m_register.R |= ((m_register.R + 2) & 0x7F);
-	uint8* pSource = GetRegister8Address(*(++m_register.PC)++ >> 3);
-	uint8* pDestination = static_cast<uint8*>(m_register.IX + *m_register.PC++);
-	*pDestination = *pSource;
+	IncrementR(2);
+	uint8 opcode = *++m_PC;
+	*(&m_IX + *++m_PC++) = Get8BitRegister(opcode);
 	m_tstate += 19;
 }
 
@@ -376,10 +369,9 @@ void CZ80::ImplementLDIYdr(void)
 	//							M Cycles		T States					MHz E.T.
 	//								5						19 (4,4,3,5,3)		4.75
 	//
-	m_register.R |= ((m_register.R + 2) & 0x7F);
-	uint8* pSource = GetRegister8Address(*(++m_register.PC)++ >> 3);
-	uint8* pDestination = static_cast<uint8*>(m_register.IY + *m_register.PC++);
-	*pDestination = *pSource;
+	IncrementR(2);
+	uint8 opcode = *++m_PC;
+	*(&m_IY + *++m_PC++) = Get8BitRegister(opcode);
 	m_tstate += 19;
 }
 
@@ -400,9 +392,8 @@ void CZ80::ImplementLDHLn(void)
 	//							M Cycles		T States					MHz E.T.
 	//								3						10 (4,3,3)				2.50
 	//
-	m_register.R |= ((m_register.R + 1) & 0x7F);
-	uint8* pDestination = (static_cast<uint16>(m_register.H) << 0x100) | m_register.L;
-	*pDestination = *(++m_register.PC)++;
+	IncrementR(1);
+	*&m_HL = *++m_PC++;
 	m_tstate += 10;
 }
 
@@ -427,10 +418,10 @@ void CZ80::ImplementLDIXdn(void)
 	//							M Cycles		T States					MHz E.T.
 	//								5						19 (4,4,3,5,3)		4.75
 	//
-	m_register.R |= ((m_register.R + 2) & 0x7F);
-	++++m_register.PC;
-	uint8* pDestination = static_cast<uint8*>(m_register.IX + *m_register.PC++);
-	*pDestination = *m_register.PC++;
+	IncrementR(2);
+	++++m_PC;
+	*(&m_IX + *m_PC) = *(&m_PC + 1);
+	++++m_PC;
 	m_tstate += 19;
 }
 
@@ -455,10 +446,10 @@ void CZ80::ImplementLDIYdn(void)
 	//							M Cycles		T States					MHz E.T.
 	//								5						19 (4,4,3,5,3)		4.75
 	//
-	m_register.R |= ((m_register.R + 2) & 0x7F);
-	++++m_register.PC;
-	uint8* pDestination = static_cast<uint8*>(m_register.IY + *m_register.PC++);
-	*pDestination = *m_register.PC++;
+	IncrementR(2);
+	++++m_PC;
+	*(&m_IY + *m_PC) = *(&m_PC + 1);
+	++++m_PC;
 	m_tstate += 19;
 }
 
@@ -477,10 +468,9 @@ void CZ80::ImplementLDABC(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						7 (4,3)						1.75
 	//
-	m_register.R |= ((m_register.R + 1) & 0x7F);
-	uint8* pSource = (static_cast<uint16>(m_register.B) << 0x100) | m_register.C;
-	m_register.A = *pSource;
-	++m_register.PC; 
+	IncrementR(1);
+	m_A = *m_BC;
+	++m_PC;
 	m_tstate += 7;
 }
 
@@ -499,10 +489,9 @@ void CZ80::ImplementLDADE(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						7 (4,3)						1.75
 	//
-	m_register.R |= ((m_register.R + 1) & 0x7F);
-	uint8* pSource = (static_cast<uint16>(m_register.D) << 0x100) | m_register.E;
-	m_register.A = *pSource;
-	++m_register.PC; 
+	IncrementR(1);
+	m_A = *m_DE;
+	++m_PC;
 	m_tstate += 7;
 }
 
@@ -525,11 +514,11 @@ void CZ80::ImplementLDA_nn_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								4						13 (4,3,3,3)			3.25
 	//
-	m_register.R |= ((m_register.R + 1) & 0x7F);
-	++m_register.PC;
-	uint8* pSource = (static_cast<uint16>(*(m_register.PC + 1) << 0x100)) | *m_register.PC;
-	m_register.A = *pSource;
-	++++m_register.PC;
+	IncrementR(1);
+	m_M = *++m_PC;
+	m_T = *++m_PC;
+	m_A = *&m_TM;
+	++m_PC;
 	m_tstate += 13;
 }
 
@@ -548,10 +537,9 @@ void CZ80::ImplementLDBCA(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						7 (4,3)						1.75
 	//
-	m_register.R |= ((m_register.R + 1) & 0x7F);
-	uint8* pDestination = (static_cast<uint16>(m_register.B) << 0x100) | m_register.C;
-	*pDestination = m_register.A;
-	++m_register.PC; 
+	IncrementR(1);
+	*&m_BC = m_A;
+	++m_PC; 
 	m_tstate += 7;
 }
 
@@ -570,10 +558,9 @@ void CZ80::ImplementLDDEA(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						7 (4,3)						1.75
 	//
-	m_register.R |= ((m_register.R + 1) & 0x7F);
-	uint8* pDestination = (static_cast<uint16>(m_register.D) << 0x100) | m_register.E;
-	*pDestination = m_register.A;
-	++m_register.PC; 
+	IncrementR(1);
+	*&m_DE = m_A;
+	++m_PC; 
 	m_tstate += 7;
 }
 
@@ -596,10 +583,11 @@ void CZ80::ImplementLD_nn_A(void)
 	//							M Cycles		T States					MHz E.T.
 	//								4						13 (4,3,3,3)			3.25
 	//
-	m_register.R |= ((m_register.R + 1) & 0x7F);
-	uint8* pDestination = static_cast<uint16>(*(pAddress + 2) << 0x100) | *(pAddress + 1);
-	*pDestination = m_register.A;
-	++m_register.PC; 
+	IncrementR(1);
+	m_M = *++m_PC;
+	m_T = *++m_PC;
+	*&m_TM = m_A;
+	++m_PC;
 	m_tstate += 13;
 }
 
@@ -620,11 +608,11 @@ void CZ80::ImplementLDAI(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						9 (4,5)						2.25
 	//
-	m_register.R |= ((m_register.R + 2) & 0x7F);
-	m_register.A = m_register.I;
-	m_register.F &= ~(eF_S | eF_Z | eF_H | eF_N);
-	m_register.F |= (m_register.A & eF_S) | (eF_Z & (m_register.A == 0)) | (eF_PV & IFF2);
-	++++m_register.PC;
+	IncrementR(2);
+	m_A = m_I;
+	m_F &= ~(eF_S | eF_Z | eF_H | eF_N);
+	m_F |= (m_A & eF_S) | (eF_Z & (m_A == 0)) | (eF_PV & IFF2);
+	++++m_PC;
 	m_tstate += 9;
 }
 
@@ -645,12 +633,11 @@ void CZ80::ImplementLDAR(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						9 (4,5)						2.25
 	//
-	m_register.R |= ((m_register.R + 2) & 0x7F);
-	m_register.A = m_register.I;
-	m_register.A = m_register.R;
-	m_register.F &= ~(eF_S | eF_Z | eF_H | eF_N);
-	m_register.F |= (m_register.A & eF_S) | (eF_Z & (m_register.A == 0)) | (eF_PV & IFF2);
-	++++m_register.PC;
+	IncrementR(2);
+	m_A = m_R;
+	m_F &= ~(eF_S | eF_Z | eF_H | eF_N);
+	m_F |= (m_A & eF_S) | (eF_Z & (m_A == 0)) | (eF_PV & IFF2);
+	++++m_PC;
 	m_tstate += 9;
 }
 
@@ -671,9 +658,9 @@ void CZ80::ImplementLDIA(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						9 (4,5)						2.25
 	//
-	m_register.R |= ((m_register.R + 2) & 0x7F);
-	m_register.I = m_register.A;
-	++++m_register.PC;
+	IncrementR(2);
+	m_I = m_A;
+	++++m_PC;
 	m_tstate += 9;
 }
 
@@ -694,14 +681,15 @@ void CZ80::ImplementLDRA(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						9 (4,5)						2.25
 	//
-	m_register.R |= ((m_register.R + 2) & 0x7F);
-	m_register.R = m_register.A;
-	++++m_register.PC;
+	IncrementR(2);
+	m_R = m_A;
+	++++m_PC;
 	m_tstate += 9;
 }
 
 //=============================================================================
 
+/*
 //-----------------------------------------------------------------------------
 //	16-Bit Load Group
 //-----------------------------------------------------------------------------
