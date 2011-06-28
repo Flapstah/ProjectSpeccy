@@ -1229,30 +1229,148 @@ void CZ80::ImplementEXDEHL(void)
 	//								1						4									1.00
 	//
 	IncrementR(1);
-	m_register.R |= ((m_register.R + 1) & 0x7F);
-	m_register.D ^= m_register.H;
-	m_register.H ^= m_register.D;
-	m_register.D ^= m_register.H;
-	m_register.E ^= m_register.L;
-	m_register.L ^= m_register.E;
-	m_register.E ^= m_register.L;
+	m_DE ^= m_HL;
+	m_HL ^= m_DE;
+	m_DE ^= m_HL;
+	++m_PC;
 	m_tstate += 4;
 }
 
 //=============================================================================
 
+void CZ80::ImplementEXAFAF(void)
+{
+	//
+	// Operation:	AF <-> AF'
+	// Op Code:		EX
+	// Operands:	AF, AF'
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|0|0|0|1|0|0|0| 08
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								1						4									1.00
+	//
+	IncrementR(1);
+	m_AF ^= _AF_;
+	_AF_ ^= m_AF;
+	m_AF ^= _AF_;
+	++m_PC;
+	m_tstate += 4;
+}
 
 //=============================================================================
 
+void CZ80::ImplementEXX(void)
+{
+	//
+	// Operation:	BC <-> BC', DE <-> DE', HL <-> HL'
+	// Op Code:		EX
+	// Operands:	BC, BC', DE, DE', HL, HL'
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|1|1|0|0|1| D9
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								1						4									1.00
+	//
+	IncrementR(1);
+	m_BC ^= _BC_;
+	_BC_ ^= m_BC;
+	m_BC ^= _BC_;
+
+	m_DE ^= _DE_;
+	_DE_ ^= m_DE;
+	m_DE ^= _DE_;
+
+	m_HL ^= _HL_;
+	_HL_ ^= m_HL;
+	m_HL ^= _HL_;
+	++m_PC;
+	m_tstate += 4;
+}
 
 //=============================================================================
 
+void CZ80::ImplementEX_SP_HL(void)
+{
+	// Operation:	H <-> (SP+1), L <-> (SP)
+	// Op Code:		EX
+	// Operands:	(SP), HL
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|0|0|0|1|1| E3
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								5						19 (4,3,4,3,5)		4.75
+	//
+	IncrementR(1);
+	m_L ^= *(m_pSP);
+	*(m_pSP) ^= m_L;
+	m_L ^= *(m_pSP)++;
+
+	m_H ^= *(m_pSP);
+	*(m_pSP) ^= m_H;
+	m_H ^= *(m_pSP);
+	++m_PC;
+	m_tstate += 19;
+}
 
 //=============================================================================
 
+void CZ80::ImplementEX_SP_IX(void)
+{
+	// Operation:	IXh <-> (SP+1), IXl <-> (SP)
+	// Op Code:		EX
+	// Operands:	(SP), IX
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|1|1|1|0|1| DD
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|0|0|0|1|1| E3
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								6						23 (4,4,3,4,3,5)	5.75
+	//
+	IncrementR(2);
+	m_IX_lo ^= *(m_pSP);
+	*(m_pSP) ^= m_IX_lo;
+	m_IX_lo ^= *(m_pSP)++;
+
+	m_IX_hi ^= *(m_pSP);
+	*(m_pSP) ^= m_IX_hi;
+	m_IX_hi ^= *(m_pSP);
+	++++m_PC;
+	m_tstate += 23;
+}
 
 //=============================================================================
 
+void CZ80::ImplementEX_SP_IY(void)
+{
+	// Operation:	IYh <-> (SP+1), IYl <-> (SP)
+	// Op Code:		EX
+	// Operands:	(SP), IY
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|1|1|1|0|1| FD
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|0|0|0|1|1| E3
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								6						23 (4,4,3,4,3,5)	5.75
+	//
+	IncrementR(2);
+	m_IY_lo ^= *(m_pSP);
+	*(m_pSP) ^= m_IY_lo;
+	m_IY_lo ^= *(m_pSP)++;
+
+	m_IY_hi ^= *(m_pSP);
+	*(m_pSP) ^= m_IY_hi;
+	m_IY_hi ^= *(m_pSP);
+	++++m_PC;
+	m_tstate += 23;
+}
 
 //=============================================================================
 

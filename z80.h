@@ -65,6 +65,11 @@ class CZ80
 		//-----------------------------------------------------------------------------
 
 		void ImplementEXDEHL(void);
+		void ImplementEXAFAF(void);
+		void ImplementEXX(void);
+		void ImplementEX_SP_HL(void);
+		void ImplementEX_SP_IX(void);
+		void ImplementEX_SP_IY(void);
 
 		//-----------------------------------------------------------------------------
 		//	8-Bit Load Group
