@@ -17,14 +17,14 @@ uint8&	CZ80::Get8BitRegister(uint8 threeBits)
 {
 	switch (threeBits & 0x07)
 	{
-		case 0: return m_B;		break;
-		case 1: return m_C;		break;
-		case 2: return m_D;		break;
-		case 3: return m_E;		break;
-		case 4: return m_H;		break;
-		case 5: return m_L;		break;
-		case 6: return *&m_HL;	break;
-		case 7: return m_A;		break;
+		case 0: return m_B;			break;
+		case 1: return m_C;			break;
+		case 2: return m_D;			break;
+		case 3: return m_E;			break;
+		case 4: return m_H;			break;
+		case 5: return m_L;			break;
+		case 6: return *m_pHL;	break;
+		case 7: return m_A;			break;
 	}
 }
 
@@ -47,7 +47,7 @@ const char* CZ80::Get8BitRegisterString(uint8 threeBits)
 
 //=============================================================================
 
-CZ80::SRegister16Bit&	CZ80::Get16BitRegister(uint8 twoBits)
+uint16&	CZ80::Get16BitRegister(uint8 twoBits)
 {
 	switch (twoBits & 0x03)
 	{
@@ -102,7 +102,7 @@ void CZ80::ImplementLDrr(void)
 	//								1						4									1.00
 	//
 	IncrementR(1);
-	Get8BitRegister(*m_PC >> 3) = Get8BitRegister(*m_PC);
+	Get8BitRegister(*m_pPC >> 3) = Get8BitRegister(*m_pPC);
 	++m_PC;
 	m_tstate += 4;
 }
@@ -134,8 +134,8 @@ void CZ80::ImplementLDrn(void)
 	//								2						7 (4,3)						1.75
 	//
 	IncrementR(1);
-	uint8 opcode = *m_PC++;
-	Get8BitRegister(opcode) = *m_PC++;
+	uint8 opcode = *m_pPC++;
+	Get8BitRegister(opcode) = *m_pPC++;
 	m_tstate += 7;
 }
 
@@ -164,7 +164,7 @@ void CZ80::ImplementLDrHL(void)
 	//								2						7 (4,3)						1.75
 	//
 	IncrementR(1);
-	Get8BitRegister(*m_PC >> 3) = Get8BitRegister(*m_PC);
+	Get8BitRegister(*m_pPC >> 3) = Get8BitRegister(*m_pPC);
 	++m_PC;
 	m_tstate += 7;
 }
@@ -198,8 +198,8 @@ void CZ80::ImplementLDrIXd(void)
 	//								5						19 (4,4,3,5,3)		4.75
 	//
 	IncrementR(2);
-	uint8 opcode = *++m_PC;
-	Get8BitRegister(opcode >> 3) = *(&m_IX + *++m_PC++);
+	uint8 opcode = *(++m_pPC);
+	Get8BitRegister(opcode >> 3) = *(m_pIX + *(++m_pPC)++);
 	m_tstate += 19;
 }
 
@@ -232,8 +232,8 @@ void CZ80::ImplementLDrIYd(void)
 	//								5						19 (4,4,3,5,3)		4.75
 	//
 	IncrementR(2);
-	uint8 opcode = *++m_PC;
-	Get8BitRegister(opcode >> 3) = *(&m_IY + *++m_PC++);
+	uint8 opcode = *++m_pPC;
+	Get8BitRegister(opcode >> 3) = *(&m_IY + *(++m_pPC)++);
 	m_tstate += 19;
 }
 
@@ -262,7 +262,7 @@ void CZ80::ImplementLDHLr(void)
 	//								2						7 (4,3)						1.75
 	//
 	IncrementR(1);
-	*&m_HL = Get8BitRegister(*m_PC++);
+	*m_pHL = Get8BitRegister(*m_pPC++);
 	m_tstate += 7;
 }
 
@@ -295,8 +295,8 @@ void CZ80::ImplementLDIXdr(void)
 	//								5						19 (4,4,3,5,3)		4.75
 	//
 	IncrementR(2);
-	uint8 opcode = *++m_PC;
-	*(&m_IX + *++m_PC++) = Get8BitRegister(opcode);
+	uint8 opcode = *(++m_pPC);
+	*(m_pIX + *(++m_pPC)++) = Get8BitRegister(opcode);
 	m_tstate += 19;
 }
 
@@ -329,8 +329,8 @@ void CZ80::ImplementLDIYdr(void)
 	//								5						19 (4,4,3,5,3)		4.75
 	//
 	IncrementR(2);
-	uint8 opcode = *++m_PC;
-	*(&m_IY + *++m_PC++) = Get8BitRegister(opcode);
+	uint8 opcode = *(++m_pPC);
+	*(m_pIY + *(++m_pPC)++) = Get8BitRegister(opcode);
 	m_tstate += 19;
 }
 
@@ -352,7 +352,7 @@ void CZ80::ImplementLDHLn(void)
 	//								3						10 (4,3,3)				2.50
 	//
 	IncrementR(1);
-	*&m_HL = *++m_PC++;
+	*m_pHL = *(++m_pPC)++;
 	m_tstate += 10;
 }
 
@@ -379,7 +379,7 @@ void CZ80::ImplementLDIXdn(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	*(&m_IX + *m_PC) = *(&m_PC + 1);
+	*(m_pIX + *m_pPC) = *(m_pPC + 1);
 	++++m_PC;
 	m_tstate += 19;
 }
@@ -407,7 +407,7 @@ void CZ80::ImplementLDIYdn(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	*(&m_IY + *m_PC) = *(&m_PC + 1);
+	*(m_pIY + *m_pPC) = *(m_pPC + 1);
 	++++m_PC;
 	m_tstate += 19;
 }
@@ -428,7 +428,7 @@ void CZ80::ImplementLDABC(void)
 	//								2						7 (4,3)						1.75
 	//
 	IncrementR(1);
-	m_A = *m_BC;
+	m_A = *m_pBC;
 	++m_PC;
 	m_tstate += 7;
 }
@@ -449,7 +449,7 @@ void CZ80::ImplementLDADE(void)
 	//								2						7 (4,3)						1.75
 	//
 	IncrementR(1);
-	m_A = *m_DE;
+	m_A = *m_pDE;
 	++m_PC;
 	m_tstate += 7;
 }
@@ -474,9 +474,10 @@ void CZ80::ImplementLDA_nn_(void)
 	//								4						13 (4,3,3,3)			3.25
 	//
 	IncrementR(1);
-	m_M = *++m_PC;
-	m_T = *++m_PC;
-	m_A = *&m_TM;
+	NON_MEMBER_REGISTER_16BIT(temp);
+	temp.m_lo = *(++m_pPC);
+	temp.m_hi = *(++m_pPC);
+	m_A = *temp.m_ptr;
 	++m_PC;
 	m_tstate += 13;
 }
@@ -497,7 +498,7 @@ void CZ80::ImplementLDBCA(void)
 	//								2						7 (4,3)						1.75
 	//
 	IncrementR(1);
-	*&m_BC = m_A;
+	*m_pBC = m_A;
 	++m_PC; 
 	m_tstate += 7;
 }
@@ -518,7 +519,7 @@ void CZ80::ImplementLDDEA(void)
 	//								2						7 (4,3)						1.75
 	//
 	IncrementR(1);
-	*&m_DE = m_A;
+	*m_pDE = m_A;
 	++m_PC; 
 	m_tstate += 7;
 }
@@ -543,9 +544,10 @@ void CZ80::ImplementLD_nn_A(void)
 	//								4						13 (4,3,3,3)			3.25
 	//
 	IncrementR(1);
-	m_M = *++m_PC;
-	m_T = *++m_PC;
-	*&m_TM = m_A;
+	NON_MEMBER_REGISTER_16BIT(temp);
+	temp.m_lo = *(++m_pPC);
+	temp.m_hi = *(++m_pPC);
+	*temp.m_ptr = m_A;
 	++m_PC;
 	m_tstate += 13;
 }
@@ -678,10 +680,11 @@ void CZ80::ImplementLDddnn(void)
 	//								3						10 (4,3,3)				2.50
 	//
 	IncrementR(1);
-	uint8 opcode = *m_PC;
-	m_M = *++m_PC;
-	m_T = *++m_PC;
-	Get16BitRegister(opcode >> 4) = m_TM;
+	uint8 opcode = *m_pPC;
+	NON_MEMBER_REGISTER_16BIT(temp);
+	temp.m_lo = *(++m_pPC);
+	temp.m_hi = *(++m_pPC)++;
+	Get16BitRegister(opcode >> 4) = temp.m_val;
 	m_tstate += 10;
 }
 
@@ -707,10 +710,10 @@ void CZ80::ImplementLDIXnn(void)
 	//								4						14 (4,4,3,3)			3.50
 	//
 	IncrementR(2);
-	++++m_PC;
-	m_M = *++m_PC;
-	m_T = *++m_PC;
-	m_IX = m_TM;
+	NON_MEMBER_REGISTER_16BIT(temp);
+	temp.m_lo = *(++++m_pPC);
+	temp.m_hi = *(++m_pPC)++;
+	m_IX = temp.m_val;
 	m_tstate += 14;
 }
 
@@ -736,10 +739,10 @@ void CZ80::ImplementLDIYnn(void)
 	//								4						14 (4,4,3,3)			3.50
 	//
 	IncrementR(2);
-	++++m_PC;
-	m_M = *++m_PC;
-	m_T = *++m_PC;
-	m_IY = m_TM;
+	NON_MEMBER_REGISTER_16BIT(temp);
+	temp.m_lo = *(++++m_pPC);
+	temp.m_hi = *(++m_pPC)++;
+	m_IY = temp.m_val;
 	m_tstate += 14;
 }
 
@@ -762,9 +765,11 @@ void CZ80::ImplementLDHL_nn_(void)
 	//								5						16 (4,3,3,3,3)		4.00
 	//
 	IncrementR(1);
-	m_L = *++m_PC;
-	m_H = *++m_PC;
-	++m_PC;
+	NON_MEMBER_REGISTER_16BIT(temp);
+	temp.m_lo = *(++m_pPC);
+	temp.m_hi = *(++m_pPC)++;
+	m_L = *temp.m_ptr;
+	m_H = *(++temp.m_ptr);
 	m_tstate += 16;
 }
 
@@ -796,11 +801,13 @@ void CZ80::ImplementLDdd_nn_(void)
 	//								6						20 (4,4,3,3,3,3)	5.00
 	//
 	IncrementR(2);
-	uint8 opcode = *++m_PC++;
-	m_PC.SetRegisterPair(m_T, m_M);
-	m_TM.SetRegisterPair(m_T, m_M);
-	Get16BitRegister(opcode >> 4) = m_TM;
-	++++m_PC;
+	uint8 opcode = *(++m_pPC);
+	NON_MEMBER_REGISTER_16BIT(temp);
+	temp.m_lo = *(++m_pPC);
+	temp.m_hi = *(++m_pPC)++;
+	uint16 value = *temp.m_ptr;
+	value |= *(++temp.m_ptr) << 8;
+	Get16BitRegister(opcode >> 4) = value;
 	m_tstate += 20;
 }
 
@@ -826,10 +833,11 @@ void CZ80::ImplementLDIX_nn_(void)
 	//								6						20 (4,4,3,3,3,3)	5.00
 	//
 	IncrementR(2);
-	++++m_PC;
-	m_PC.SetRegisterPair(m_T, m_M);
-	m_TM.SetRegisterPair(m_T, m_M);
-	m_IX = m_TM;
+	NON_MEMBER_REGISTER_16BIT(temp);
+	temp.m_lo = *(++++m_pPC);
+	temp.m_hi = *(++m_pPC)++;
+	m_IX_hi = *temp.m_ptr;
+	m_IX_lo = *(++temp.m_ptr);
 	m_tstate += 20;
 }
 
@@ -855,10 +863,11 @@ void CZ80::ImplementLDIY_nn_(void)
 	//								6						20 (4,4,3,3,3,3)	5.00
 	//
 	IncrementR(2);
-	++++m_PC;
-	m_PC.SetRegisterPair(m_T, m_M);
-	m_TM.SetRegisterPair(m_T, m_M);
-	m_IY = m_TM;
+	NON_MEMBER_REGISTER_16BIT(temp);
+	temp.m_lo = *(++++m_pPC);
+	temp.m_hi = *(++m_pPC)++;
+	m_IY_hi = *temp.m_ptr;
+	m_IY_lo = *(++temp.m_ptr);
 	m_tstate += 20;
 }
 
@@ -881,11 +890,11 @@ void CZ80::ImplementLD_nn_HL(void)
 	//								5						16 (4,3,3,3,3)		4.00
 	//
 	IncrementR(1);
-	++m_PC;
-	m_PC.SetRegisterPair(m_T, m_M);
-	*&m_TM = m_L;
-	*&++m_TM = m_H;
-	++++m_PC;
+	NON_MEMBER_REGISTER_16BIT(temp);
+	temp.m_lo = *(++m_pPC);
+	temp.m_hi = *(++m_pPC)++;
+	*temp.m_ptr = m_L;
+	*(++temp.m_ptr) = m_H;
 	m_tstate += 16;
 }
 
@@ -917,12 +926,13 @@ void CZ80::ImplementLD_nn_dd(void)
 	//								6						20 (4,4,3,3,3,3)	5.00
 	//
 	IncrementR(2);
-	uint8 opcode = *++m_PC++;
-	m_PC.SetRegisterPair(m_T, m_M);
+	uint8 opcode = *(++m_pPC);
+	NON_MEMBER_REGISTER_16BIT(temp);
+	temp.m_lo = *(++m_pPC);
+	temp.m_hi = *(++m_pPC)++;
 	uint16 value = Get16BitRegister(opcode >> 4);
-	*&m_TM = value & 0xFF;
-	*&++m_TM = value >> 8;
-	++++m_PC;
+	*temp.m_ptr = value & 0xFF;
+	*(++temp.m_ptr) = value >> 8;
 	m_tstate += 20;
 }
 
@@ -948,11 +958,11 @@ void CZ80::ImplementLD_nn_IX(void)
 	//								6						20 (4,4,3,3,3,3)	5.00
 	//
 	IncrementR(2);
-	++++m_PC;
-	m_PC.SetRegisterPair(m_T, m_M);
-	*&m_TM = m_IX & 0xFF;
-	*&++m_TM = m_IX >> 8;
-	++++m_PC;
+	NON_MEMBER_REGISTER_16BIT(temp);
+	temp.m_lo = *(++++m_pPC);
+	temp.m_hi = *(++m_pPC)++;
+	*temp.m_ptr = m_IX_lo;
+	*(++temp.m_ptr) = m_IX_hi;
 	m_tstate += 20;
 }
 
@@ -978,11 +988,11 @@ void CZ80::ImplementLD_nn_IY(void)
 	//								6						20 (4,4,3,3,3,3)	5.00
 	//
 	IncrementR(2);
-	++++m_PC;
-	m_PC.SetRegisterPair(m_T, m_M);
-	*&m_TM = m_IY & 0xFF;
-	*&++m_TM = m_IY >> 8;
-	++++m_PC;
+	NON_MEMBER_REGISTER_16BIT(temp);
+	temp.m_lo = *(++++m_pPC);
+	temp.m_hi = *(++m_pPC)++;
+	*temp.m_ptr = m_IY_lo;
+	*(++temp.m_ptr) = m_IY_hi;
 	m_tstate += 20;
 }
 
@@ -1071,10 +1081,9 @@ void CZ80::ImplementPUSHqq(void)
 	//								3						11 (5,3,3)				2.75
 	//
 	IncrementR(1);
-	uint16 value = Get16BitRegister(*m_PC >> 4);
-	*&--m_SP = value >> 8;
-	*&--m_SP = value & 0xFF;
-	++m_PC;
+	uint16 value = Get16BitRegister(*m_pPC++ >> 4);
+	*(--m_pSP) = value >> 8;
+	*(--m_pSP) = value & 0xFF;
 	m_tstate += 11;
 }
 
@@ -1095,8 +1104,8 @@ void CZ80::ImplementPUSHIX(void)
 	//								4						15 (4,5,3,3)			3.75
 	//
 	IncrementR(2);
-	*&--m_SP = m_IX >> 8;
-	*&--m_SP = m_IX & 0xFF;
+	*(--m_pSP) = m_IX_hi;
+	*(--m_pSP) = m_IX_lo;
 	++++m_PC;
 	m_tstate += 15;
 }
@@ -1118,8 +1127,8 @@ void CZ80::ImplementPUSHIY(void)
 	//								4						15 (4,5,3,3)			3.75
 	//
 	IncrementR(2);
-	*&--m_SP = m_IY >> 8;
-	*&--m_SP = m_IY & 0xFF;
+	*(--m_pSP) = m_IY_hi;
+	*(--m_pSP) = m_IY_lo;
 	++++m_PC;
 	m_tstate += 15;
 }
@@ -1145,9 +1154,9 @@ void CZ80::ImplementPOPqq(void)
 	//								3						10 (4,3,3)				2.75
 	//
 	IncrementR(1);
-	uint16 value = *&m_SP;
-	value |= *&++m_SP << 8;
-	Get16BitRegister(*m_PC >> 4) = value;
+	uint16 value = *m_pSP;
+	value |= *(++m_pSP) << 8;
+	Get16BitRegister(*m_pPC >> 4) = value;
 	++m_PC;
 	m_tstate += 10;
 }
@@ -1169,9 +1178,8 @@ void CZ80::ImplementPOPIX(void)
 	//								4						14 (4,4,3,3)			3.50
 	//
 	IncrementR(2);
-	uint16 value = *&m_SP;
-	value |= *&++m_SP << 8;
-	m_IX = value;
+	m_IX_lo = *m_pSP;
+	m_IX_hi = *(++m_pSP);
 	++++m_PC;
 	m_tstate += 14;
 }
@@ -1193,9 +1201,8 @@ void CZ80::ImplementPOPIY(void)
 	//								4						14 (4,4,3,3)			3.50
 	//
 	IncrementR(2);
-	uint16 value = *&m_SP;
-	value |= *&++m_SP << 8;
-	m_IY = value;
+	m_IY_lo = *m_pSP;
+	m_IY_hi = *(++m_pSP);
 	++++m_PC;
 	m_tstate += 14;
 }
@@ -1211,8 +1218,6 @@ void CZ80::ImplementPOPIY(void)
 
 void CZ80::ImplementEXDEHL(void)
 {
-	// TODO: Define a union for uint16 and 2x uint8 to describe a register
-
 	//
 	// Operation:	DE <-> HL
 	// Op Code:		EX

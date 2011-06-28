@@ -132,21 +132,6 @@ class CZ80
 				// N.B. The only way to read X, Y and N is PUSH AF
 		};
 
-		void	IncrementR(uint8 value)		{ m_R |= ((m_R + value) & 0x7F); }
-
-		struct SRegister16Bit
-		{
-			uint16	m_register;
-			uint8*					operator&(void) const				{ return reinterpret_cast<uint8*>(m_register);											}
-			uint8						operator*(void) const				{ return *(reinterpret_cast<uint8*>(m_register));										}
-			SRegister16Bit	operator++(void)						{	SRegister16Bit temp; temp.m_register = m_register++; return temp;	}
-			SRegister16Bit	operator--(void)						{	SRegister16Bit temp; temp.m_register = m_register--; return temp;	}
-			SRegister16Bit&	operator++(int)							{ ++m_register; return *this;																				}
-			SRegister16Bit&	operator--(int)							{ --m_register; return *this;																				}
-			SRegister16Bit&	operator=(uint16 value)			{ m_register = value; return *this;																	}
-											operator uint16(void) const	{ return m_register;																								}
-			void						SetRegisterPair(uint8& hi, uint8& lo) const { uint8* p = reinterpret_cast<uint8*>(m_register); lo = *p; hi = *++p; }
-		};
 
 #if defined(LITTLE_ENDIAN)
 #define REGISTER_ORDER(_hi_, _lo_)	\
@@ -155,6 +140,8 @@ class CZ80
 			uint8 m_ ## _lo_;							\
 			uint8 m_ ## _hi_;							\
 		};
+#define PTR_PADDING_HI_LO(_hi_, _lo_)
+#define PTR_PADDING_REG(_reg_)
 #else
 #define REGISTER_ORDER(_hi_, _lo_)	\
 		struct													\
@@ -162,30 +149,58 @@ class CZ80
 			uint8 m_ ## _hi_;							\
 			uint8 m_ ## _lo_;							\
 		};
+#define PTR_PADDING_HI_LO(_hi_, _lo_) uint8 m_ ## _hi_ ## _lo_ ## padding[sizeof(uint8*) - sizeof(uint16)]
+#define PTR_PADDING_REG(_reg_) uint8 m_ ## _reg_ ## padding[sizeof(uint8*) - sizeof(uint16)]
 #endif // defined(LITTLE_ENDIAN)
 
 #define REGISTER_PAIR(_hi_, _lo_)					\
 		union																	\
 		{																			\
-			SRegister16Bit m_ ## _hi_ ## _lo_;	\
+			uint8*				m_p ## _hi_ ## _lo_;	\
+			PTR_PADDING_HI_LO(_hi_, _lo_);			\
+			uint16				m_ ## _hi_ ## _lo_;		\
 			REGISTER_ORDER(_hi_, _lo_);					\
 		};
+
+#define REGISTER_16BIT(_reg_)											\
+		union																					\
+		{																							\
+			uint8*				m_p ## _reg_;									\
+			PTR_PADDING_REG(_reg_);											\
+			uint16				m_ ## _reg_;									\
+			REGISTER_ORDER(_reg_ ## _hi, _reg_ ## _lo);	\
+		};
+
+		// Semantic equivalent of REGISTER_16BIT, but syntactically 'nicer' when
+		// used as a temporary 16 bit register, e.g. see ImplementLDA_nn_()
+#define NON_MEMBER_REGISTER_16BIT(_reg_)	\
+		union URegister16Bit									\
+		{																			\
+			uint8*				m_ptr;								\
+			PTR_PADDING_REG(_reg_);							\
+			uint16				m_val;								\
+			REGISTER_ORDER(hi, lo);							\
+		} _reg_;
+
+		void	IncrementR(uint8 value)		{ m_R |= ((m_R + value) & 0x7F); }
+		void	Set16BitRegister(uint16& reg, uint8& hi, uint8& lo) { reg = (hi << 8) | lo; }
+		void	Get16BitRegister(uint16& reg, uint8& hi, uint8& lo) { hi = reg >> 8; lo = reg & 0xFF; }
 
 		uint8&	Get8BitRegister(uint8 threeBits);
 		const char* Get8BitRegisterString(uint8 threeBits);
 
-		SRegister16Bit&	Get16BitRegister(uint8 twoBits);
+		uint16&	Get16BitRegister(uint8 twoBits);
 		const char* Get16BitRegisterString(uint8 twoBits);
 
 		REGISTER_PAIR(A,F);
 		REGISTER_PAIR(B,C);
 		REGISTER_PAIR(D,E);
 		REGISTER_PAIR(H,L);
-		SRegister16Bit m_IX;
-		SRegister16Bit m_IY;
+		REGISTER_16BIT(IX);
+		REGISTER_16BIT(IY);
 		REGISTER_PAIR(I,R);
-		SRegister16Bit m_SP;
-		SRegister16Bit m_PC;
+		REGISTER_16BIT(SP);
+		REGISTER_16BIT(PC);
 		uint16 _AF_;
 		uint16 _BC_;
 		uint16 _DE_;
@@ -193,7 +208,6 @@ class CZ80
 		uint8 IFF1; // Only the bit that corresponds to the eF_PV flag is used
 		uint8 IFF2; // Only the bit that corresponds to the eF_PV flag is used
 
-		REGISTER_PAIR(T,M); // Temporary register pair used for nn/(nn) type instructions
 		uint32 m_tstate;
 
 	private:
