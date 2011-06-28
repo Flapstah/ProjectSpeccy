@@ -1209,7 +1209,6 @@ void CZ80::ImplementPOPIY(void)
 
 //=============================================================================
 
-/*
 //-----------------------------------------------------------------------------
 //	Exchange, Block Transfer and Search Group
 //-----------------------------------------------------------------------------
@@ -1229,6 +1228,7 @@ void CZ80::ImplementEXDEHL(void)
 	//							M Cycles		T States					MHz E.T.
 	//								1						4									1.00
 	//
+	IncrementR(1);
 	m_register.R |= ((m_register.R + 1) & 0x7F);
 	m_register.D ^= m_register.H;
 	m_register.H ^= m_register.D;
@@ -1318,49 +1318,49 @@ void CZ80::ImplementEXDEHL(void)
 
 void CZ80::DecodeLD(const uint8* pAddress, char* pMnemonic)
 {
-	sprintf(pMnemonic, "LD %s,%s", GetRegister8String(*pAddress >> 3), GetRegister8String(*(pAddress + 1)));
+	sprintf(pMnemonic, "LD %s,%s", Get8BitRegisterString(*pAddress >> 3), Get8BitRegisterString(*(pAddress + 1)));
 }
 
 //=============================================================================
 
 void CZ80::DecodeLDn(const uint8* pAddress, char* pMnemonic)
 {
-	sprintf(pMnemonic, "LD %s,0x%02X", GetRegister8String(*pAddress >> 3), *(pAddress + 1));
+	sprintf(pMnemonic, "LD %s,0x%02X", Get8BitRegisterString(*pAddress >> 3), *(pAddress + 1));
 }
 
 //=============================================================================
 
 void CZ80::DecodeLDrIXd(const uint8* pAddress, char* pMnemonic)
 {
-	sprintf(pMnemonic, "LD %s,(IX+0x%02X)", GetRegister8String(*(pAddress + 1) >> 3), *(pAddress + 2));
+	sprintf(pMnemonic, "LD %s,(IX+0x%02X)", Get8BitRegisterString(*(pAddress + 1) >> 3), *(pAddress + 2));
 }
 
 //=============================================================================
 
 void CZ80::DecodeLDrIYd(const uint8* pAddress, char* pMnemonic)
 {
-	sprintf(pMnemonic, "LD %s,(IY+0x%02X)", GetRegister8String(*(pAddress + 1) >> 3), *(pAddress + 2));
+	sprintf(pMnemonic, "LD %s,(IY+0x%02X)", Get8BitRegisterString(*(pAddress + 1) >> 3), *(pAddress + 2));
 }
 
 //=============================================================================
 
 void CZ80::DecodeLDHLr(const uint8* pAddress, char* pMnemonic)
 {
-	sprintf(pMnemonic, "LD (HL),%s", GetRegister8String(*pAddress));
+	sprintf(pMnemonic, "LD (HL),%s", Get8BitRegisterString(*pAddress));
 }
 
 //=============================================================================
 
 void CZ80::DecodeLDIXdr(const uint8* pAddress, char* pMnemonic)
 {
-	sprintf(pMnemonic, "LD (IX+0x%02X),%s", *(pAddress + 2), GetRegister8String(*(pAddress + 1) >> 3));
+	sprintf(pMnemonic, "LD (IX+0x%02X),%s", *(pAddress + 2), Get8BitRegisterString(*(pAddress + 1) >> 3));
 }
 
 //=============================================================================
 
 void CZ80::DecodeLDIYdr(const uint8* pAddress, char* pMnemonic)
 {
-	sprintf(pMnemonic, "LD (IY+0x%02X),%s", *(pAddress + 2), GetRegister8String(*(pAddress + 1) >> 3));
+	sprintf(pMnemonic, "LD (IY+0x%02X),%s", *(pAddress + 2), Get8BitRegisterString(*(pAddress + 1) >> 3));
 }
 
 //=============================================================================
@@ -1464,7 +1464,7 @@ void CZ80::DecodeLDRA(const uint8* pAddress, char* pMnemonic)
 
 void CZ80::DecodeLDddnn(const uint8* pAddress, char* pMnemonic)
 {
-	sprintf(pMnemonic, "LD %s,0x%02X%02X", GetRegister16String(*pAddress >> 4), *(pAddress + 2), *(pAddress + 1));
+	sprintf(pMnemonic, "LD %s,0x%02X%02X", Get16BitRegisterString(*pAddress >> 4), *(pAddress + 2), *(pAddress + 1));
 }
 
 //=============================================================================
@@ -1492,7 +1492,7 @@ void CZ80::DecodeLDHL_nn_(const uint8* pAddress, char* pMnemonic)
 
 void CZ80::DecodeLDdd_nn_(const uint8* pAddress, char* pMnemonic)
 {
-	sprintf(pMnemonic, "LD %s,(0x%02X%02X)", GetRegister16String(*(pAddress + 1) >> 4), *(pAddress + 3), *(pAddress + 2));
+	sprintf(pMnemonic, "LD %s,(0x%02X%02X)", Get16BitRegisterString(*(pAddress + 1) >> 4), *(pAddress + 3), *(pAddress + 2));
 }
 
 //=============================================================================
@@ -1520,7 +1520,7 @@ void CZ80::DecodeLD_nn_HL(const uint8* pAddress, char* pMnemonic)
 
 void CZ80::DecodeLD_nn_dd(const uint8* pAddress, char* pMnemonic)
 {
-	sprintf(pMnemonic, "LD (0x%02X%02X),%s", *(pAddress + 3), *(pAddress + 2), GetRegister16String(*(pAddress + 1) >> 4));
+	sprintf(pMnemonic, "LD (0x%02X%02X),%s", *(pAddress + 3), *(pAddress + 2), Get16BitRegisterString(*(pAddress + 1) >> 4));
 }
 
 //=============================================================================
@@ -1562,7 +1562,7 @@ void CZ80::DecodeLDSPIY(const uint8* pAddress, char* pMnemonic)
 
 void CZ80::DecodePUSHqq(const uint8* pAddress, char* pMnemonic)
 {
-	sprintf(pMnemonic, "PUSH %s", GetRegister16String(pAddress >> 4));
+	sprintf(pMnemonic, "PUSH %s", Get16BitRegisterString(*pAddress >> 4));
 }
 
 //=============================================================================
@@ -1583,7 +1583,7 @@ void CZ80::DecodePUSHIY(const uint8* pAddress, char* pMnemonic)
 
 void CZ80::DecodePOPqq(const uint8* pAddress, char* pMnemonic)
 {
-	sprintf(pMnemonic, "POP %s", GetRegister16String(pAddress >> 4));
+	sprintf(pMnemonic, "POP %s", Get16BitRegisterString(*pAddress >> 4));
 }
 
 //=============================================================================
@@ -1602,7 +1602,6 @@ void CZ80::DecodePOPIY(const uint8* pAddress, char* pMnemonic)
 
 //=============================================================================
 
-*/
 
 
 

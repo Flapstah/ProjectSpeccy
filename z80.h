@@ -60,7 +60,6 @@ class CZ80
 		void ImplementPOPIX(void);
 		void ImplementPOPIY(void);
 
-/*
 		//-----------------------------------------------------------------------------
 		//	Exchange, Block Transfer and Search Group
 		//-----------------------------------------------------------------------------
@@ -117,7 +116,6 @@ class CZ80
 		void DecodePOPIX(const uint8* pAddress, char* pMnemonic);
 		void DecodePOPIY(const uint8* pAddress, char* pMnemonic);
 
-		*/
 		enum eFlags
 		{
 			eF_C =	1 << 0,	// Carry
