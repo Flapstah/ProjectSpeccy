@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 
 #include "z80.h"
 
@@ -13,19 +14,49 @@
 
 //=============================================================================
 
-uint8&	CZ80::Get8BitRegister(uint8 threeBits)
+CZ80::CZ80(uint8* pMemory, float clockSpeedMHz)
+	// Map registers to register memory
+	: m_AF(*(reinterpret_cast<uint16*>(&m_RegisterMemory[eR_AF])))
+	, m_BC(*(reinterpret_cast<uint16*>(&m_RegisterMemory[eR_BC])))
+	, m_DE(*(reinterpret_cast<uint16*>(&m_RegisterMemory[eR_DE])))
+	, m_HL(*(reinterpret_cast<uint16*>(&m_RegisterMemory[eR_HL])))
+	, m_IX(*(reinterpret_cast<uint16*>(&m_RegisterMemory[eR_IX])))
+	, m_IY(*(reinterpret_cast<uint16*>(&m_RegisterMemory[eR_IY])))
+	, m_SP(*(reinterpret_cast<uint16*>(&m_RegisterMemory[eR_SP])))
+	, m_PC(*(reinterpret_cast<uint16*>(&m_RegisterMemory[eR_PC])))
+	, m_AFalt(*(reinterpret_cast<uint16*>(&m_RegisterMemory[eR_AFalt])))
+	, m_BCalt(*(reinterpret_cast<uint16*>(&m_RegisterMemory[eR_BCalt])))
+	, m_DEalt(*(reinterpret_cast<uint16*>(&m_RegisterMemory[eR_DEalt])))
+	, m_HLalt(*(reinterpret_cast<uint16*>(&m_RegisterMemory[eR_HLalt])))
+	, m_A(m_RegisterMemory[eR_A])
+	, m_F(m_RegisterMemory[eR_F])
+	, m_B(m_RegisterMemory[eR_B])
+	, m_C(m_RegisterMemory[eR_C])
+	, m_D(m_RegisterMemory[eR_D])
+	, m_E(m_RegisterMemory[eR_E])
+	, m_H(m_RegisterMemory[eR_H])
+	, m_L(m_RegisterMemory[eR_L])
+	, m_I(m_RegisterMemory[eR_I])
+	, m_R(m_RegisterMemory[eR_R])
+	, m_IFF1(m_RegisterMemory[eR_IFF1])
+	, m_IFF2(m_RegisterMemory[eR_IFF2])
 {
-	switch (threeBits & 0x07)
-	{
-		case 0: return m_B;			break;
-		case 1: return m_C;			break;
-		case 2: return m_D;			break;
-		case 3: return m_E;			break;
-		case 4: return m_H;			break;
-		case 5: return m_L;			break;
-		case 6: return *m_pHL;	break;
-		case 7: return m_A;			break;
-	}
+	// Easy decoding of opcodes to 16 bit registers
+	m_16BitRegisterOffset[BC] = eR_BC;
+	m_16BitRegisterOffset[DE] = eR_DE;
+	m_16BitRegisterOffset[HL] = eR_HL;
+	m_16BitRegisterOffset[SP] = eR_SP;
+
+	// Easy decoding of opcodes to 8 bit registers (still need special handling
+	// for (HL))
+	memset(m_8BitRegisterOffset, 0, sizeof(m_8BitRegisterOffset));
+	m_8BitRegisterOffset[B] = eR_B;
+	m_8BitRegisterOffset[C] = eR_C;
+	m_8BitRegisterOffset[D] = eR_D;
+	m_8BitRegisterOffset[E] = eR_E;
+	m_8BitRegisterOffset[H] = eR_H;
+	m_8BitRegisterOffset[L] = eR_L;
+	m_8BitRegisterOffset[A] = eR_A;
 }
 
 //=============================================================================
@@ -42,19 +73,6 @@ const char* CZ80::Get8BitRegisterString(uint8 threeBits)
 		case 5: return "L";			break;
 		case 6: return "(HL)";	break;
 		case 7: return "A";			break;
-	}
-}
-
-//=============================================================================
-
-uint16&	CZ80::Get16BitRegister(uint8 twoBits)
-{
-	switch (twoBits & 0x03)
-	{
-		case 0: return m_BC;	break;
-		case 1: return m_DE;	break;
-		case 2: return m_HL;	break;
-		case 3: return m_SP;	break;
 	}
 }
 

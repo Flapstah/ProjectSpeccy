@@ -8,7 +8,12 @@
 class CZ80
 {
 	public:
+		CZ80(uint8* pMemory, float clockSpeedMHz);
+
 	protected:
+		const char* Get8BitRegisterString(uint8 threeBits);
+		const char* Get16BitRegisterString(uint8 twoBits);
+
 		//-----------------------------------------------------------------------------
 		//	8-Bit Load Group
 		//-----------------------------------------------------------------------------
@@ -136,6 +141,97 @@ class CZ80
 		};
 
 
+
+		enum eConstants
+		{
+#if defined(LITTLE_ENDIAN)
+			LO = 0,
+			HI = 1
+#else
+			HI = 0,
+			LO = 1
+#endif // defined(LITTLE_ENDIAN)
+		};
+
+		enum eRegisters
+		{
+			// 8 bit register offsets (3 bits) (6 represents (HL))
+			B = 0,
+			C = 1,
+			D = 2,
+			E = 3,
+			H = 4,
+			L = 5,
+			A = 7,
+
+			// 16 bit register offsets (2 bits)
+			BC = 0,
+			DE = 1,
+			HL = 2,
+			SP = 3,
+
+			// Register memory mapping
+			eR_AF = 0,
+			eR_A = eR_AF + HI,
+			eR_F = eR_AF + LO,
+			eR_BC = 2,
+			eR_B = eR_BC + HI,
+			eR_C = eR_BC + LO,
+			eR_DE = 4,
+			eR_D = eR_DE + HI,
+			eR_E = eR_DE + LO,
+			eR_HL = 6,
+			eR_H = eR_HL + HI,
+			eR_L = eR_HL + LO,
+			eR_IX = 8,
+			eR_IY = 10,
+			eR_SP = 12,
+			eR_PC = 14,
+			eR_I = 16,
+			eR_R = 17,
+			eR_IFF1 = 18,
+			eR_IFF2 = 19,
+			eR_AFalt = 20,
+			eR_BCalt = 22,
+			eR_DEalt = 24,
+			eR_HLalt = 26
+		};
+
+		// Register memory is mapped by reference to the actual registers so that
+		// they can be accessed in a 'natural' way.
+		uint8 m_RegisterMemory[32];
+
+		uint8 m_16BitRegisterOffset[4];
+		uint8 m_8BitRegisterOffset[8];
+
+		uint16& m_AF;
+		uint16& m_BC;
+		uint16& m_DE;
+		uint16& m_HL;
+		uint16& m_IX;
+		uint16& m_IY;
+		uint16& m_SP;
+		uint16& m_PC;
+		uint16& m_AFalt;
+		uint16& m_BCalt;
+		uint16& m_DEalt;
+		uint16& m_HLalt;
+		uint8&	m_A;
+		uint8&	m_F;
+		uint8&	m_B;
+		uint8&	m_C;
+		uint8&	m_D;
+		uint8&	m_E;
+		uint8&	m_H;
+		uint8&	m_L;
+		uint8&	m_I;
+		uint8&	m_R;
+		uint8&	m_IFF1; // Only the bit that corresponds to the eF_PV flag is used
+		uint8&	m_IFF2; // Only the bit that corresponds to the eF_PV flag is used
+
+		uint32 m_tstate;
+		uint8* m_Memory;
+
 #if defined(LITTLE_ENDIAN)
 #define REGISTER_ORDER(_hi_, _lo_)	\
 		struct													\
@@ -159,8 +255,6 @@ class CZ80
 #define REGISTER_PAIR(_hi_, _lo_)					\
 		union																	\
 		{																			\
-			uint8*				m_p ## _hi_ ## _lo_;	\
-			PTR_PADDING_HI_LO(_hi_, _lo_);			\
 			uint16				m_ ## _hi_ ## _lo_;		\
 			REGISTER_ORDER(_hi_, _lo_);					\
 		};
@@ -168,8 +262,6 @@ class CZ80
 #define REGISTER_16BIT(_reg_)											\
 		union																					\
 		{																							\
-			uint8*				m_p ## _reg_;									\
-			PTR_PADDING_REG(_reg_);											\
 			uint16				m_ ## _reg_;									\
 			REGISTER_ORDER(_reg_ ## _hi, _reg_ ## _lo);	\
 		};
@@ -179,39 +271,11 @@ class CZ80
 #define NON_MEMBER_REGISTER_16BIT(_reg_)	\
 		union URegister16Bit									\
 		{																			\
-			uint8*				m_ptr;								\
-			PTR_PADDING_REG(_reg_);							\
 			uint16				m_val;								\
 			REGISTER_ORDER(hi, lo);							\
 		} _reg_;
 
 		void	IncrementR(uint8 value)		{ m_R |= ((m_R + value) & 0x7F); }
-		void	Set16BitRegister(uint16& reg, uint8& hi, uint8& lo) { reg = (hi << 8) | lo; }
-		void	Get16BitRegister(uint16& reg, uint8& hi, uint8& lo) { hi = reg >> 8; lo = reg & 0xFF; }
-
-		uint8&	Get8BitRegister(uint8 threeBits);
-		const char* Get8BitRegisterString(uint8 threeBits);
-
-		uint16&	Get16BitRegister(uint8 twoBits);
-		const char* Get16BitRegisterString(uint8 twoBits);
-
-		REGISTER_PAIR(A,F);
-		REGISTER_PAIR(B,C);
-		REGISTER_PAIR(D,E);
-		REGISTER_PAIR(H,L);
-		REGISTER_16BIT(IX);
-		REGISTER_16BIT(IY);
-		REGISTER_PAIR(I,R);
-		REGISTER_16BIT(SP);
-		REGISTER_16BIT(PC);
-		uint16 _AF_;
-		uint16 _BC_;
-		uint16 _DE_;
-		uint16 _HL_;
-		uint8 IFF1; // Only the bit that corresponds to the eF_PV flag is used
-		uint8 IFF2; // Only the bit that corresponds to the eF_PV flag is used
-
-		uint32 m_tstate;
 
 	private:
 };
