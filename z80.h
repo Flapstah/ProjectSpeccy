@@ -174,35 +174,32 @@ class CZ80
 			eR_AF = 0,
 			eR_A = eR_AF + HI,
 			eR_F = eR_AF + LO,
-			eR_BC = 2,
+			eR_BC = eR_AF + sizeof(uint16),
 			eR_B = eR_BC + HI,
 			eR_C = eR_BC + LO,
-			eR_DE = 4,
+			eR_DE = eR_BC + sizeof(uint16),
 			eR_D = eR_DE + HI,
 			eR_E = eR_DE + LO,
-			eR_HL = 6,
+			eR_HL = eR_DE + sizeof(uint16),
 			eR_H = eR_HL + HI,
 			eR_L = eR_HL + LO,
-			eR_IX = 8,
-			eR_IY = 10,
-			eR_SP = 12,
-			eR_PC = 14,
-			eR_I = 16,
-			eR_R = 17,
-			eR_IFF1 = 18,
-			eR_IFF2 = 19,
-			eR_AFalt = 20,
-			eR_BCalt = 22,
-			eR_DEalt = 24,
-			eR_HLalt = 26
+			eR_IX = eR_HL + sizeof(uint16),
+			eR_IY = eR_IX + sizeof(uint16),
+			eR_SP = eR_IY + sizeof(uint16),
+			eR_PC = eR_SP + sizeof(uint16),
+			eR_I = eR_PC + sizeof(uint8),
+			eR_R = eR_I + sizeof(uint8),
+			eR_IFF1 = eR_R + sizeof(uint8),
+			eR_IFF2 = eR_IFF1 + sizeof(uint8),
+			eR_AFalt = eR_IFF2 + sizeof(uint8),
+			eR_BCalt = eR_AFalt + sizeof(uint16),
+			eR_DEalt = eR_BCalt + sizeof(uint16),
+			eR_HLalt = eR_DEalt + sizeof(uint16)
 		};
 
 		// Register memory is mapped by reference to the actual registers so that
 		// they can be accessed in a 'natural' way.
-		uint8 m_RegisterMemory[32];
-
-		uint8 m_16BitRegisterOffset[4];
-		uint8 m_8BitRegisterOffset[8];
+		uint8		m_RegisterMemory[32];
 
 		uint16& m_AF;
 		uint16& m_BC;
@@ -229,8 +226,13 @@ class CZ80
 		uint8&	m_IFF1; // Only the bit that corresponds to the eF_PV flag is used
 		uint8&	m_IFF2; // Only the bit that corresponds to the eF_PV flag is used
 
-		uint32 m_tstate;
-		uint8* m_Memory;
+		// Opcode register decode lookups
+		uint8		m_16BitRegisterOffset[4];
+		uint8		m_8BitRegisterOffset[8];
+
+		uint32	m_tstate;
+		uint8*	m_pMemory;
+		float		m_clockSpeedMHz;
 
 #if defined(LITTLE_ENDIAN)
 #define REGISTER_ORDER(_hi_, _lo_)	\

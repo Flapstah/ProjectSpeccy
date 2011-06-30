@@ -40,6 +40,8 @@ CZ80::CZ80(uint8* pMemory, float clockSpeedMHz)
 	, m_R(m_RegisterMemory[eR_R])
 	, m_IFF1(m_RegisterMemory[eR_IFF1])
 	, m_IFF2(m_RegisterMemory[eR_IFF2])
+	, m_pMemory(pMemory)
+	, m_clockSpeedMHz(clockSpeedMHz)
 {
 	// Easy decoding of opcodes to 16 bit registers
 	m_16BitRegisterOffset[BC] = eR_BC;
