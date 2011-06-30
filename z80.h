@@ -140,8 +140,6 @@ class CZ80
 				// N.B. The only way to read X, Y and N is PUSH AF
 		};
 
-
-
 		enum eConstants
 		{
 #if defined(LITTLE_ENDIAN)
@@ -184,7 +182,11 @@ class CZ80
 			eR_H = eR_HL + HI,
 			eR_L = eR_HL + LO,
 			eR_IX = eR_HL + sizeof(uint16),
+			eR_IXh = eR_IX + HI,
+			eR_IXl = eR_IX + LO,
 			eR_IY = eR_IX + sizeof(uint16),
+			eR_IYh = eR_IY + HI,
+			eR_IYl = eR_IY + LO,
 			eR_SP = eR_IY + sizeof(uint16),
 			eR_PC = eR_SP + sizeof(uint16),
 			eR_I = eR_PC + sizeof(uint8),
@@ -206,7 +208,11 @@ class CZ80
 		uint16& m_DE;
 		uint16& m_HL;
 		uint16& m_IX;
+		uint8&	m_IXh;
+		uint8&	m_IXl;
 		uint16& m_IY;
+		uint8&	m_IYh;
+		uint8&	m_IYl;
 		uint16& m_SP;
 		uint16& m_PC;
 		uint16& m_AFalt;
@@ -233,49 +239,6 @@ class CZ80
 		uint32	m_tstate;
 		uint8*	m_pMemory;
 		float		m_clockSpeedMHz;
-
-#if defined(LITTLE_ENDIAN)
-#define REGISTER_ORDER(_hi_, _lo_)	\
-		struct													\
-		{																\
-			uint8 m_ ## _lo_;							\
-			uint8 m_ ## _hi_;							\
-		};
-#define PTR_PADDING_HI_LO(_hi_, _lo_)
-#define PTR_PADDING_REG(_reg_)
-#else
-#define REGISTER_ORDER(_hi_, _lo_)	\
-		struct													\
-		{																\
-			uint8 m_ ## _hi_;							\
-			uint8 m_ ## _lo_;							\
-		};
-#define PTR_PADDING_HI_LO(_hi_, _lo_) uint8 m_ ## _hi_ ## _lo_ ## padding[sizeof(uint8*) - sizeof(uint16)]
-#define PTR_PADDING_REG(_reg_) uint8 m_ ## _reg_ ## padding[sizeof(uint8*) - sizeof(uint16)]
-#endif // defined(LITTLE_ENDIAN)
-
-#define REGISTER_PAIR(_hi_, _lo_)					\
-		union																	\
-		{																			\
-			uint16				m_ ## _hi_ ## _lo_;		\
-			REGISTER_ORDER(_hi_, _lo_);					\
-		};
-
-#define REGISTER_16BIT(_reg_)											\
-		union																					\
-		{																							\
-			uint16				m_ ## _reg_;									\
-			REGISTER_ORDER(_reg_ ## _hi, _reg_ ## _lo);	\
-		};
-
-		// Semantic equivalent of REGISTER_16BIT, but syntactically 'nicer' when
-		// used as a temporary 16 bit register, e.g. see ImplementLDA_nn_()
-#define NON_MEMBER_REGISTER_16BIT(_reg_)	\
-		union URegister16Bit									\
-		{																			\
-			uint16				m_val;								\
-			REGISTER_ORDER(hi, lo);							\
-		} _reg_;
 
 		void	IncrementR(uint8 value)		{ m_R |= ((m_R + value) & 0x7F); }
 
