@@ -20,17 +20,17 @@ class CZ80
 
 		void ImplementLDrr(void);
 		void ImplementLDrn(void);
-		void ImplementLDrHL(void);
-		void ImplementLDrIXd(void);
-		void ImplementLDrIYd(void);
-		void ImplementLDHLr(void);
-		void ImplementLDIXdr(void);
-		void ImplementLDIYdr(void);
-		void ImplementLDHLn(void);
-		void ImplementLDIXdn(void);
-		void ImplementLDIYdn(void);
-		void ImplementLDABC(void);
-		void ImplementLDADE(void);
+		void ImplementLDr_HL_(void);
+		void ImplementLDr_IXd_(void);
+		void ImplementLDr_IYd_(void);
+		void ImplementLD_HL_r(void);
+		void ImplementLD_IXd_r(void);
+		void ImplementLD_IYd_r(void);
+		void ImplementLD_HL_n(void);
+		void ImplementLD_IXd_n(void);
+		void ImplementLD_IYd_n(void);
+		void ImplementLDA_BC_(void);
+		void ImplementLDA_DE_(void);
 		void ImplementLDA_nn_(void);
 		void ImplementLDBCA(void);
 		void ImplementLDDEA(void);
@@ -75,26 +75,83 @@ class CZ80
 		void ImplementEX_SP_HL(void);
 		void ImplementEX_SP_IX(void);
 		void ImplementEX_SP_IY(void);
+		void ImplementLDI(void);
+		void ImplementLDIR(void);
+		void ImplementLDD(void);
+		void ImplementLDDR(void);
+		void ImplementCPI(void);
+		void ImplementCPIR(void);
+		void ImplementCPD(void);
+		void ImplementCPDR(void);
+
+		//-----------------------------------------------------------------------------
+		//	8-Bit Arithmetic Group
+		//-----------------------------------------------------------------------------
+		void ImplementADDAr(void);
+		void ImplementADDAn(void);
+		void ImplementADDA_HL_(void);
+		void ImplementADDA_IXd_(void);
+		void ImplementADDA_IYd_(void);
+		void ImplementADCAr(void);
+		void ImplementADCAn(void);
+		void ImplementADCA_HL_(void);
+		void ImplementADCA_IXd_(void);
+		void ImplementADCA_IYd_(void);
+		void ImplementSUBAr(void);
+		void ImplementSUBAn(void);
+		void ImplementSUBA_HL_(void);
+		void ImplementSUBA_IXd_(void);
+		void ImplementSUBA_IYd_(void);
+		void ImplementSBCAr(void);
+		void ImplementSBCAn(void);
+		void ImplementSBCA_HL_(void);
+		void ImplementSBCA_IXd_(void);
+		void ImplementSBCA_IYd_(void);
+		void ImplementANDAr(void);
+		void ImplementANDAn(void);
+		void ImplementANDA_HL_(void);
+		void ImplementANDA_IXd_(void);
+		void ImplementANDA_IYd_(void);
+		void ImplementORAr(void);
+		void ImplementORAn(void);
+		void ImplementORA_HL_(void);
+		void ImplementORA_IXd_(void);
+		void ImplementORA_IYd_(void);
+		void ImplementXORAr(void);
+		void ImplementXORAn(void);
+		void ImplementXORA_HL_(void);
+		void ImplementXORA_IXd_(void);
+		void ImplementXORA_IYd_(void);
+		void ImplementCPAr(void);
+		void ImplementCPAn(void);
+		void ImplementCPA_HL_(void);
+		void ImplementCPA_IXd_(void);
+		void ImplementCPA_IYd_(void);
+		void ImplementINCR(void);
+		void ImplementINC_HL_(void);
+		void ImplementINC_IXd_(void);
+		void ImplementINC_IYd_(void);
+		void ImplementDECm(void);
 
 		//-----------------------------------------------------------------------------
 		//	8-Bit Load Group
 		//-----------------------------------------------------------------------------
 
-		void DecodeLD(const uint8* pAddress, char* pMnemonic);
-		void DecodeLDn(const uint8* pAddress, char* pMnemonic);
-		void DecodeLDrIXd(const uint8* pAddress, char* pMnemonic);
-		void DecodeLDrIYd(const uint8* pAddress, char* pMnemonic);
-		void DecodeLDHLr(const uint8* pAddress, char* pMnemonic);
-		void DecodeLDIXdr(const uint8* pAddress, char* pMnemonic);
-		void DecodeLDIYdr(const uint8* pAddress, char* pMnemonic);
-		void DecodeLDHLn(const uint8* pAddress, char* pMnemonic);
-		void DecodeLDIXdn(const uint8* pAddress, char* pMnemonic);
-		void DecodeLDIYdn(const uint8* pAddress, char* pMnemonic);
-		void DecodeLDABC(const uint8* pAddress, char* pMnemonic);
-		void DecodeLDADE(const uint8* pAddress, char* pMnemonic);
+		void DecodeLDrr(const uint8* pAddress, char* pMnemonic);
+		void DecodeLDrn(const uint8* pAddress, char* pMnemonic);
+		void DecodeLDr_IXd_(const uint8* pAddress, char* pMnemonic);
+		void DecodeLDr_IYd_(const uint8* pAddress, char* pMnemonic);
+		void DecodeLD_HL_r(const uint8* pAddress, char* pMnemonic);
+		void DecodeLD_IXd_r(const uint8* pAddress, char* pMnemonic);
+		void DecodeLD_IYd_r(const uint8* pAddress, char* pMnemonic);
+		void DecodeLD_HL_n(const uint8* pAddress, char* pMnemonic);
+		void DecodeLD_IXd_n(const uint8* pAddress, char* pMnemonic);
+		void DecodeLD_IYd_n(const uint8* pAddress, char* pMnemonic);
+		void DecodeLDA_BC_(const uint8* pAddress, char* pMnemonic);
+		void DecodeLDA_DE_(const uint8* pAddress, char* pMnemonic);
 		void DecodeLDA_nn_(const uint8* pAddress, char* pMnemonic);
-		void DecodeLDBCA(const uint8* pAddress, char* pMnemonic);
-		void DecodeLDDEA(const uint8* pAddress, char* pMnemonic);
+		void DecodeLD_BC_A(const uint8* pAddress, char* pMnemonic);
+		void DecodeLD_DE_A(const uint8* pAddress, char* pMnemonic);
 		void DecodeLD_nn_A(const uint8* pAddress, char* pMnemonic);
 		void DecodeLDAI(const uint8* pAddress, char* pMnemonic);
 		void DecodeLDAR(const uint8* pAddress, char* pMnemonic);
@@ -125,6 +182,47 @@ class CZ80
 		void DecodePOPqq(const uint8* pAddress, char* pMnemonic);
 		void DecodePOPIX(const uint8* pAddress, char* pMnemonic);
 		void DecodePOPIY(const uint8* pAddress, char* pMnemonic);
+
+		//-----------------------------------------------------------------------------
+		//	Exchange, Block Transfer and Search Group
+		//-----------------------------------------------------------------------------
+
+		void DecodeEXDEHL(const uint8* pAddress, char* pMnemonic);
+		void DecodeEXAFAFalt(const uint8* pAddress, char* pMnemonic);
+		void DecodeEXX(const uint8* pAddress, char* pMnemonic);
+		void DecodeEX_SP_HL(const uint8* pAddress, char* pMnemonic);
+		void DecodeEX_SP_IX(const uint8* pAddress, char* pMnemonic);
+		void DecodeEX_SP_IY(const uint8* pAddress, char* pMnemonic);
+		void DecodeLDI(const uint8* pAddress, char* pMnemonic);
+		void DecodeLDIR(const uint8* pAddress, char* pMnemonic);
+		void DecodeLDD(const uint8* pAddress, char* pMnemonic);
+		void DecodeLDDR(const uint8* pAddress, char* pMnemonic);
+		void DecodeCPI(const uint8* pAddress, char* pMnemonic);
+		void DecodeCPIR(const uint8* pAddress, char* pMnemonic);
+		void DecodeCPD(const uint8* pAddress, char* pMnemonic);
+		void DecodeCPDR(const uint8* pAddress, char* pMnemonic);
+
+		//-----------------------------------------------------------------------------
+		//	8-Bit Arithmetic Group
+		//-----------------------------------------------------------------------------
+
+		void DecodeADDAr(const uint8* pAddress, char* pMnemonic);
+		void DecodeADDAn(const uint8* pAddress, char* pMnemonic);
+		void DecodeADDA_HL_(const uint8* pAddress, char* pMnemonic);
+		void DecodeADDA_IXd_(const uint8* pAddress, char* pMnemonic);
+		void DecodeADDA_IYd_(const uint8* pAddress, char* pMnemonic);
+		void DecodeADCAs(const uint8* pAddress, char* pMnemonic);
+		void DecodeSUBs(const uint8* pAddress, char* pMnemonic);
+		void DecodeSBCas(const uint8* pAddress, char* pMnemonic);
+		void DecodeANDs(const uint8* pAddress, char* pMnemonic);
+		void DecodeORs(const uint8* pAddress, char* pMnemonic);
+		void DecodeXORs(const uint8* pAddress, char* pMnemonic);
+		void DecodeCPs(const uint8* pAddress, char* pMnemonic);
+		void DecodeINCR(const uint8* pAddress, char* pMnemonic);
+		void DecodeINC_HL_(const uint8* pAddress, char* pMnemonic);
+		void DecodeINC_IXd_(const uint8* pAddress, char* pMnemonic);
+		void DecodeINC_IYd_(const uint8* pAddress, char* pMnemonic);
+		void ImplementDECm(const uint8* pAddress, char* pMnemonic);
 
 		enum eFlags
 		{
