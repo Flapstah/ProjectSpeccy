@@ -2333,6 +2333,130 @@ void CZ80::ImplementANDA_IYd_(void)
 
 //=============================================================================
 
+void CZ80::ImplementORAr(void)
+{
+	//
+	// Operation:	A <- A|r
+	// Op Code:		OR
+	// Operands:	A, r
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|0|1|1|0|r|r|r|
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								1						4									1.00
+	//
+	//						where rrr is any of:
+	//								B						000
+	//								C						001
+	//								D						010
+	//								E						011
+	//								H						100
+	//								L						101
+	//								A						111
+	//
+	IncrementR(1);
+	m_A = static_cast<int8>(m_A) | static_cast<int8>(REGISTER_8BIT(m_pMemory[m_PC++]));
+	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | (eF_H);
+	m_tstate += 4;
+}
+
+//=============================================================================
+
+void CZ80::ImplementORAn(void)
+{
+	//
+	// Operation:	A <- A|n
+	// Op Code:		OR
+	// Operands:	A, n
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|1|0|1|1|0| F6
+	//						+-+-+-+-+-+-+-+-+
+	//						|n|n|n|n|n|n|n|n|
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								2						7	(4,3)						1.75
+	//
+	IncrementR(1);
+	m_A = static_cast<int8>(m_A) | static_cast<int8>(m_pMemory[(++m_PC)++]);
+	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | (eF_H);
+	m_tstate += 7;
+}
+
+//=============================================================================
+
+void CZ80::ImplementORA_HL_(void)
+{
+	//
+	// Operation:	A <- A|(HL)
+	// Op Code:		OR
+	// Operands:	A, (HL)
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|0|1|1|0|1|1|0| B6
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								2						7	(4,3)						1.75
+	//
+	IncrementR(1);
+	++m_PC;
+	m_A = static_cast<int8>(m_A) | static_cast<int8>(m_pMemory[m_HL]);
+	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | (eF_H);
+	m_tstate += 7;
+}
+
+//=============================================================================
+
+void CZ80::ImplementORA_IXd_(void)
+{
+	//
+	// Operation:	A <- A|(IX+d)
+	// Op Code:		OR
+	// Operands:	A, (IX+d)
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|1|1|1|0|1| DD
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|0|1|1|0|1|1|0| B6
+	//						+-+-+-+-+-+-+-+-+
+	//						|d|d|d|d|d|d|d|d|
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								5						19 (4,4,3,5,3)		4.75
+	//
+	IncrementR(1);
+	++++m_PC;
+	m_A = static_cast<int8>(m_A) | static_cast<int8>(m_pMemory[m_IX + m_pMemory[m_PC++]]);
+	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | (eF_H);
+	m_tstate += 16;
+}
+
+//=============================================================================
+
+void CZ80::ImplementORA_IYd_(void)
+{
+	//
+	// Operation:	A <- A|(IY+d)
+	// Op Code:		OR
+	// Operands:	A, (IY+d)
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|1|1|1|0|1| FD
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|0|1|1|0|1|1|0| B6
+	//						+-+-+-+-+-+-+-+-+
+	//						|d|d|d|d|d|d|d|d|
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								5						19 (4,4,3,5,3)		4.75
+	//
+	IncrementR(1);
+	++++m_PC;
+	m_A = static_cast<int8>(m_A) | static_cast<int8>(m_pMemory[m_IY + m_pMemory[m_PC++]]);
+	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | (eF_H);
+	m_tstate += 16;
+}
 
 //=============================================================================
 
