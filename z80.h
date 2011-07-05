@@ -137,6 +137,23 @@ class CZ80
 		void ImplementDEC_IYd_(void);
 
 		//-----------------------------------------------------------------------------
+		//	General-Purpose Arithmetic and CPU Control Groups
+		//-----------------------------------------------------------------------------
+
+		void ImplementDAA(void);
+		void ImplementCPL(void);
+		void ImplementNEG(void);
+		void ImplementCCF(void);
+		void ImplementSCF(void);
+		void ImplementNOP(void);
+		void ImplementHALT(void);
+		void ImplementDI(void);
+		void ImplementEI(void);
+		void ImplementIM0(void);
+		void ImplementIM1(void);
+		void ImplementIM2(void);
+
+		//-----------------------------------------------------------------------------
 		//	8-Bit Load Group
 		//-----------------------------------------------------------------------------
 
@@ -247,6 +264,10 @@ class CZ80
 		void DecodeDECr(uint16 address, char* pMnemonic);
 		void DecodeDEC_IXd_(uint16 address, char* pMnemonic);
 		void DecodeDEC_IYd_(uint16 address, char* pMnemonic);
+
+		//-----------------------------------------------------------------------------
+		//	General-Purpose Arithmetic and CPU Control Groups
+		//-----------------------------------------------------------------------------
 
 		enum eFlags
 		{

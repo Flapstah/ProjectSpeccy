@@ -1454,7 +1454,7 @@ void CZ80::ImplementLDIR(void)
 void CZ80::ImplementLDD(void)
 {
 	// Operation:	(DE) <- (HL), DE <- DE-1, HL <- HL-1, BC <- BC-1
-	// Op Code:		LDI
+	// Op Code:		LDD
 	// Operands:	(DE), DE, (HL), HL, BC
 	//						+-+-+-+-+-+-+-+-+
 	//						|1|1|1|0|1|1|0|1| ED
@@ -1479,7 +1479,7 @@ void CZ80::ImplementLDD(void)
 void CZ80::ImplementLDDR(void)
 {
 	// Operation:	(DE) <- (HL), DE <- DE-1, HL <- HL-1, BC <- BC-1
-	// Op Code:		LDIR
+	// Op Code:		LDDR
 	// Operands:	(DE), DE, (HL), HL, BC
 	//						+-+-+-+-+-+-+-+-+
 	//						|1|1|1|0|1|1|0|1| ED
@@ -1510,7 +1510,7 @@ void CZ80::ImplementLDDR(void)
 void CZ80::ImplementCPI(void)
 {
 	// Operation:	A - (HL), HL <- HL+1, BC <- BC-1
-	// Op Code:		LDI
+	// Op Code:		CPI
 	// Operands:	A, (HL), HL, BC
 	//						+-+-+-+-+-+-+-+-+
 	//						|1|1|1|0|1|1|0|1| ED
@@ -1573,7 +1573,7 @@ void CZ80::ImplementCPIR(void)
 void CZ80::ImplementCPD(void)
 {
 	// Operation:	A - (HL), HL <- HL-1, BC <- BC-1
-	// Op Code:		LDI
+	// Op Code:		CPD
 	// Operands:	A, (HL), HL, BC
 	//						+-+-+-+-+-+-+-+-+
 	//						|1|1|1|0|1|1|0|1| ED
@@ -1600,7 +1600,7 @@ void CZ80::ImplementCPD(void)
 void CZ80::ImplementCPDR(void)
 {
 	// Operation:	A - (HL), HL <- HL-1, BC <- BC-1
-	// Op Code:		CPIR
+	// Op Code:		CPDR
 	// Operands:	A, (HL), HL, BC
 	//						+-+-+-+-+-+-+-+-+
 	//						|1|1|1|0|1|1|0|1| ED
@@ -1664,7 +1664,7 @@ void CZ80::ImplementADDAr(void)
 	int8 source = static_cast<int8>(REGISTER_8BIT(m_pMemory[m_PC++]));
 	int8 origA = static_cast<int8>(m_A);
 	m_A = origA + source;
-	uint8 flag_calc = ((origA & source & !m_A) | (!origA & !source & m_A));
+	uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((flag_calc >> 5) & eF_PV) | ((flag_calc >> 7) & eF_C);
 	m_tstate += 4;
 }
@@ -1690,7 +1690,7 @@ void CZ80::ImplementADDAn(void)
 	int8 source = static_cast<int8>(m_pMemory[(++m_PC)++]);
 	int8 origA = static_cast<int8>(m_A);
 	m_A = origA + source;
-	uint8 flag_calc = ((origA & source & !m_A) | (!origA & !source & m_A));
+	uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((flag_calc >> 5) & eF_PV) | ((flag_calc >> 7) & eF_C);
 	m_tstate += 7;
 }
@@ -1715,7 +1715,7 @@ void CZ80::ImplementADDA_HL_(void)
 	int8 source = static_cast<int8>(m_pMemory[m_HL]);
 	int8 origA = static_cast<int8>(m_A);
 	m_A = origA + source;
-	uint8 flag_calc = ((origA & source & !m_A) | (!origA & !source & m_A));
+	uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((flag_calc >> 5) & eF_PV) | ((flag_calc >> 7) & eF_C);
 	m_tstate += 7;
 }
@@ -1744,7 +1744,7 @@ void CZ80::ImplementADDA_IXd_(void)
 	int8 source = static_cast<int8>(m_pMemory[m_IX + m_pMemory[m_PC++]]);
 	int8 origA = static_cast<int8>(m_A);
 	m_A = origA + source;
-	uint8 flag_calc = ((origA & source & !m_A) | (!origA & !source & m_A));
+	uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((flag_calc >> 5) & eF_PV) | ((flag_calc >> 7) & eF_C);
 	m_tstate += 16;
 }
@@ -1773,7 +1773,7 @@ void CZ80::ImplementADDA_IYd_(void)
 	int8 source = static_cast<int8>(m_pMemory[m_IY + m_pMemory[m_PC++]]);
 	int8 origA = static_cast<int8>(m_A);
 	m_A = origA + source;
-	uint8 flag_calc = ((origA & source & !m_A) | (!origA & !source & m_A));
+	uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((flag_calc >> 5) & eF_PV) | ((flag_calc >> 7) & eF_C);
 	m_tstate += 16;
 }
@@ -1806,7 +1806,7 @@ void CZ80::ImplementADCAr(void)
 	int8 source = static_cast<int8>(REGISTER_8BIT(m_pMemory[m_PC++])) + (m_F & eF_C);
 	int8 origA = static_cast<int8>(m_A);
 	m_A = origA + source;
-	uint8 flag_calc = ((origA & source & !m_A) | (!origA & !source & m_A));
+	uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((flag_calc >> 5) & eF_PV) | ((flag_calc >> 7) & eF_C);
 	m_tstate += 4;
 }
@@ -1832,7 +1832,7 @@ void CZ80::ImplementADCAn(void)
 	int8 source = static_cast<int8>(m_pMemory[(++m_PC)++]) + (m_F & eF_C);
 	int8 origA = static_cast<int8>(m_A);
 	m_A = origA + source;
-	uint8 flag_calc = ((origA & source & !m_A) | (!origA & !source & m_A));
+	uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((flag_calc >> 5) & eF_PV) | ((flag_calc >> 7) & eF_C);
 	m_tstate += 7;
 }
@@ -1857,7 +1857,7 @@ void CZ80::ImplementADCA_HL_(void)
 	int8 source = static_cast<int8>(m_pMemory[m_HL]) + (m_F & eF_C);
 	int8 origA = static_cast<int8>(m_A);
 	m_A = origA + source;
-	uint8 flag_calc = ((origA & source & !m_A) | (!origA & !source & m_A));
+	uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((flag_calc >> 5) & eF_PV) | ((flag_calc >> 7) & eF_C);
 	m_tstate += 7;
 }
@@ -1886,7 +1886,7 @@ void CZ80::ImplementADCA_IXd_(void)
 	int8 source = static_cast<int8>(m_pMemory[m_IX + m_pMemory[m_PC++]]) + (m_F & eF_C);
 	int8 origA = static_cast<int8>(m_A);
 	m_A = origA + source;
-	uint8 flag_calc = ((origA & source & !m_A) | (!origA & !source & m_A));
+	uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((flag_calc >> 5) & eF_PV) | ((flag_calc >> 7) & eF_C);
 	m_tstate += 16;
 }
@@ -1915,7 +1915,7 @@ void CZ80::ImplementADCA_IYd_(void)
 	int8 source = static_cast<int8>(m_pMemory[m_IY + m_pMemory[m_PC++]]) + (m_F & eF_C);
 	int8 origA = static_cast<int8>(m_A);
 	m_A = origA + source;
-	uint8 flag_calc = ((origA & source & !m_A) | (!origA & !source & m_A));
+	uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((flag_calc >> 5) & eF_PV) | ((flag_calc >> 7) & eF_C);
 	m_tstate += 16;
 }
@@ -1948,8 +1948,8 @@ void CZ80::ImplementSUBr(void)
 	int8 source = static_cast<int8>(REGISTER_8BIT(m_pMemory[m_PC++]));
 	int8 origA = static_cast<int8>(m_A);
 	m_A = origA - source;
-	uint8 flag_calc = ((origA & source & !m_A) | (!origA & !source & m_A));
-	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((flag_calc >> 5) & eF_PV) | ((flag_calc >> 7) & eF_C);
+	uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
+	m_F = (m_A & (eF_S | eF_X | eF_Y | eF_N)) | ((m_A == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((flag_calc >> 5) & eF_PV) | ((flag_calc >> 7) & eF_C);
 	m_tstate += 4;
 }
 
@@ -1974,8 +1974,8 @@ void CZ80::ImplementSUBn(void)
 	int8 source = static_cast<int8>(m_pMemory[(++m_PC)++]);
 	int8 origA = static_cast<int8>(m_A);
 	m_A = origA - source;
-	uint8 flag_calc = ((origA & source & !m_A) | (!origA & !source & m_A));
-	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((flag_calc >> 5) & eF_PV) | ((flag_calc >> 7) & eF_C);
+	uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
+	m_F = (m_A & (eF_S | eF_X | eF_Y | eF_N)) | ((m_A == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((flag_calc >> 5) & eF_PV) | ((flag_calc >> 7) & eF_C);
 	m_tstate += 7;
 }
 
@@ -1999,8 +1999,8 @@ void CZ80::ImplementSUB_HL_(void)
 	int8 source = static_cast<int8>(m_pMemory[m_HL]);
 	int8 origA = static_cast<int8>(m_A);
 	m_A = origA - source;
-	uint8 flag_calc = ((origA & source & !m_A) | (!origA & !source & m_A));
-	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((flag_calc >> 5) & eF_PV) | ((flag_calc >> 7) & eF_C);
+	uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
+	m_F = (m_A & (eF_S | eF_X | eF_Y | eF_N)) | ((m_A == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((flag_calc >> 5) & eF_PV) | ((flag_calc >> 7) & eF_C);
 	m_tstate += 7;
 }
 
@@ -2028,8 +2028,8 @@ void CZ80::ImplementSUB_IXd_(void)
 	int8 source = static_cast<int8>(m_pMemory[m_IX + m_pMemory[m_PC++]]);
 	int8 origA = static_cast<int8>(m_A);
 	m_A = origA - source;
-	uint8 flag_calc = ((origA & source & !m_A) | (!origA & !source & m_A));
-	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((flag_calc >> 5) & eF_PV) | ((flag_calc >> 7) & eF_C);
+	uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
+	m_F = (m_A & (eF_S | eF_X | eF_Y | eF_N)) | ((m_A == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((flag_calc >> 5) & eF_PV) | ((flag_calc >> 7) & eF_C);
 	m_tstate += 16;
 }
 
@@ -2057,8 +2057,8 @@ void CZ80::ImplementSUB_IYd_(void)
 	int8 source = static_cast<int8>(m_pMemory[m_IY + m_pMemory[m_PC++]]);
 	int8 origA = static_cast<int8>(m_A);
 	m_A = origA - source;
-	uint8 flag_calc = ((origA & source & !m_A) | (!origA & !source & m_A));
-	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((flag_calc >> 5) & eF_PV) | ((flag_calc >> 7) & eF_C);
+	uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
+	m_F = (m_A & (eF_S | eF_X | eF_Y | eF_N)) | ((m_A == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((flag_calc >> 5) & eF_PV) | ((flag_calc >> 7) & eF_C);
 	m_tstate += 16;
 }
 
@@ -2090,8 +2090,8 @@ void CZ80::ImplementSBCAr(void)
 	int8 source = static_cast<int8>(REGISTER_8BIT(m_pMemory[m_PC++])) - (m_F & eF_C);
 	int8 origA = static_cast<int8>(m_A);
 	m_A = origA - source;
-	uint8 flag_calc = ((origA & source & !m_A) | (!origA & !source & m_A));
-	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((flag_calc >> 5) & eF_PV) | ((flag_calc >> 7) & eF_C);
+	uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
+	m_F = (m_A & (eF_S | eF_X | eF_Y | eF_N)) | ((m_A == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((flag_calc >> 5) & eF_PV) | ((flag_calc >> 7) & eF_C);
 	m_tstate += 4;
 }
 
@@ -2116,8 +2116,8 @@ void CZ80::ImplementSBCAn(void)
 	int8 source = static_cast<int8>(m_pMemory[(++m_PC)++]) - (m_F & eF_C);
 	int8 origA = static_cast<int8>(m_A);
 	m_A = origA - source;
-	uint8 flag_calc = ((origA & source & !m_A) | (!origA & !source & m_A));
-	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((flag_calc >> 5) & eF_PV) | ((flag_calc >> 7) & eF_C);
+	uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
+	m_F = (m_A & (eF_S | eF_X | eF_Y | eF_N)) | ((m_A == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((flag_calc >> 5) & eF_PV) | ((flag_calc >> 7) & eF_C);
 	m_tstate += 7;
 }
 
@@ -2141,8 +2141,8 @@ void CZ80::ImplementSBCA_HL_(void)
 	int8 source = static_cast<int8>(m_pMemory[m_HL]) - (m_F & eF_C);
 	int8 origA = static_cast<int8>(m_A);
 	m_A = origA - source;
-	uint8 flag_calc = ((origA & source & !m_A) | (!origA & !source & m_A));
-	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((flag_calc >> 5) & eF_PV) | ((flag_calc >> 7) & eF_C);
+	uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
+	m_F = (m_A & (eF_S | eF_X | eF_Y | eF_N)) | ((m_A == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((flag_calc >> 5) & eF_PV) | ((flag_calc >> 7) & eF_C);
 	m_tstate += 7;
 }
 
@@ -2170,8 +2170,8 @@ void CZ80::ImplementSBCA_IXd_(void)
 	int8 source = static_cast<int8>(m_pMemory[m_IX + m_pMemory[m_PC++]]) - (m_F & eF_C);
 	int8 origA = static_cast<int8>(m_A);
 	m_A = origA - source;
-	uint8 flag_calc = ((origA & source & !m_A) | (!origA & !source & m_A));
-	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((flag_calc >> 5) & eF_PV) | ((flag_calc >> 7) & eF_C);
+	uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
+	m_F = (m_A & (eF_S | eF_X | eF_Y | eF_N)) | ((m_A == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((flag_calc >> 5) & eF_PV) | ((flag_calc >> 7) & eF_C);
 	m_tstate += 16;
 }
 
@@ -2199,8 +2199,8 @@ void CZ80::ImplementSBCA_IYd_(void)
 	int8 source = static_cast<int8>(m_pMemory[m_IY + m_pMemory[m_PC++]]) - (m_F & eF_C);
 	int8 origA = static_cast<int8>(m_A);
 	m_A = origA - source;
-	uint8 flag_calc = ((origA & source & !m_A) | (!origA & !source & m_A));
-	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((flag_calc >> 5) & eF_PV) | ((flag_calc >> 7) & eF_C);
+	uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
+	m_F = (m_A & (eF_S | eF_X | eF_Y | eF_N)) | ((m_A == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((flag_calc >> 5) & eF_PV) | ((flag_calc >> 7) & eF_C);
 	m_tstate += 16;
 }
 
@@ -2613,7 +2613,7 @@ void CZ80::ImplementCPr(void)
 	int8 source = static_cast<int8>(REGISTER_8BIT(m_pMemory[m_PC++]));
 	int8 origA = static_cast<int8>(m_A);
 	int8 result = origA - source;
-	uint8 flag_calc = ((origA & source & !result) | (!origA & !source & result));
+	uint8 flag_calc = ((origA & source & ~result) | (~origA & ~source & result));
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((flag_calc >> 5) & eF_PV) | ((flag_calc >> 7) & eF_C);
 	m_tstate += 4;
 }
@@ -2639,7 +2639,7 @@ void CZ80::ImplementCPn(void)
 	int8 source = static_cast<int8>(m_pMemory[(++m_PC)++]);
 	int8 origA = static_cast<int8>(m_A);
 	int8 result = origA - source;
-	uint8 flag_calc = ((origA & source & !result) | (!origA & !source & result));
+	uint8 flag_calc = ((origA & source & ~result) | (~origA & ~source & result));
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((flag_calc >> 5) & eF_PV) | ((flag_calc >> 7) & eF_C);
 	m_tstate += 7;
 }
@@ -2664,7 +2664,7 @@ void CZ80::ImplementCP_HL_(void)
 	int8 source = static_cast<int8>(m_pMemory[m_HL]);
 	int8 origA = static_cast<int8>(m_A);
 	int8 result = origA - source;
-	uint8 flag_calc = ((origA & source & !result) | (!origA & !source & result));
+	uint8 flag_calc = ((origA & source & ~result) | (~origA & ~source & result));
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((flag_calc >> 5) & eF_PV) | ((flag_calc >> 7) & eF_C);
 	m_tstate += 7;
 }
@@ -2693,7 +2693,7 @@ void CZ80::ImplementCP_IXd_(void)
 	int8 source = static_cast<int8>(m_pMemory[m_IX + m_pMemory[m_PC++]]);
 	int8 origA = static_cast<int8>(m_A);
 	int8 result = origA - source;
-	uint8 flag_calc = ((origA & source & !result) | (!origA & !source & result));
+	uint8 flag_calc = ((origA & source & ~result) | (~origA & ~source & result));
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((flag_calc >> 5) & eF_PV) | ((flag_calc >> 7) & eF_C);
 	m_tstate += 16;
 }
@@ -2722,7 +2722,7 @@ void CZ80::ImplementCP_IYd_(void)
 	int8 source = static_cast<int8>(m_pMemory[m_IY + m_pMemory[m_PC++]]);
 	int8 origA = static_cast<int8>(m_A);
 	int8 result = origA - source;
-	uint8 flag_calc = ((origA & source & !result) | (!origA & !source & result));
+	uint8 flag_calc = ((origA & source & ~result) | (~origA & ~source & result));
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((flag_calc >> 5) & eF_PV) | ((flag_calc >> 7) & eF_C);
 	m_tstate += 16;
 }
@@ -2862,7 +2862,7 @@ void CZ80::ImplementDECr(void)
 	IncrementR(1);
 	int8& reg = *reinterpret_cast<int8*>(&REGISTER_8BIT(m_pMemory[m_PC++] >> 3));
 	int8 orig = reg--;	
-	m_F = (reg & (eF_S | eF_X | eF_Y)) | ((reg == 0) ? eF_Z : 0) | ((reg ^ orig) & eF_H) | ((orig == 0x80) & eF_PV);
+	m_F = (reg & (eF_S | eF_X | eF_Y | eF_N)) | ((reg == 0) ? eF_Z : 0) | ((reg ^ orig) & eF_H) | ((orig == 0x80) & eF_PV);
 	m_tstate += 4;
 }
 
@@ -2885,7 +2885,7 @@ void CZ80::ImplementDEC_HL_(void)
 	++m_PC;
 	int8& location = *reinterpret_cast<int8*>(&m_pMemory[m_HL]);
 	int8 orig = location--;
-	m_F = (location & (eF_S | eF_X | eF_Y)) | ((location == 0) ? eF_Z : 0) | ((location ^ orig) & eF_H) | ((location == 0x80) & eF_PV);
+	m_F = (location & (eF_S | eF_X | eF_Y | eF_N)) | ((location == 0) ? eF_Z : 0) | ((location ^ orig) & eF_H) | ((location == 0x80) & eF_PV);
 	m_tstate += 11;
 }
 
@@ -2912,7 +2912,7 @@ void CZ80::ImplementDEC_IXd_(void)
 	++++m_PC;
 	int8& location = *reinterpret_cast<int8*>(&m_pMemory[m_IX + m_pMemory[m_PC++]]);
 	int8 orig = location--;
-	m_F = (location & (eF_S | eF_X | eF_Y)) | ((location == 0) ? eF_Z : 0) | ((location ^ orig) & eF_H) | ((location == 0x80) & eF_PV);
+	m_F = (location & (eF_S | eF_X | eF_Y | eF_N)) | ((location == 0) ? eF_Z : 0) | ((location ^ orig) & eF_H) | ((location == 0x80) & eF_PV);
 	m_tstate += 23;
 }
 
@@ -2939,12 +2939,219 @@ void CZ80::ImplementDEC_IYd_(void)
 	++++m_PC;
 	int8& location = *reinterpret_cast<int8*>(&m_pMemory[m_IY + m_pMemory[m_PC++]]);
 	int8 orig = location--;
-	m_F = (location & (eF_S | eF_X | eF_Y)) | ((location == 0) ? eF_Z : 0) | ((location ^ orig) & eF_H) | ((location == 0x80) & eF_PV);
+	m_F = (location & (eF_S | eF_X | eF_Y | eF_N)) | ((location == 0) ? eF_Z : 0) | ((location ^ orig) & eF_H) | ((location == 0x80) & eF_PV);
 	m_tstate += 23;
 }
 
 //=============================================================================
 
+//-----------------------------------------------------------------------------
+//	General-Purpose Arithmetic and CPU Control Groups
+//-----------------------------------------------------------------------------
+
+//=============================================================================
+
+void CZ80::ImplementDAA(void)
+{
+	//
+	// Operation:	A
+	// Op Code:		DAA
+	// Operands:	A
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|0|1|0|0|1|1|1| 27
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								1						4									1.00
+	//
+	IncrementR(1);
+	++m_PC;
+	uint8 adjustedA = m_A;
+	uint8 carry = 0;
+
+	if (m_F & eF_N)
+	{
+		if ((m_F & eF_H) || ((m_A & 0x0F) > 9))
+		{
+			adjustedA -= 0x06;
+		}
+		if ((m_F & eF_C) || ((m_A & 0xF0) > 9))
+		{
+			adjustedA -= 0x60;
+			carry = (m_F & eF_C);
+		}
+	}
+	else
+	{
+		if ((m_F & eF_H) || ((m_A & 0x0F) > 9))
+		{
+			adjustedA += 0x06;
+		}
+		if ((m_F & eF_C) || ((m_A & 0xF0) > 9))
+		{
+			adjustedA += 0x60;
+			carry = eF_C;
+		}
+	}
+
+	m_A = adjustedA;
+	adjustedA ^= adjustedA >> 4;
+	adjustedA &= 0xF;
+	uint8 parity = ((0x6996 >> adjustedA) << 2) & eF_PV;
+	m_F &= eF_N;
+	m_F |= (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | parity | carry;
+	m_tstate += 4;
+}
+
+//=============================================================================
+
+void CZ80::ImplementCPL(void)
+{
+	//
+	// Operation:	A
+	// Op Code:		CPL
+	// Operands:	A
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|0|1|0|1|1|1|1| 27
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								1						4									1.00
+	//
+	IncrementR(1);
+	++m_PC;
+	m_A = ~m_A;
+	m_F &= (eF_S | eF_Z | eF_PV | eF_C);
+	m_F |= (eF_H | eF_N) | (m_A & (eF_X | eF_Y));
+	m_tstate += 4;
+}
+
+//=============================================================================
+
+void CZ80::ImplementNEG(void)
+{
+	//
+	// Operation:	A
+	// Op Code:		NEG
+	// Operands:	A
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|0|1|1|0|1| ED
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|1|0|0|0|1|0|0| 44
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								2						8	(4,4)						2.00
+	//
+	IncrementR(2);
+	++++m_PC;
+	int8 origA = static_cast<int8>(m_A);
+	m_A = 0 - origA;
+	m_F = eF_N;
+	m_F |= (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | (m_A & ~origA & eF_H) | ((origA = 0x80) ? eF_PV : 0) | ((!origA) ? eF_C : 0);
+	m_tstate += 8;
+}
+
+//=============================================================================
+
+void CZ80::ImplementCCF(void)
+{
+	//
+	// Operation:	CF <- ~CF
+	// Op Code:		CCF
+	// Operands:	CF
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|0|1|1|1|1|1|1| 3F
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								1						4									1.00
+	//
+	IncrementR(1);
+	++m_PC;
+	uint8 origF = m_F;
+	m_F &= (eF_S | eF_Z | eF_PV);
+	m_F |= (origF ^ eF_C) | ((origF & eF_C) << 4) & eF_H;
+	m_tstate += 4;
+}
+
+//=============================================================================
+
+void CZ80::ImplementSCF(void)
+{
+	//
+	// Operation:	CF <- 1
+	// Op Code:		SCF
+	// Operands:	CF
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|0|1|1|0|1|1|1| 37
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								1						4									1.00
+	//
+	IncrementR(1);
+	++m_PC;
+	m_F &= (eF_S | eF_Z | eF_PV);
+	m_F |= eF_C;
+	m_tstate += 4;
+}
+
+//=============================================================================
+
+void CZ80::ImplementNOP(void)
+{
+	//
+	// Operation:	---
+	// Op Code:		NOP
+	// Operands:	---
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|0|0|0|0|0|0|0| 00
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								1						4									1.00
+	//
+	IncrementR(1);
+	++m_PC;
+	m_tstate += 4;
+}
+
+//=============================================================================
+
+void CZ80::ImplementHALT(void)
+{
+}
+
+//=============================================================================
+
+void CZ80::ImplementDI(void)
+{
+}
+
+//=============================================================================
+
+void CZ80::ImplementEI(void)
+{
+}
+
+//=============================================================================
+
+void CZ80::ImplementIM0(void)
+{
+}
+
+//=============================================================================
+
+void CZ80::ImplementIM1(void)
+{
+}
+
+//=============================================================================
+
+void CZ80::ImplementIM2(void)
+{
+}
 
 //=============================================================================
 
@@ -3490,177 +3697,264 @@ void CZ80::DecodeADDAr(uint16 address, char* pMnemonic)
 	sprintf(pMnemonic, "ADD A,%s", Get8BitRegisterString(m_pMemory[address]));
 }
 
+//=============================================================================
+
 void CZ80::DecodeADDAn(uint16 address, char* pMnemonic)
 {
 	sprintf(pMnemonic, "ADD A,0x%02X", m_pMemory[++address]);
 }
+
+//=============================================================================
 
 void CZ80::DecodeADDA_IXd_(uint16 address, char* pMnemonic)
 {
 	sprintf(pMnemonic, "ADD A,(IX + 0x%02X)", m_pMemory[++++address]);
 }
 
+//=============================================================================
+
 void CZ80::DecodeADDA_IYd_(uint16 address, char* pMnemonic)
 {
 	sprintf(pMnemonic, "ADD A,(IY + 0x%02X)", m_pMemory[++++address]);
 }
+
+//=============================================================================
 
 void CZ80::DecodeADCAr(uint16 address, char* pMnemonic)
 {
 	sprintf(pMnemonic, "ADC A,%s", Get8BitRegisterString(m_pMemory[address]));
 }
 
+//=============================================================================
+
 void CZ80::DecodeADCAn(uint16 address, char* pMnemonic)
 {
 	sprintf(pMnemonic, "ADC A,0x%02X", m_pMemory[++address]);
 }
+
+//=============================================================================
 
 void CZ80::DecodeADCA_IXd_(uint16 address, char* pMnemonic)
 {
 	sprintf(pMnemonic, "ADC A,(IX + 0x%02X)", m_pMemory[++++address]);
 }
 
+//=============================================================================
+
 void CZ80::DecodeADCA_IYd_(uint16 address, char* pMnemonic)
 {
 	sprintf(pMnemonic, "ADC A,(IY + 0x%02X)", m_pMemory[++++address]);
 }
+
+//=============================================================================
 
 void CZ80::DecodeSUBr(uint16 address, char* pMnemonic)
 {
 	sprintf(pMnemonic, "SUB %s", Get8BitRegisterString(m_pMemory[address]));
 }
 
+//=============================================================================
+
 void CZ80::DecodeSUBn(uint16 address, char* pMnemonic)
 {
 	sprintf(pMnemonic, "SUB 0x%02X", m_pMemory[++address]);
 }
+
+//=============================================================================
 
 void CZ80::DecodeSUB_IXd_(uint16 address, char* pMnemonic)
 {
 	sprintf(pMnemonic, "SUB (IX + 0x%02X)", m_pMemory[++++address]);
 }
 
+//=============================================================================
+
 void CZ80::DecodeSUB_IYd_(uint16 address, char* pMnemonic)
 {
 	sprintf(pMnemonic, "SUB (IY + 0x%02X)", m_pMemory[++++address]);
 }
+
+//=============================================================================
 
 void CZ80::DecodeSBCAr(uint16 address, char* pMnemonic)
 {
 	sprintf(pMnemonic, "SBC A,%s", Get8BitRegisterString(m_pMemory[address]));
 }
 
+//=============================================================================
+
 void CZ80::DecodeSBCAn(uint16 address, char* pMnemonic)
 {
 	sprintf(pMnemonic, "SBC A,0x%02X", m_pMemory[++address]);
 }
+
+//=============================================================================
 
 void CZ80::DecodeSBCA_IXd_(uint16 address, char* pMnemonic)
 {
 	sprintf(pMnemonic, "SBC A,(IX + 0x%02X)", m_pMemory[++++address]);
 }
 
+//=============================================================================
+
 void CZ80::DecodeSBCA_IYd_(uint16 address, char* pMnemonic)
 {
 	sprintf(pMnemonic, "SBC A,(IY + 0x%02X)", m_pMemory[++++address]);
 }
+
+//=============================================================================
 
 void CZ80::DecodeANDr(uint16 address, char* pMnemonic)
 {
 	sprintf(pMnemonic, "AND %s", Get8BitRegisterString(m_pMemory[address]));
 }
 
+//=============================================================================
+
 void CZ80::DecodeANDn(uint16 address, char* pMnemonic)
 {
 	sprintf(pMnemonic, "AND 0x%02X", m_pMemory[++address]);
 }
+
+//=============================================================================
 
 void CZ80::DecodeAND_IXd_(uint16 address, char* pMnemonic)
 {
 	sprintf(pMnemonic, "AND (IX + 0x%02X)", m_pMemory[++++address]);
 }
 
+//=============================================================================
+
 void CZ80::DecodeAND_IYd_(uint16 address, char* pMnemonic)
 {
 	sprintf(pMnemonic, "AND (IY + 0x%02X)", m_pMemory[++++address]);
 }
+
+//=============================================================================
 
 void CZ80::DecodeORr(uint16 address, char* pMnemonic)
 {
 	sprintf(pMnemonic, "OR %s", Get8BitRegisterString(m_pMemory[address]));
 }
 
+//=============================================================================
+
 void CZ80::DecodeORn(uint16 address, char* pMnemonic)
 {
 	sprintf(pMnemonic, "OR 0x%02X", m_pMemory[++address]);
 }
+
+//=============================================================================
 
 void CZ80::DecodeOR_IXd_(uint16 address, char* pMnemonic)
 {
 	sprintf(pMnemonic, "OR (IX + 0x%02X)", m_pMemory[++++address]);
 }
 
+//=============================================================================
+
 void CZ80::DecodeOR_IYd_(uint16 address, char* pMnemonic)
 {
 	sprintf(pMnemonic, "OR (IY + 0x%02X)", m_pMemory[++++address]);
 }
 
+//=============================================================================
+
 void CZ80::DecodeXORr(uint16 address, char* pMnemonic)
 {
+	sprintf(pMnemonic, "XOR %s", Get8BitRegisterString(m_pMemory[address]));
 }
+
+//=============================================================================
 
 void CZ80::DecodeXORn(uint16 address, char* pMnemonic)
 {
+	sprintf(pMnemonic, "XOR 0x%02X", m_pMemory[++address]);
 }
+
+//=============================================================================
 
 void CZ80::DecodeXOR_IXd_(uint16 address, char* pMnemonic)
 {
+	sprintf(pMnemonic, "XOR (IX + 0x%02X)", m_pMemory[++++address]);
 }
+
+//=============================================================================
 
 void CZ80::DecodeXOR_IYd_(uint16 address, char* pMnemonic)
 {
+	sprintf(pMnemonic, "XOR (IY + 0x%02X)", m_pMemory[++++address]);
 }
+
+//=============================================================================
 
 void CZ80::DecodeCPr(uint16 address, char* pMnemonic)
 {
+	sprintf(pMnemonic, "CP %s", Get8BitRegisterString(m_pMemory[address]));
 }
+
+//=============================================================================
 
 void CZ80::DecodeCPn(uint16 address, char* pMnemonic)
 {
+	sprintf(pMnemonic, "CP 0x%02X", m_pMemory[++address]);
 }
+
+//=============================================================================
 
 void CZ80::DecodeCP_IXd_(uint16 address, char* pMnemonic)
 {
+	sprintf(pMnemonic, "CP (IX + 0x%02X)", m_pMemory[++++address]);
 }
+
+//=============================================================================
 
 void CZ80::DecodeCP_IYd_(uint16 address, char* pMnemonic)
 {
+	sprintf(pMnemonic, "CP (IY + 0x%02X)", m_pMemory[++++address]);
 }
+
+//=============================================================================
 
 void CZ80::DecodeINCr(uint16 address, char* pMnemonic)
 {
+	sprintf(pMnemonic, "INC %s", Get8BitRegisterString(m_pMemory[address]));
 }
+
+//=============================================================================
 
 void CZ80::DecodeINC_IXd_(uint16 address, char* pMnemonic)
 {
+	sprintf(pMnemonic, "INC (IX + 0x%02X)", m_pMemory[++++address]);
 }
+
+//=============================================================================
 
 void CZ80::DecodeINC_IYd_(uint16 address, char* pMnemonic)
 {
+	sprintf(pMnemonic, "INC (IY + 0x%02X)", m_pMemory[++++address]);
 }
+
+//=============================================================================
 
 void CZ80::DecodeDECr(uint16 address, char* pMnemonic)
 {
+	sprintf(pMnemonic, "DEC %s", Get8BitRegisterString(m_pMemory[address]));
 }
+
+//=============================================================================
 
 void CZ80::DecodeDEC_IXd_(uint16 address, char* pMnemonic)
 {
+	sprintf(pMnemonic, "DEC (IX + 0x%02X)", m_pMemory[++++address]);
 }
+
+//=============================================================================
 
 void CZ80::DecodeDEC_IYd_(uint16 address, char* pMnemonic)
 {
+	sprintf(pMnemonic, "DEC (IY + 0x%02X)", m_pMemory[++++address]);
 }
-
 
 //=============================================================================
 
