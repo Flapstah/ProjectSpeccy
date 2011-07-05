@@ -2844,7 +2844,7 @@ void CZ80::ImplementDECr(void)
 	// Op Code:		DEC
 	// Operands:	r
 	//						+-+-+-+-+-+-+-+-+
-	//						|0|0|r|r|r|1|0|0|
+	//						|0|0|r|r|r|1|0|1|
 	//						+-+-+-+-+-+-+-+-+
 	//
 	//							M Cycles		T States					MHz E.T.
@@ -2871,11 +2871,11 @@ void CZ80::ImplementDECr(void)
 void CZ80::ImplementDEC_HL_(void)
 {
 	//
-	// Operation:	(HL) <- (HL)+1
+	// Operation:	(HL) <- (HL)-1
 	// Op Code:		DEC
 	// Operands:	(HL)
 	//						+-+-+-+-+-+-+-+-+
-	//						|0|0|1|1|0|1|0|0| 34
+	//						|0|0|1|1|0|1|0|1| 35
 	//						+-+-+-+-+-+-+-+-+
 	//
 	//							M Cycles		T States					MHz E.T.
@@ -2894,13 +2894,13 @@ void CZ80::ImplementDEC_HL_(void)
 void CZ80::ImplementDEC_IXd_(void)
 {
 	//
-	// Operation:	(IX+d) <- (IX+d)+1
+	// Operation:	(IX+d) <- (IX+d)-1
 	// Op Code:		DEC
 	// Operands:	(IX+d)
 	//						+-+-+-+-+-+-+-+-+
 	//						|1|1|0|1|1|1|0|1| DD
 	//						+-+-+-+-+-+-+-+-+
-	//						|0|0|1|1|0|1|0|0| 34
+	//						|0|0|1|1|0|1|0|1| 35
 	//						+-+-+-+-+-+-+-+-+
 	//						|d|d|d|d|d|d|d|d|
 	//						+-+-+-+-+-+-+-+-+
@@ -2921,13 +2921,13 @@ void CZ80::ImplementDEC_IXd_(void)
 void CZ80::ImplementDEC_IYd_(void)
 {
 	//
-	// Operation:	(IY+d) <- (IY+d)+1
+	// Operation:	(IY+d) <- (IY+d)-1
 	// Op Code:		DEC
 	// Operands:	(IY+d)
 	//						+-+-+-+-+-+-+-+-+
 	//						|1|1|1|1|1|1|0|1| FD
 	//						+-+-+-+-+-+-+-+-+
-	//						|0|0|1|1|0|1|0|0| 34
+	//						|0|0|1|1|0|1|0|1| 35
 	//						+-+-+-+-+-+-+-+-+
 	//						|d|d|d|d|d|d|d|d|
 	//						+-+-+-+-+-+-+-+-+
@@ -3089,140 +3089,140 @@ void CZ80::ImplementDEC_IYd_(void)
 
 //=============================================================================
 
-void CZ80::DecodeLDrr(const uint8* pAddress, char* pMnemonic)
+void CZ80::DecodeLDrr(uint16 address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "LD %s,%s", Get8BitRegisterString(*pAddress >> 3), Get8BitRegisterString(*(pAddress + 1)));
+	sprintf(pMnemonic, "LD %s,%s", Get8BitRegisterString(m_pMemory[address] >> 3), Get8BitRegisterString(m_pMemory[address]));
 }
 
 //=============================================================================
 
-void CZ80::DecodeLDrn(const uint8* pAddress, char* pMnemonic)
+void CZ80::DecodeLDrn(uint16 address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "LD %s,0x%02X", Get8BitRegisterString(*pAddress >> 3), *(pAddress + 1));
+	sprintf(pMnemonic, "LD %s,0x%02X", Get8BitRegisterString(m_pMemory[address] >> 3), m_pMemory[address + 1]);
 }
 
 //=============================================================================
 
-void CZ80::DecodeLDr_IXd_(const uint8* pAddress, char* pMnemonic)
+void CZ80::DecodeLDr_IXd_(uint16 address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "LD %s,(IX+0x%02X)", Get8BitRegisterString(*(pAddress + 1) >> 3), *(pAddress + 2));
+	sprintf(pMnemonic, "LD %s,(IX+0x%02X)", Get8BitRegisterString(m_pMemory[address + 1] >> 3), m_pMemory[address + 2]);
 }
 
 //=============================================================================
 
-void CZ80::DecodeLDr_IYd_(const uint8* pAddress, char* pMnemonic)
+void CZ80::DecodeLDr_IYd_(uint16 address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "LD %s,(IY+0x%02X)", Get8BitRegisterString(*(pAddress + 1) >> 3), *(pAddress + 2));
+	sprintf(pMnemonic, "LD %s,(IY+0x%02X)", Get8BitRegisterString(m_pMemory[address + 1] >> 3), m_pMemory[address + 2]);
 }
 
 //=============================================================================
 
-void CZ80::DecodeLD_HL_r(const uint8* pAddress, char* pMnemonic)
+void CZ80::DecodeLD_HL_r(uint16 address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "LD (HL),%s", Get8BitRegisterString(*pAddress));
+	sprintf(pMnemonic, "LD (HL),%s", Get8BitRegisterString(m_pMemory[address]));
 }
 
 //=============================================================================
 
-void CZ80::DecodeLD_IXd_r(const uint8* pAddress, char* pMnemonic)
+void CZ80::DecodeLD_IXd_r(uint16 address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "LD (IX+0x%02X),%s", *(pAddress + 2), Get8BitRegisterString(*(pAddress + 1) >> 3));
+	sprintf(pMnemonic, "LD (IX+0x%02X),%s", m_pMemory[address + 2], Get8BitRegisterString(m_pMemory[address + 1] >> 3));
 }
 
 //=============================================================================
 
-void CZ80::DecodeLD_IYd_r(const uint8* pAddress, char* pMnemonic)
+void CZ80::DecodeLD_IYd_r(uint16 address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "LD (IY+0x%02X),%s", *(pAddress + 2), Get8BitRegisterString(*(pAddress + 1) >> 3));
+	sprintf(pMnemonic, "LD (IY+0x%02X),%s", m_pMemory[address + 2], Get8BitRegisterString(m_pMemory[address + 1] >> 3));
 }
 
 //=============================================================================
 
-void CZ80::DecodeLD_HL_n(const uint8* pAddress, char* pMnemonic)
+void CZ80::DecodeLD_HL_n(uint16 address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "LD (HL),0x%02X", *(pAddress + 1));
+	sprintf(pMnemonic, "LD (HL),0x%02X", m_pMemory[++address]);
 }
 
 //=============================================================================
 
-void CZ80::DecodeLD_IXd_n(const uint8* pAddress, char* pMnemonic)
+void CZ80::DecodeLD_IXd_n(uint16 address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "LD (IX+0x%02X),0x%02X", *(pAddress + 2), *(pAddress + 3));
+	sprintf(pMnemonic, "LD (IX+0x%02X),0x%02X", m_pMemory[address + 2], m_pMemory[address + 3]);
 }
 
 //=============================================================================
 
-void CZ80::DecodeLD_IYd_n(const uint8* pAddress, char* pMnemonic)
+void CZ80::DecodeLD_IYd_n(uint16 address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "LD (IY+0x%02X),0x%02X", *(pAddress + 2), *(pAddress + 3));
+	sprintf(pMnemonic, "LD (IY+0x%02X),0x%02X", m_pMemory[address + 2], m_pMemory[address + 3]);
 }
 
 //=============================================================================
 
-void CZ80::DecodeLDA_BC_(const uint8* pAddress, char* pMnemonic)
+void CZ80::DecodeLDA_BC_(uint16 address, char* pMnemonic)
 {
 	sprintf(pMnemonic, "LD A,(BC)");
 }
 
 //=============================================================================
 
-void CZ80::DecodeLDA_DE_(const uint8* pAddress, char* pMnemonic)
+void CZ80::DecodeLDA_DE_(uint16 address, char* pMnemonic)
 {
 	sprintf(pMnemonic, "LD A,(DE)");
 }
 
 //=============================================================================
 
-void CZ80::DecodeLDA_nn_(const uint8* pAddress, char* pMnemonic)
+void CZ80::DecodeLDA_nn_(uint16 address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "LD A,(0x%02X%02X)", *(pAddress + 2), *(pAddress + 1));
+	sprintf(pMnemonic, "LD A,(0x%02X%02X)", m_pMemory[address + 2], m_pMemory[address + 1]);
 }
 
 //=============================================================================
 
-void CZ80::DecodeLD_BC_A(const uint8* pAddress, char* pMnemonic)
+void CZ80::DecodeLD_BC_A(uint16 address, char* pMnemonic)
 {
 	sprintf(pMnemonic, "LD (BC),A");
 }
 
 //=============================================================================
 
-void CZ80::DecodeLD_DE_A(const uint8* pAddress, char* pMnemonic)
+void CZ80::DecodeLD_DE_A(uint16 address, char* pMnemonic)
 {
 	sprintf(pMnemonic, "LD (DE),A");
 }
 
 //=============================================================================
 
-void CZ80::DecodeLD_nn_A(const uint8* pAddress, char* pMnemonic)
+void CZ80::DecodeLD_nn_A(uint16 address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "LD (0x%02X%02X),A", *(pAddress + 2), *(pAddress + 1));
+	sprintf(pMnemonic, "LD (0x%02X%02X),A", m_pMemory[address + 2], m_pMemory[address + 1]);
 }
 
 //=============================================================================
 
-void CZ80::DecodeLDAI(const uint8* pAddress, char* pMnemonic)
+void CZ80::DecodeLDAI(uint16 address, char* pMnemonic)
 {
 	sprintf(pMnemonic, "LD A,I");
 }
 
 //=============================================================================
 
-void CZ80::DecodeLDAR(const uint8* pAddress, char* pMnemonic)
+void CZ80::DecodeLDAR(uint16 address, char* pMnemonic)
 {
 	sprintf(pMnemonic, "LD A,R");
 }
 
 //=============================================================================
 
-void CZ80::DecodeLDIA(const uint8* pAddress, char* pMnemonic)
+void CZ80::DecodeLDIA(uint16 address, char* pMnemonic)
 {
 	sprintf(pMnemonic, "LD I,A");
 }
 
 //=============================================================================
 
-void CZ80::DecodeLDRA(const uint8* pAddress, char* pMnemonic)
+void CZ80::DecodeLDRA(uint16 address, char* pMnemonic)
 {
 	sprintf(pMnemonic, "LD R,A");
 }
@@ -3235,140 +3235,140 @@ void CZ80::DecodeLDRA(const uint8* pAddress, char* pMnemonic)
 
 //=============================================================================
 
-void CZ80::DecodeLDddnn(const uint8* pAddress, char* pMnemonic)
+void CZ80::DecodeLDddnn(uint16 address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "LD %s,0x%02X%02X", Get16BitRegisterString(*pAddress >> 4), *(pAddress + 2), *(pAddress + 1));
+	sprintf(pMnemonic, "LD %s,0x%02X%02X", Get16BitRegisterString(m_pMemory[address] >> 4), m_pMemory[address + 2], m_pMemory[address + 1]);
 }
 
 //=============================================================================
 
-void CZ80::DecodeLDIXnn(const uint8* pAddress, char* pMnemonic)
+void CZ80::DecodeLDIXnn(uint16 address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "LD IX,0x%02X%02X", *(pAddress + 3), *(pAddress + 2));
+	sprintf(pMnemonic, "LD IX,0x%02X%02X", m_pMemory[address + 3], m_pMemory[address + 2]);
 }
 
 //=============================================================================
 
-void CZ80::DecodeLDIYnn(const uint8* pAddress, char* pMnemonic)
+void CZ80::DecodeLDIYnn(uint16 address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "LD IY,0x%02X%02X", *(pAddress + 3), *(pAddress + 2));
+	sprintf(pMnemonic, "LD IY,0x%02X%02X", m_pMemory[address + 3], m_pMemory[address + 2]);
 }
 
 //=============================================================================
 
-void CZ80::DecodeLDHL_nn_(const uint8* pAddress, char* pMnemonic)
+void CZ80::DecodeLDHL_nn_(uint16 address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "LD HL,(0x%02X%02X)", *(pAddress + 2), *(pAddress + 1));
+	sprintf(pMnemonic, "LD HL,(0x%02X%02X)", m_pMemory[address + 2], m_pMemory[address + 1]);
 }
 
 //=============================================================================
 
-void CZ80::DecodeLDdd_nn_(const uint8* pAddress, char* pMnemonic)
+void CZ80::DecodeLDdd_nn_(uint16 address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "LD %s,(0x%02X%02X)", Get16BitRegisterString(*(pAddress + 1) >> 4), *(pAddress + 3), *(pAddress + 2));
+	sprintf(pMnemonic, "LD %s,(0x%02X%02X)", Get16BitRegisterString(m_pMemory[address + 1] >> 4), m_pMemory[address + 3], m_pMemory[address + 2]);
 }
 
 //=============================================================================
 
-void CZ80::DecodeLDIX_nn_(const uint8* pAddress, char* pMnemonic)
+void CZ80::DecodeLDIX_nn_(uint16 address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "LD IX,(0x%02X%02X)", *(pAddress + 3), *(pAddress + 2));
+	sprintf(pMnemonic, "LD IX,(0x%02X%02X)", m_pMemory[address + 3], m_pMemory[address + 2]);
 }
 
 //=============================================================================
 
-void CZ80::DecodeLDIY_nn_(const uint8* pAddress, char* pMnemonic)
+void CZ80::DecodeLDIY_nn_(uint16 address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "LD IY,(0x%02X%02X)", *(pAddress + 3), *(pAddress + 2));
+	sprintf(pMnemonic, "LD IY,(0x%02X%02X)", m_pMemory[address + 3], m_pMemory[address + 2]);
 }
 
 //=============================================================================
 
-void CZ80::DecodeLD_nn_HL(const uint8* pAddress, char* pMnemonic)
+void CZ80::DecodeLD_nn_HL(uint16 address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "LD (0x%02X%02X),HL", *(pAddress + 2), *(pAddress + 1));
+	sprintf(pMnemonic, "LD (0x%02X%02X),HL", m_pMemory[address + 2], m_pMemory[address + 1]);
 }
 
 //=============================================================================
 
-void CZ80::DecodeLD_nn_dd(const uint8* pAddress, char* pMnemonic)
+void CZ80::DecodeLD_nn_dd(uint16 address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "LD (0x%02X%02X),%s", *(pAddress + 3), *(pAddress + 2), Get16BitRegisterString(*(pAddress + 1) >> 4));
+	sprintf(pMnemonic, "LD (0x%02X%02X),%s", m_pMemory[address + 3], m_pMemory[address + 2], Get16BitRegisterString(m_pMemory[address + 1] >> 4));
 }
 
 //=============================================================================
 
-void CZ80::DecodeLD_nn_IX(const uint8* pAddress, char* pMnemonic)
+void CZ80::DecodeLD_nn_IX(uint16 address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "LD (0x%02X%02X),IX", *(pAddress + 3), *(pAddress + 2));
+	sprintf(pMnemonic, "LD (0x%02X%02X),IX", m_pMemory[address + 3], m_pMemory[address + 2]);
 }
 
 //=============================================================================
 
-void CZ80::DecodeLD_nn_IY(const uint8* pAddress, char* pMnemonic)
+void CZ80::DecodeLD_nn_IY(uint16 address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "LD (0x%02X%02X),IY", *(pAddress + 3), *(pAddress + 2));
+	sprintf(pMnemonic, "LD (0x%02X%02X),IY", m_pMemory[address + 3], m_pMemory[address + 2]);
 }
 
 //=============================================================================
 
-void CZ80::DecodeLDSPHL(const uint8* pAddress, char* pMnemonic)
+void CZ80::DecodeLDSPHL(uint16 address, char* pMnemonic)
 {
 	sprintf(pMnemonic, "LD SP,HL");
 }
 
 //=============================================================================
 
-void CZ80::DecodeLDSPIX(const uint8* pAddress, char* pMnemonic)
+void CZ80::DecodeLDSPIX(uint16 address, char* pMnemonic)
 {
 	sprintf(pMnemonic, "LD SP,IX");
 }
 
 //=============================================================================
 
-void CZ80::DecodeLDSPIY(const uint8* pAddress, char* pMnemonic)
+void CZ80::DecodeLDSPIY(uint16 address, char* pMnemonic)
 {
 	sprintf(pMnemonic, "LD SP,IY");
 }
 
 //=============================================================================
 
-void CZ80::DecodePUSHqq(const uint8* pAddress, char* pMnemonic)
+void CZ80::DecodePUSHqq(uint16 address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "PUSH %s", Get16BitRegisterString(*pAddress >> 4));
+	sprintf(pMnemonic, "PUSH %s", Get16BitRegisterString(m_pMemory[address] >> 4));
 }
 
 //=============================================================================
 
-void CZ80::DecodePUSHIX(const uint8* pAddress, char* pMnemonic)
+void CZ80::DecodePUSHIX(uint16 address, char* pMnemonic)
 {
 	sprintf(pMnemonic, "PUSH IX");
 }
 
 //=============================================================================
 
-void CZ80::DecodePUSHIY(const uint8* pAddress, char* pMnemonic)
+void CZ80::DecodePUSHIY(uint16 address, char* pMnemonic)
 {
 	sprintf(pMnemonic, "PUSH IY");
 }
 
 //=============================================================================
 
-void CZ80::DecodePOPqq(const uint8* pAddress, char* pMnemonic)
+void CZ80::DecodePOPqq(uint16 address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "POP %s", Get16BitRegisterString(*pAddress >> 4));
+	sprintf(pMnemonic, "POP %s", Get16BitRegisterString(m_pMemory[address] >> 4));
 }
 
 //=============================================================================
 
-void CZ80::DecodePOPIX(const uint8* pAddress, char* pMnemonic)
+void CZ80::DecodePOPIX(uint16 address, char* pMnemonic)
 {
 	sprintf(pMnemonic, "POP IX");
 }
 
 //=============================================================================
 
-void CZ80::DecodePOPIY(const uint8* pAddress, char* pMnemonic)
+void CZ80::DecodePOPIY(uint16 address, char* pMnemonic)
 {
 	sprintf(pMnemonic, "POP IY");
 }
@@ -3381,98 +3381,98 @@ void CZ80::DecodePOPIY(const uint8* pAddress, char* pMnemonic)
 
 //=============================================================================
 
-void CZ80::DecodeEXDEHL(const uint8* pAddress, char* pMnemonic)
+void CZ80::DecodeEXDEHL(uint16 address, char* pMnemonic)
 {
 	sprintf(pMnemonic, "EX DE,HL");
 }
 
 //=============================================================================
 
-void CZ80::DecodeEXAFAFalt(const uint8* pAddress, char* pMnemonic)
+void CZ80::DecodeEXAFAFalt(uint16 address, char* pMnemonic)
 {
 	sprintf(pMnemonic, "EX AF,AF'");
 }
 
 //=============================================================================
 
-void CZ80::DecodeEXX(const uint8* pAddress, char* pMnemonic)
+void CZ80::DecodeEXX(uint16 address, char* pMnemonic)
 {
 	sprintf(pMnemonic, "EXX");
 }
 
 //=============================================================================
 
-void CZ80::DecodeEX_SP_HL(const uint8* pAddress, char* pMnemonic)
+void CZ80::DecodeEX_SP_HL(uint16 address, char* pMnemonic)
 {
 	sprintf(pMnemonic, "EX (SP),HL");
 }
 
 //=============================================================================
 
-void CZ80::DecodeEX_SP_IX(const uint8* pAddress, char* pMnemonic)
+void CZ80::DecodeEX_SP_IX(uint16 address, char* pMnemonic)
 {
 	sprintf(pMnemonic, "EX (SP),IX");
 }
 
 //=============================================================================
 
-void CZ80::DecodeEX_SP_IY(const uint8* pAddress, char* pMnemonic)
+void CZ80::DecodeEX_SP_IY(uint16 address, char* pMnemonic)
 {
 	sprintf(pMnemonic, "EX (SP),IY");
 }
 
 //=============================================================================
 
-void CZ80::DecodeLDI(const uint8* pAddress, char* pMnemonic)
+void CZ80::DecodeLDI(uint16 address, char* pMnemonic)
 {
 	sprintf(pMnemonic, "LDI");
 }
 
 //=============================================================================
 
-void CZ80::DecodeLDIR(const uint8* pAddress, char* pMnemonic)
+void CZ80::DecodeLDIR(uint16 address, char* pMnemonic)
 {
 	sprintf(pMnemonic, "LDIR");
 }
 
 //=============================================================================
 
-void CZ80::DecodeLDD(const uint8* pAddress, char* pMnemonic)
+void CZ80::DecodeLDD(uint16 address, char* pMnemonic)
 {
 	sprintf(pMnemonic, "LDD");
 }
 
 //=============================================================================
 
-void CZ80::DecodeLDDR(const uint8* pAddress, char* pMnemonic)
+void CZ80::DecodeLDDR(uint16 address, char* pMnemonic)
 {
 	sprintf(pMnemonic, "LDDR");
 }
 
 //=============================================================================
 
-void CZ80::DecodeCPI(const uint8* pAddress, char* pMnemonic)
+void CZ80::DecodeCPI(uint16 address, char* pMnemonic)
 {
 	sprintf(pMnemonic, "CPI");
 }
 
 //=============================================================================
 
-void CZ80::DecodeCPIR(const uint8* pAddress, char* pMnemonic)
+void CZ80::DecodeCPIR(uint16 address, char* pMnemonic)
 {
 	sprintf(pMnemonic, "CPIR");
 }
 
 //=============================================================================
 
-void CZ80::DecodeCPD(const uint8* pAddress, char* pMnemonic)
+void CZ80::DecodeCPD(uint16 address, char* pMnemonic)
 {
 	sprintf(pMnemonic, "CPD");
 }
 
 //=============================================================================
 
-void CZ80::DecodeCPDR(const uint8* pAddress, char* pMnemonic)
+void CZ80::DecodeCPDR(uint16 address, char* pMnemonic)
 {
 	sprintf(pMnemonic, "CPDR");
 }
@@ -3484,6 +3484,182 @@ void CZ80::DecodeCPDR(const uint8* pAddress, char* pMnemonic)
 //-----------------------------------------------------------------------------
 
 //=============================================================================
+
+void CZ80::DecodeADDAr(uint16 address, char* pMnemonic)
+{
+	sprintf(pMnemonic, "ADD A,%s", Get8BitRegisterString(m_pMemory[address]));
+}
+
+void CZ80::DecodeADDAn(uint16 address, char* pMnemonic)
+{
+	sprintf(pMnemonic, "ADD A,0x%02X", m_pMemory[++address]);
+}
+
+void CZ80::DecodeADDA_IXd_(uint16 address, char* pMnemonic)
+{
+	sprintf(pMnemonic, "ADD A,(IX + 0x%02X)", m_pMemory[++++address]);
+}
+
+void CZ80::DecodeADDA_IYd_(uint16 address, char* pMnemonic)
+{
+	sprintf(pMnemonic, "ADD A,(IY + 0x%02X)", m_pMemory[++++address]);
+}
+
+void CZ80::DecodeADCAr(uint16 address, char* pMnemonic)
+{
+	sprintf(pMnemonic, "ADC A,%s", Get8BitRegisterString(m_pMemory[address]));
+}
+
+void CZ80::DecodeADCAn(uint16 address, char* pMnemonic)
+{
+	sprintf(pMnemonic, "ADC A,0x%02X", m_pMemory[++address]);
+}
+
+void CZ80::DecodeADCA_IXd_(uint16 address, char* pMnemonic)
+{
+	sprintf(pMnemonic, "ADC A,(IX + 0x%02X)", m_pMemory[++++address]);
+}
+
+void CZ80::DecodeADCA_IYd_(uint16 address, char* pMnemonic)
+{
+	sprintf(pMnemonic, "ADC A,(IY + 0x%02X)", m_pMemory[++++address]);
+}
+
+void CZ80::DecodeSUBr(uint16 address, char* pMnemonic)
+{
+	sprintf(pMnemonic, "SUB %s", Get8BitRegisterString(m_pMemory[address]));
+}
+
+void CZ80::DecodeSUBn(uint16 address, char* pMnemonic)
+{
+	sprintf(pMnemonic, "SUB 0x%02X", m_pMemory[++address]);
+}
+
+void CZ80::DecodeSUB_IXd_(uint16 address, char* pMnemonic)
+{
+	sprintf(pMnemonic, "SUB (IX + 0x%02X)", m_pMemory[++++address]);
+}
+
+void CZ80::DecodeSUB_IYd_(uint16 address, char* pMnemonic)
+{
+	sprintf(pMnemonic, "SUB (IY + 0x%02X)", m_pMemory[++++address]);
+}
+
+void CZ80::DecodeSBCAr(uint16 address, char* pMnemonic)
+{
+	sprintf(pMnemonic, "SBC A,%s", Get8BitRegisterString(m_pMemory[address]));
+}
+
+void CZ80::DecodeSBCAn(uint16 address, char* pMnemonic)
+{
+	sprintf(pMnemonic, "SBC A,0x%02X", m_pMemory[++address]);
+}
+
+void CZ80::DecodeSBCA_IXd_(uint16 address, char* pMnemonic)
+{
+	sprintf(pMnemonic, "SBC A,(IX + 0x%02X)", m_pMemory[++++address]);
+}
+
+void CZ80::DecodeSBCA_IYd_(uint16 address, char* pMnemonic)
+{
+	sprintf(pMnemonic, "SBC A,(IY + 0x%02X)", m_pMemory[++++address]);
+}
+
+void CZ80::DecodeANDr(uint16 address, char* pMnemonic)
+{
+	sprintf(pMnemonic, "AND %s", Get8BitRegisterString(m_pMemory[address]));
+}
+
+void CZ80::DecodeANDn(uint16 address, char* pMnemonic)
+{
+	sprintf(pMnemonic, "AND 0x%02X", m_pMemory[++address]);
+}
+
+void CZ80::DecodeAND_IXd_(uint16 address, char* pMnemonic)
+{
+	sprintf(pMnemonic, "AND (IX + 0x%02X)", m_pMemory[++++address]);
+}
+
+void CZ80::DecodeAND_IYd_(uint16 address, char* pMnemonic)
+{
+	sprintf(pMnemonic, "AND (IY + 0x%02X)", m_pMemory[++++address]);
+}
+
+void CZ80::DecodeORr(uint16 address, char* pMnemonic)
+{
+	sprintf(pMnemonic, "OR %s", Get8BitRegisterString(m_pMemory[address]));
+}
+
+void CZ80::DecodeORn(uint16 address, char* pMnemonic)
+{
+	sprintf(pMnemonic, "OR 0x%02X", m_pMemory[++address]);
+}
+
+void CZ80::DecodeOR_IXd_(uint16 address, char* pMnemonic)
+{
+	sprintf(pMnemonic, "OR (IX + 0x%02X)", m_pMemory[++++address]);
+}
+
+void CZ80::DecodeOR_IYd_(uint16 address, char* pMnemonic)
+{
+	sprintf(pMnemonic, "OR (IY + 0x%02X)", m_pMemory[++++address]);
+}
+
+void CZ80::DecodeXORr(uint16 address, char* pMnemonic)
+{
+}
+
+void CZ80::DecodeXORn(uint16 address, char* pMnemonic)
+{
+}
+
+void CZ80::DecodeXOR_IXd_(uint16 address, char* pMnemonic)
+{
+}
+
+void CZ80::DecodeXOR_IYd_(uint16 address, char* pMnemonic)
+{
+}
+
+void CZ80::DecodeCPr(uint16 address, char* pMnemonic)
+{
+}
+
+void CZ80::DecodeCPn(uint16 address, char* pMnemonic)
+{
+}
+
+void CZ80::DecodeCP_IXd_(uint16 address, char* pMnemonic)
+{
+}
+
+void CZ80::DecodeCP_IYd_(uint16 address, char* pMnemonic)
+{
+}
+
+void CZ80::DecodeINCr(uint16 address, char* pMnemonic)
+{
+}
+
+void CZ80::DecodeINC_IXd_(uint16 address, char* pMnemonic)
+{
+}
+
+void CZ80::DecodeINC_IYd_(uint16 address, char* pMnemonic)
+{
+}
+
+void CZ80::DecodeDECr(uint16 address, char* pMnemonic)
+{
+}
+
+void CZ80::DecodeDEC_IXd_(uint16 address, char* pMnemonic)
+{
+}
+
+void CZ80::DecodeDEC_IYd_(uint16 address, char* pMnemonic)
+{
+}
 
 
 //=============================================================================
