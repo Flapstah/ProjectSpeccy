@@ -51,8 +51,7 @@ CZ80::CZ80(uint8* pMemory, float clockSpeedMHz)
 	, m_L(m_RegisterMemory[eR_L])
 	, m_I(m_RegisterMemory[eR_I])
 	, m_R(m_RegisterMemory[eR_R])
-	, m_IFF1(m_RegisterMemory[eR_IFF1])
-	, m_IFF2(m_RegisterMemory[eR_IFF2])
+	, m_State(*(reinterpret_cast<SProcessorState*>(&m_RegisterMemory[eR_State])))
 	, m_pMemory(pMemory)
 	, m_clockSpeedMHz(clockSpeedMHz)
 {
@@ -602,7 +601,7 @@ void CZ80::ImplementLDAI(void)
 	IncrementR(2);
 	m_A = m_I;
 	m_F &= eF_C;
-	m_F |= (m_A & eF_S) | (eF_Z & (m_A == 0)) | (eF_PV & m_IFF2) | (m_A & (eF_X | eF_Y));
+	m_F |= (m_A & eF_S) | (eF_Z & (m_A == 0)) | (eF_PV & m_State.m_IFF2) | (m_A & (eF_X | eF_Y));
 	++++m_PC;
 	m_tstate += 9;
 }
@@ -627,7 +626,7 @@ void CZ80::ImplementLDAR(void)
 	IncrementR(2);
 	m_A = m_R;
 	m_F &= eF_C;
-	m_F |= (m_A & eF_S) | (eF_Z & (m_A == 0)) | (eF_PV & m_IFF2) | (m_A & (eF_X | eF_Y));
+	m_F |= (m_A & eF_S) | (eF_Z & (m_A == 0)) | (eF_PV & m_State.m_IFF2) | (m_A & (eF_X | eF_Y));
 	++++m_PC;
 	m_tstate += 9;
 }
@@ -3121,36 +3120,133 @@ void CZ80::ImplementNOP(void)
 
 void CZ80::ImplementHALT(void)
 {
+	//
+	// Operation:	---
+	// Op Code:		HALT
+	// Operands:	---
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|1|1|1|0|1|1|0| 76
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								1						4									1.00
+	//
+	IncrementR(1);
+	// Intentionally don't increment PC
+	m_tstate += 4;
 }
 
 //=============================================================================
 
 void CZ80::ImplementDI(void)
 {
+	//
+	// Operation:	IFF <- 0
+	// Op Code:		DI
+	// Operands:	IFF
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|1|0|0|1|1| F3
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								1						4									1.00
+	//
+	IncrementR(1);
+	++m_PC;
+	m_State.m_IFF1 = 0;
+	m_State.m_IFF2 = 0;
+	m_tstate += 4;
 }
 
 //=============================================================================
 
 void CZ80::ImplementEI(void)
 {
+	//
+	// Operation:	IFF <- 1
+	// Op Code:		DI
+	// Operands:	IFF
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|1|1|0|1|1| FB
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								1						4									1.00
+	//
+	IncrementR(1);
+	++m_PC;
+	m_State.m_IFF1 = 1;
+	m_State.m_IFF2 = 1;
+	m_tstate += 4;
 }
 
 //=============================================================================
 
 void CZ80::ImplementIM0(void)
 {
+	//
+	// Operation:	---
+	// Op Code:		IM
+	// Operands:	0
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|0|1|1|0|1| ED
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|1|0|0|0|1|1|0| 46
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								2						8	(4,4)						2.00
+	//
+	IncrementR(2);
+	++++m_PC;
+	m_State.m_InterruptMode = 0;
+	m_tstate += 8;
 }
 
 //=============================================================================
 
 void CZ80::ImplementIM1(void)
 {
+	//
+	// Operation:	---
+	// Op Code:		IM
+	// Operands:	1
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|0|1|1|0|1| ED
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|1|0|1|0|1|1|0| 56
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								2						8	(4,4)						2.00
+	//
+	IncrementR(2);
+	++++m_PC;
+	m_State.m_InterruptMode = 1;
+	m_tstate += 8;
 }
 
 //=============================================================================
 
 void CZ80::ImplementIM2(void)
 {
+	//
+	// Operation:	---
+	// Op Code:		IM
+	// Operands:	2
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|0|1|1|0|1| ED
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|1|0|1|1|1|1|0| 5E
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								2						8	(4,4)						2.00
+	//
+	IncrementR(2);
+	++++m_PC;
+	m_State.m_InterruptMode = 2;
+	m_tstate += 8;
 }
 
 //=============================================================================

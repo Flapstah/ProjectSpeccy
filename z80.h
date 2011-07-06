@@ -269,6 +269,13 @@ class CZ80
 		//	General-Purpose Arithmetic and CPU Control Groups
 		//-----------------------------------------------------------------------------
 
+		struct SProcessorState
+		{
+			uint16 m_InterruptMode : 2;
+			uint16 m_IFF1 : 1;
+			uint16 m_IFF2 : 1;
+		};
+
 		enum eFlags
 		{
 			eF_C =	1 << 0,	// Carry
@@ -334,12 +341,11 @@ class CZ80
 			eR_PC = eR_SP + sizeof(uint16),
 			eR_I = eR_PC + sizeof(uint8),
 			eR_R = eR_I + sizeof(uint8),
-			eR_IFF1 = eR_R + sizeof(uint8),
-			eR_IFF2 = eR_IFF1 + sizeof(uint8),
-			eR_AFalt = eR_IFF2 + sizeof(uint8),
+			eR_AFalt = eR_R + sizeof(uint8),
 			eR_BCalt = eR_AFalt + sizeof(uint16),
 			eR_DEalt = eR_BCalt + sizeof(uint16),
-			eR_HLalt = eR_DEalt + sizeof(uint16)
+			eR_HLalt = eR_DEalt + sizeof(uint16),
+			eR_State = eR_HLalt + sizeof(uint16)
 		};
 
 		// Register memory is mapped by reference to the actual registers so that
@@ -372,8 +378,7 @@ class CZ80
 		uint8&	m_L;
 		uint8&	m_I;
 		uint8&	m_R;
-		uint8&	m_IFF1; // Only the bit that corresponds to the eF_PV flag is used
-		uint8&	m_IFF2; // Only the bit that corresponds to the eF_PV flag is used
+		SProcessorState& m_State;
 
 		// Opcode register decode lookups
 		uint8		m_16BitRegisterOffset[4];
