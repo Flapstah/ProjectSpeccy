@@ -7,6 +7,7 @@
 
 // Helper macros to determine 8 and 16 bit registers from opcodes
 #define REGISTER_8BIT(_3bits_) m_RegisterMemory[m_8BitRegisterOffset[_3bits_ & 0x07]]
+#define REGISTER_16BIT(_2bits_) *(reinterpret_cast<uint16*>(&m_RegisterMemory[m_16BitRegisterOffset[_2bits_ & 0x03]]))
 #define REGISTER_16BIT_LO(_2bits_) m_RegisterMemory[m_16BitRegisterOffset[_2bits_ & 0x03] + LO]
 #define REGISTER_16BIT_HI(_2bits_) m_RegisterMemory[m_16BitRegisterOffset[_2bits_ & 0x03] + HI]
 
@@ -1089,7 +1090,7 @@ void CZ80::ImplementPUSHqq(void)
 	// Op Code:		PUSH
 	// Operands:	qq
 	//						+-+-+-+-+-+-+-+-+
-	//						|1|1|q|q|0|1|0|1|
+	//						|1|1|d|d|0|1|0|1|
 	//						+-+-+-+-+-+-+-+-+
 	//
 	//						where dd is any of:
@@ -1162,7 +1163,7 @@ void CZ80::ImplementPOPqq(void)
 	// Op Code:		POP
 	// Operands:	qq
 	//						+-+-+-+-+-+-+-+-+
-	//						|1|1|q|q|0|0|0|1|
+	//						|1|1|d|d|0|0|0|1|
 	//						+-+-+-+-+-+-+-+-+
 	//
 	//						where dd is any of:
@@ -2086,7 +2087,7 @@ void CZ80::ImplementSBCAr(void)
 	//								A						111
 	//
 	IncrementR(1);
-	int8 source = static_cast<int8>(REGISTER_8BIT(m_pMemory[m_PC++])) - (m_F & eF_C);
+	int8 source = static_cast<int8>(REGISTER_8BIT(m_pMemory[m_PC++])) + (m_F & eF_C);
 	int8 origA = static_cast<int8>(m_A);
 	m_A = origA - source;
 	uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
@@ -2112,7 +2113,7 @@ void CZ80::ImplementSBCAn(void)
 	//								2						7	(4,3)						1.75
 	//
 	IncrementR(1);
-	int8 source = static_cast<int8>(m_pMemory[(++m_PC)++]) - (m_F & eF_C);
+	int8 source = static_cast<int8>(m_pMemory[(++m_PC)++]) + (m_F & eF_C);
 	int8 origA = static_cast<int8>(m_A);
 	m_A = origA - source;
 	uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
@@ -2137,7 +2138,7 @@ void CZ80::ImplementSBCA_HL_(void)
 	//
 	IncrementR(1);
 	++m_PC;
-	int8 source = static_cast<int8>(m_pMemory[m_HL]) - (m_F & eF_C);
+	int8 source = static_cast<int8>(m_pMemory[m_HL]) + (m_F & eF_C);
 	int8 origA = static_cast<int8>(m_A);
 	m_A = origA - source;
 	uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
@@ -2166,7 +2167,7 @@ void CZ80::ImplementSBCA_IXd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	int8 source = static_cast<int8>(m_pMemory[m_IX + m_pMemory[m_PC++]]) - (m_F & eF_C);
+	int8 source = static_cast<int8>(m_pMemory[m_IX + m_pMemory[m_PC++]]) + (m_F & eF_C);
 	int8 origA = static_cast<int8>(m_A);
 	m_A = origA - source;
 	uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
@@ -2195,7 +2196,7 @@ void CZ80::ImplementSBCA_IYd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	int8 source = static_cast<int8>(m_pMemory[m_IY + m_pMemory[m_PC++]]) - (m_F & eF_C);
+	int8 source = static_cast<int8>(m_pMemory[m_IY + m_pMemory[m_PC++]]) + (m_F & eF_C);
 	int8 origA = static_cast<int8>(m_A);
 	m_A = origA - source;
 	uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
@@ -3251,111 +3252,297 @@ void CZ80::ImplementIM2(void)
 
 //=============================================================================
 
+//-----------------------------------------------------------------------------
+//	16-Bit Arithmetic Group
+//-----------------------------------------------------------------------------
 
 //=============================================================================
 
+void CZ80::ImplementADDHLdd(void)
+{
+	// Operation:	HL <- HL+dd
+	// Op Code:		ADD
+	// Operands:	HL, dd
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|d|d|0|1|0|1|
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//						where dd is any of:
+	//								BC					00
+	//								DE					01
+	//								HL					10
+	//								AF					11
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								3						11 (4,4,3)				2.75
+	//
+	IncrementR(1);
+	uint16 source = REGISTER_16BIT(m_pMemory[m_PC++] >> 4);
+	uint16 origHL = m_HL;
+	m_HL += source;
+	uint16 flag_calc = ((origHL & source & ~m_HL) | (~origHL & ~source & m_HL));
+	m_F &= (eF_S | eF_Z | eF_PV);
+	m_F |= (((flag_calc & 0x8000) >> 15) & eF_C) | (((flag_calc & 0x0800) >> 7) & eF_H);
+	m_tstate += 11;
+}
 
 //=============================================================================
 
+void CZ80::ImplementADCHLdd(void)
+{
+	// Operation:	HL <- HL+dd+C
+	// Op Code:		ADC
+	// Operands:	HL, dd
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|0|1|1|0|1| ED
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|1|d|d|1|0|1|0|
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//						where dd is any of:
+	//								BC					00
+	//								DE					01
+	//								HL					10
+	//								AF					11
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								4						15 (4,4,4,3)			3.75
+	//
+	IncrementR(2);
+	uint16 source = REGISTER_16BIT(m_pMemory[(++m_PC)++] >> 4) + (m_F & eF_C);
+	uint16 origHL = m_HL;
+	m_HL += source;
+	uint16 flag_calc = ((origHL & source & ~m_HL) | (~origHL & ~source & m_HL));
+	m_F = ((m_HL >> 8) & eF_S) | ((m_HL == 0) ? eF_Z : 0) | (((flag_calc & 0x8000) >> 15) & eF_C) | (((flag_calc & 0x0800) >> 7) & eF_H);
+	m_tstate += 15;
+}
 
 //=============================================================================
 
+void CZ80::ImplementSBCHLdd(void)
+{
+	// Operation:	HL <- HL-dd-C
+	// Op Code:		SBC
+	// Operands:	HL, dd
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|0|1|1|0|1| ED
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|1|d|d|0|0|1|0|
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//						where dd is any of:
+	//								BC					00
+	//								DE					01
+	//								HL					10
+	//								AF					11
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								4						15 (4,4,4,3)			3.75
+	//
+	IncrementR(2);
+	uint16 source = REGISTER_16BIT(m_pMemory[(++m_PC)++] >> 4) - (m_F & eF_C);
+	uint16 origHL = m_HL;
+	m_HL -= source;
+	uint16 flag_calc = ((origHL & source & ~m_HL) | (~origHL & ~source & m_HL));
+	m_F = ((m_HL >> 8) & eF_S) | ((m_HL == 0) ? eF_Z : 0) | eF_N | (((flag_calc & 0x8000) >> 15) & eF_C) | (((flag_calc & 0x0800) >> 7) & eF_H);
+	m_tstate += 15;
+}
 
 //=============================================================================
 
+void CZ80::ImplementADDIXdd(void)
+{
+	// Operation:	HL <- IX+dd
+	// Op Code:		ADD
+	// Operands:	IX, dd
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|1|1|1|0|1| DD
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|0|d|d|1|0|0|1|
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//						where dd is any of:
+	//								BC					00
+	//								DE					01
+	//								IX					10
+	//								AF					11
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								3						15 (4,4,4,3)			3.75
+	//
+	IncrementR(2);
+	uint8 opcode = m_pMemory[(++m_PC)++] >> 4;
+	uint16 source = (opcode == 2) ? m_IX : REGISTER_16BIT(opcode);
+	uint16 origHL = m_HL;
+	m_HL += source;
+	uint16 flag_calc = ((origHL & source & ~m_HL) | (~origHL & ~source & m_HL));
+	m_F &= (eF_S | eF_Z | eF_PV);
+	m_F |= (((flag_calc & 0x8000) >> 15) & eF_C) | (((flag_calc & 0x0800) >> 7) & eF_H);
+	m_tstate += 15;
+}
 
 //=============================================================================
 
+void CZ80::ImplementADDIYdd(void)
+{
+	// Operation:	HL <- IY+dd
+	// Op Code:		ADD
+	// Operands:	IY, dd
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|1|1|1|0|1| FD
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|0|d|d|1|0|0|1|
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//						where dd is any of:
+	//								BC					00
+	//								DE					01
+	//								IY					10
+	//								AF					11
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								3						15 (4,4,4,3)			3.75
+	//
+	IncrementR(2);
+	uint8 opcode = m_pMemory[(++m_PC)++] >> 4;
+	uint16 source = (opcode == 2) ? m_IY : REGISTER_16BIT(opcode);
+	uint16 origHL = m_HL;
+	m_HL += source;
+	uint16 flag_calc = ((origHL & source & ~m_HL) | (~origHL & ~source & m_HL));
+	m_F &= (eF_S | eF_Z | eF_PV);
+	m_F |= (((flag_calc & 0x8000) >> 15) & eF_C) | (((flag_calc & 0x0800) >> 7) & eF_H);
+	m_tstate += 15;
+}
 
 //=============================================================================
 
+void CZ80::ImplementINCdd(void)
+{
+	//
+	// Operation:	dd <- dd+1
+	// Op Code:		INC
+	// Operands:	dd
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|0|d|d|0|0|1|1|
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								1						6									1.50
+	//
+	IncrementR(1);
+	++REGISTER_16BIT(m_pMemory[m_PC++] >> 4);
+	m_tstate += 6;
+}
 
 //=============================================================================
 
+void CZ80::ImplementINCIXdd(void)
+{
+	//
+	// Operation:	IX <- IX+1
+	// Op Code:		INC
+	// Operands:	IX
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|1|1|1|0|1| DD
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|0|1|0|0|0|1|1| 23
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								2						10 (4,6)					2.50
+	//
+	IncrementR(2);
+	++m_IX;
+	m_tstate += 10;
+}
 
 //=============================================================================
 
+void CZ80::ImplementINCIYdd(void)
+{
+	//
+	// Operation:	IY <- IX+1
+	// Op Code:		INC
+	// Operands:	IY
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|1|1|1|0|1| DD
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|0|1|0|0|0|1|1| 23
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								2						10 (4,6)					2.50
+	//
+	IncrementR(2);
+	++m_IY;
+	m_tstate += 10;
+}
 
 //=============================================================================
 
+void CZ80::ImplementDECdd(void)
+{
+	//
+	// Operation:	dd <- dd-1
+	// Op Code:		DEC
+	// Operands:	dd
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|0|d|d|1|0|1|1|
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								1						6									1.50
+	//
+	IncrementR(1);
+	--REGISTER_16BIT(m_pMemory[m_PC++] >> 4);
+	m_tstate += 6;
+}
 
 //=============================================================================
 
+void CZ80::ImplementDECIXdd(void)
+{
+	//
+	// Operation:	IX <- IX-1
+	// Op Code:		DEC
+	// Operands:	IX
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|1|1|1|0|1| DD
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|0|1|0|1|0|1|1| 2B
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								2						10 (4,6)					2.50
+	//
+	IncrementR(2);
+	--m_IX;
+	m_tstate += 10;
+}
 
 //=============================================================================
 
+void CZ80::ImplementDECIYdd(void)
+{
+	//
+	// Operation:	IY <- IY-1
+	// Op Code:		DEC
+	// Operands:	IY
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|1|1|1|0|1| FD
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|0|1|0|1|0|1|1| 2B
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								2						10 (4,6)					2.50
+	//
+	IncrementR(2);
+	--m_IY;
+	m_tstate += 10;
+}
 
 //=============================================================================
-
-
-//=============================================================================
-
-
-//=============================================================================
-
-
-//=============================================================================
-
-
-//=============================================================================
-
-
-//=============================================================================
-
-
-//=============================================================================
-
-
-//=============================================================================
-
-
-//=============================================================================
-
-
-//=============================================================================
-
-
-//=============================================================================
-
-
-//=============================================================================
-
-
-//=============================================================================
-
-
-//=============================================================================
-
-
-//=============================================================================
-
-
-//=============================================================================
-
-
-//=============================================================================
-
-
-//=============================================================================
-
-
-//=============================================================================
-
-
-//=============================================================================
-
-
-//=============================================================================
-
-
-//=============================================================================
-
-
-//=============================================================================
-
-
-
-
 
 
 
@@ -4054,47 +4241,180 @@ void CZ80::DecodeDEC_IYd_(uint16 address, char* pMnemonic)
 
 //=============================================================================
 
+//-----------------------------------------------------------------------------
+//	General-Purpose Arithmetic and CPU Control Groups
+//-----------------------------------------------------------------------------
 
 //=============================================================================
 
+void CZ80::DecodeDAA(uint16 address, char* pMnemonic)
+{
+	sprintf(pMnemonic, "DAA");
+}
 
 //=============================================================================
 
+void CZ80::DecodeCPL(uint16 address, char* pMnemonic)
+{
+	sprintf(pMnemonic, "CPL");
+}
 
 //=============================================================================
 
+void CZ80::DecodeNEG(uint16 address, char* pMnemonic)
+{
+	sprintf(pMnemonic, "NEG");
+}
 
 //=============================================================================
 
+void CZ80::DecodeCCF(uint16 address, char* pMnemonic)
+{
+	sprintf(pMnemonic, "CCF");
+}
 
 //=============================================================================
 
+void CZ80::DecodeSCF(uint16 address, char* pMnemonic)
+{
+	sprintf(pMnemonic, "SCF");
+}
 
 //=============================================================================
 
+void CZ80::DecodeNOP(uint16 address, char* pMnemonic)
+{
+	sprintf(pMnemonic, "NOP");
+}
 
 //=============================================================================
 
+void CZ80::DecodeHALT(uint16 address, char* pMnemonic)
+{
+	sprintf(pMnemonic, "HALT");
+}
 
 //=============================================================================
 
+void CZ80::DecodeDI(uint16 address, char* pMnemonic)
+{
+	sprintf(pMnemonic, "DI");
+}
 
 //=============================================================================
 
+void CZ80::DecodeEI(uint16 address, char* pMnemonic)
+{
+	sprintf(pMnemonic, "EI");
+}
 
 //=============================================================================
 
+void CZ80::DecodeIM0(uint16 address, char* pMnemonic)
+{
+	sprintf(pMnemonic, "IM 0");
+}
 
 //=============================================================================
 
+void CZ80::DecodeIM1(uint16 address, char* pMnemonic)
+{
+	sprintf(pMnemonic, "IM 1");
+}
 
 //=============================================================================
 
+void CZ80::DecodeIM2(uint16 address, char* pMnemonic)
+{
+	sprintf(pMnemonic, "IM 2");
+}
 
 //=============================================================================
 
+//-----------------------------------------------------------------------------
+//	16-Bit Arithmetic Group
+//-----------------------------------------------------------------------------
 
+//=============================================================================
 
+void CZ80::DecodeADDHLdd(uint16 address, char* pMnemonic)
+{
+	sprintf(pMnemonic, "ADD HL,%s", Get16BitRegisterString(m_pMemory[address] >> 4));
+}
+
+//=============================================================================
+
+void CZ80::DecodeADCHLdd(uint16 address, char* pMnemonic)
+{
+	sprintf(pMnemonic, "ADC HL,%s", Get16BitRegisterString(m_pMemory[++address] >> 4));
+}
+
+//=============================================================================
+
+void CZ80::DecodeSBCHLdd(uint16 address, char* pMnemonic)
+{
+	sprintf(pMnemonic, "SBC HL,%s", Get16BitRegisterString(m_pMemory[++address] >> 4));
+}
+
+//=============================================================================
+
+void CZ80::DecodeADDIXdd(uint16 address, char* pMnemonic)
+{
+	uint8 opcode = m_pMemory[++address] >> 4;
+	sprintf(pMnemonic, "ADD HL,%s", (opcode == 2) ? "IX" : Get16BitRegisterString(m_pMemory[address] >> 4));
+}
+
+//=============================================================================
+
+void CZ80::DecodeADDIYdd(uint16 address, char* pMnemonic)
+{
+	uint8 opcode = m_pMemory[++address] >> 4;
+	sprintf(pMnemonic, "ADD HL,%s", (opcode == 2) ? "IY" : Get16BitRegisterString(m_pMemory[address] >> 4));
+}
+
+//=============================================================================
+
+void CZ80::DecodeINCdd(uint16 address, char* pMnemonic)
+{
+	sprintf(pMnemonic, "INC %s", Get16BitRegisterString(m_pMemory[address] >> 4));
+}
+
+//=============================================================================
+
+void CZ80::DecodeINCIXdd(uint16 address, char* pMnemonic)
+{
+	sprintf(pMnemonic, "INC IX");
+}
+
+//=============================================================================
+
+void CZ80::DecodeINCIYdd(uint16 address, char* pMnemonic)
+{
+	sprintf(pMnemonic, "INC IY");
+}
+
+//=============================================================================
+
+void CZ80::DecodeDECdd(uint16 address, char* pMnemonic)
+{
+	sprintf(pMnemonic, "DEC %s", Get16BitRegisterString(m_pMemory[address] >> 4));
+}
+
+//=============================================================================
+
+void CZ80::DecodeDECIXdd(uint16 address, char* pMnemonic)
+{
+	sprintf(pMnemonic, "DEC IX");
+}
+
+//=============================================================================
+
+void CZ80::DecodeDECIYdd(uint16 address, char* pMnemonic)
+{
+	sprintf(pMnemonic, "DEC IY");
+}
+
+//=============================================================================
 
 
 

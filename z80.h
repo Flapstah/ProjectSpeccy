@@ -154,6 +154,22 @@ class CZ80
 		void ImplementIM2(void);
 
 		//-----------------------------------------------------------------------------
+		//	16-Bit Arithmetic Group
+		//-----------------------------------------------------------------------------
+
+		void ImplementADDHLdd(void);
+		void ImplementADCHLdd(void);
+		void ImplementSBCHLdd(void);
+		void ImplementADDIXdd(void);
+		void ImplementADDIYdd(void);
+		void ImplementINCdd(void);
+		void ImplementINCIXdd(void);
+		void ImplementINCIYdd(void);
+		void ImplementDECdd(void);
+		void ImplementDECIXdd(void);
+		void ImplementDECIYdd(void);
+
+		//-----------------------------------------------------------------------------
 		//	8-Bit Load Group
 		//-----------------------------------------------------------------------------
 
@@ -268,6 +284,35 @@ class CZ80
 		//-----------------------------------------------------------------------------
 		//	General-Purpose Arithmetic and CPU Control Groups
 		//-----------------------------------------------------------------------------
+
+		void DecodeDAA(uint16 address, char* pMnemonic);
+		void DecodeCPL(uint16 address, char* pMnemonic);
+		void DecodeNEG(uint16 address, char* pMnemonic);
+		void DecodeCCF(uint16 address, char* pMnemonic);
+		void DecodeSCF(uint16 address, char* pMnemonic);
+		void DecodeNOP(uint16 address, char* pMnemonic);
+		void DecodeHALT(uint16 address, char* pMnemonic);
+		void DecodeDI(uint16 address, char* pMnemonic);
+		void DecodeEI(uint16 address, char* pMnemonic);
+		void DecodeIM0(uint16 address, char* pMnemonic);
+		void DecodeIM1(uint16 address, char* pMnemonic);
+		void DecodeIM2(uint16 address, char* pMnemonic);
+
+		//-----------------------------------------------------------------------------
+		//	16-Bit Arithmetic Group
+		//-----------------------------------------------------------------------------
+
+		void DecodeADDHLdd(uint16 address, char* pMnemonic);
+		void DecodeADCHLdd(uint16 address, char* pMnemonic);
+		void DecodeSBCHLdd(uint16 address, char* pMnemonic);
+		void DecodeADDIXdd(uint16 address, char* pMnemonic);
+		void DecodeADDIYdd(uint16 address, char* pMnemonic);
+		void DecodeINCdd(uint16 address, char* pMnemonic);
+		void DecodeINCIXdd(uint16 address, char* pMnemonic);
+		void DecodeINCIYdd(uint16 address, char* pMnemonic);
+		void DecodeDECdd(uint16 address, char* pMnemonic);
+		void DecodeDECIXdd(uint16 address, char* pMnemonic);
+		void DecodeDECIYdd(uint16 address, char* pMnemonic);
 
 		struct SProcessorState
 		{
