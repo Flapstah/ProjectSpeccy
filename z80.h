@@ -170,6 +170,45 @@ class CZ80
 		void ImplementDECIYdd(void);
 
 		//-----------------------------------------------------------------------------
+		//	Rotate and Shift Group
+		//-----------------------------------------------------------------------------
+
+		void ImplementRLCA(void);
+		void ImplementRLA(void);
+		void ImplementRRCA(void);
+		void ImplementRRA(void);
+		void ImplementRLCr(void);
+		void ImplementRLC_HL_(void);
+		void ImplementRLC_IXd_(void);
+		void ImplementRLC_IYd_(void);
+		void ImplementRLr(void);
+		void ImplementRL_HL_(void);
+		void ImplementRL_IXd_(void);
+		void ImplementRL_IYd_(void);
+		void ImplementRRCr(void);
+		void ImplementRRC_HL_(void);
+		void ImplementRRC_IXd_(void);
+		void ImplementRRC_IYd_(void);
+		void ImplementRRr(void);
+		void ImplementRR_HL_(void);
+		void ImplementRR_IXd_(void);
+		void ImplementRR_IYd_(void);
+		void ImplementSLAr(void);
+		void ImplementSLA_HL_(void);
+		void ImplementSLA_IXd_(void);
+		void ImplementSLA_IYd_(void);
+		void ImplementSRAr(void);
+		void ImplementSRA_HL_(void);
+		void ImplementSRA_IXd_(void);
+		void ImplementSRA_IYd_(void);
+		void ImplementSRLr(void);
+		void ImplementSRL_HL_(void);
+		void ImplementSRL_IXd_(void);
+		void ImplementSRL_IYd_(void);
+		void ImplementRLD(void);
+		void ImplementRRD(void);
+
+		//-----------------------------------------------------------------------------
 		//	8-Bit Load Group
 		//-----------------------------------------------------------------------------
 
@@ -390,7 +429,7 @@ class CZ80
 			eR_BCalt = eR_AFalt + sizeof(uint16),
 			eR_DEalt = eR_BCalt + sizeof(uint16),
 			eR_HLalt = eR_DEalt + sizeof(uint16),
-			eR_State = eR_HLalt + sizeof(uint16)
+			eR_State = eR_HLalt + sizeof(uint16),
 		};
 
 		// Register memory is mapped by reference to the actual registers so that
