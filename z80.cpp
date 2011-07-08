@@ -231,7 +231,7 @@ void CZ80::ImplementLDr_IXd_(void)
 	//
 	IncrementR(2);
 	uint8 opcode = m_pMemory[++m_PC];
-	REGISTER_8BIT(opcode >> 3) = m_pMemory[m_IX + m_pMemory[(++m_PC)++]];
+	REGISTER_8BIT(opcode >> 3) = m_pMemory[m_IX + static_cast<int16>(m_pMemory[(++m_PC)++])];
 	m_tstate += 19;
 }
 
@@ -265,7 +265,7 @@ void CZ80::ImplementLDr_IYd_(void)
 	//
 	IncrementR(2);
 	uint8 opcode = m_pMemory[++m_PC];
-	REGISTER_8BIT(opcode >> 3) = m_pMemory[m_IY + m_pMemory[(++m_PC)++]];
+	REGISTER_8BIT(opcode >> 3) = m_pMemory[m_IY + static_cast<int16>(m_pMemory[(++m_PC)++])];
 	m_tstate += 19;
 }
 
@@ -328,7 +328,7 @@ void CZ80::ImplementLD_IXd_r(void)
 	//
 	IncrementR(2);
 	uint8 opcode = m_pMemory[++m_PC];
-	m_pMemory[m_IX + m_pMemory[(++m_PC)++]] = REGISTER_8BIT(opcode);
+	m_pMemory[m_IX + static_cast<int16>(m_pMemory[(++m_PC)++])] = REGISTER_8BIT(opcode);
 	m_tstate += 19;
 }
 
@@ -362,7 +362,7 @@ void CZ80::ImplementLD_IYd_r(void)
 	//
 	IncrementR(2);
 	uint8 opcode = m_pMemory[++m_PC];
-	m_pMemory[m_IY + m_pMemory[(++m_PC)++]] = REGISTER_8BIT(opcode);
+	m_pMemory[m_IY + static_cast<int16>(m_pMemory[(++m_PC)++])] = REGISTER_8BIT(opcode);
 	m_tstate += 19;
 }
 
@@ -411,7 +411,7 @@ void CZ80::ImplementLD_IXd_n(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	m_pMemory[m_IX + m_pMemory[m_PC]] = m_pMemory[m_PC + 1];
+	m_pMemory[m_IX + static_cast<int16>(m_pMemory[m_PC])] = m_pMemory[m_PC + 1];
 	++++m_PC;
 	m_tstate += 19;
 }
@@ -439,7 +439,7 @@ void CZ80::ImplementLD_IYd_n(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	m_pMemory[m_IX + m_pMemory[m_PC]] = m_pMemory[m_PC + 1];
+	m_pMemory[m_IY + static_cast<int16>(m_pMemory[m_PC])] = m_pMemory[m_PC + 1];
 	++++m_PC;
 	m_tstate += 19;
 }
@@ -1741,7 +1741,7 @@ void CZ80::ImplementADDA_IXd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	int8 source = static_cast<int8>(m_pMemory[m_IX + m_pMemory[m_PC++]]);
+	int8 source = static_cast<int8>(m_pMemory[m_IX + static_cast<int16>(m_pMemory[m_PC++])]);
 	int8 origA = static_cast<int8>(m_A);
 	m_A = origA + source;
 	uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
@@ -1770,7 +1770,7 @@ void CZ80::ImplementADDA_IYd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	int8 source = static_cast<int8>(m_pMemory[m_IY + m_pMemory[m_PC++]]);
+	int8 source = static_cast<int8>(m_pMemory[m_IY + static_cast<int16>(m_pMemory[m_PC++])]);
 	int8 origA = static_cast<int8>(m_A);
 	m_A = origA + source;
 	uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
@@ -1883,7 +1883,7 @@ void CZ80::ImplementADCA_IXd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	int8 source = static_cast<int8>(m_pMemory[m_IX + m_pMemory[m_PC++]]) + (m_F & eF_C);
+	int8 source = static_cast<int8>(m_pMemory[m_IX + static_cast<int16>(m_pMemory[m_PC++])]) + (m_F & eF_C);
 	int8 origA = static_cast<int8>(m_A);
 	m_A = origA + source;
 	uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
@@ -1912,7 +1912,7 @@ void CZ80::ImplementADCA_IYd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	int8 source = static_cast<int8>(m_pMemory[m_IY + m_pMemory[m_PC++]]) + (m_F & eF_C);
+	int8 source = static_cast<int8>(m_pMemory[m_IY + static_cast<int16>(m_pMemory[m_PC++])]) + (m_F & eF_C);
 	int8 origA = static_cast<int8>(m_A);
 	m_A = origA + source;
 	uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
@@ -2025,7 +2025,7 @@ void CZ80::ImplementSUB_IXd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	int8 source = static_cast<int8>(m_pMemory[m_IX + m_pMemory[m_PC++]]);
+	int8 source = static_cast<int8>(m_pMemory[m_IX + static_cast<int16>(m_pMemory[m_PC++])]);
 	int8 origA = static_cast<int8>(m_A);
 	m_A = origA - source;
 	uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
@@ -2054,7 +2054,7 @@ void CZ80::ImplementSUB_IYd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	int8 source = static_cast<int8>(m_pMemory[m_IY + m_pMemory[m_PC++]]);
+	int8 source = static_cast<int8>(m_pMemory[m_IY + static_cast<int16>(m_pMemory[m_PC++])]);
 	int8 origA = static_cast<int8>(m_A);
 	m_A = origA - source;
 	uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
@@ -2167,7 +2167,7 @@ void CZ80::ImplementSBCA_IXd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	int8 source = static_cast<int8>(m_pMemory[m_IX + m_pMemory[m_PC++]]) + (m_F & eF_C);
+	int8 source = static_cast<int8>(m_pMemory[m_IX + static_cast<int16>(m_pMemory[m_PC++])]) + (m_F & eF_C);
 	int8 origA = static_cast<int8>(m_A);
 	m_A = origA - source;
 	uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
@@ -2196,7 +2196,7 @@ void CZ80::ImplementSBCA_IYd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	int8 source = static_cast<int8>(m_pMemory[m_IY + m_pMemory[m_PC++]]) + (m_F & eF_C);
+	int8 source = static_cast<int8>(m_pMemory[m_IY + static_cast<int16>(m_pMemory[m_PC++])]) + (m_F & eF_C);
 	int8 origA = static_cast<int8>(m_A);
 	m_A = origA - source;
 	uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
@@ -2300,7 +2300,7 @@ void CZ80::ImplementAND_IXd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	m_A = static_cast<int8>(m_A) & static_cast<int8>(m_pMemory[m_IX + m_pMemory[m_PC++]]);
+	m_A = static_cast<int8>(m_A) & static_cast<int8>(m_pMemory[m_IX + static_cast<int16>(m_pMemory[m_PC++])]);
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | (eF_H);
 	m_tstate += 16;
 }
@@ -2326,7 +2326,7 @@ void CZ80::ImplementAND_IYd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	m_A = static_cast<int8>(m_A) & static_cast<int8>(m_pMemory[m_IY + m_pMemory[m_PC++]]);
+	m_A = static_cast<int8>(m_A) & static_cast<int8>(m_pMemory[m_IY + static_cast<int16>(m_pMemory[m_PC++])]);
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | (eF_H);
 	m_tstate += 16;
 }
@@ -2427,7 +2427,7 @@ void CZ80::ImplementOR_IXd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	m_A = static_cast<int8>(m_A) | static_cast<int8>(m_pMemory[m_IX + m_pMemory[m_PC++]]);
+	m_A = static_cast<int8>(m_A) | static_cast<int8>(m_pMemory[m_IX + static_cast<int16>(m_pMemory[m_PC++])]);
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | (eF_H);
 	m_tstate += 16;
 }
@@ -2453,7 +2453,7 @@ void CZ80::ImplementOR_IYd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	m_A = static_cast<int8>(m_A) | static_cast<int8>(m_pMemory[m_IY + m_pMemory[m_PC++]]);
+	m_A = static_cast<int8>(m_A) | static_cast<int8>(m_pMemory[m_IY + static_cast<int16>(m_pMemory[m_PC++])]);
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | (eF_H);
 	m_tstate += 16;
 }
@@ -2554,7 +2554,7 @@ void CZ80::ImplementXOR_IXd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	m_A = static_cast<int8>(m_A) ^ static_cast<int8>(m_pMemory[m_IX + m_pMemory[m_PC++]]);
+	m_A = static_cast<int8>(m_A) ^ static_cast<int8>(m_pMemory[m_IX + static_cast<int16>(m_pMemory[m_PC++])]);
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | (eF_H);
 	m_tstate += 16;
 }
@@ -2580,7 +2580,7 @@ void CZ80::ImplementXOR_IYd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	m_A = static_cast<int8>(m_A) ^ static_cast<int8>(m_pMemory[m_IY + m_pMemory[m_PC++]]);
+	m_A = static_cast<int8>(m_A) ^ static_cast<int8>(m_pMemory[m_IY + static_cast<int16>(m_pMemory[m_PC++])]);
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | (eF_H);
 	m_tstate += 16;
 }
@@ -2690,7 +2690,7 @@ void CZ80::ImplementCP_IXd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	int8 source = static_cast<int8>(m_pMemory[m_IX + m_pMemory[m_PC++]]);
+	int8 source = static_cast<int8>(m_pMemory[m_IX + static_cast<int16>(m_pMemory[m_PC++])]);
 	int8 origA = static_cast<int8>(m_A);
 	int8 result = origA - source;
 	uint8 flag_calc = ((origA & source & ~result) | (~origA & ~source & result));
@@ -2719,7 +2719,7 @@ void CZ80::ImplementCP_IYd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	int8 source = static_cast<int8>(m_pMemory[m_IY + m_pMemory[m_PC++]]);
+	int8 source = static_cast<int8>(m_pMemory[m_IY + static_cast<int16>(m_pMemory[m_PC++])]);
 	int8 origA = static_cast<int8>(m_A);
 	int8 result = origA - source;
 	uint8 flag_calc = ((origA & source & ~result) | (~origA & ~source & result));
@@ -2802,7 +2802,7 @@ void CZ80::ImplementINC_IXd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	int8& location = *reinterpret_cast<int8*>(&m_pMemory[m_IX + m_pMemory[m_PC++]]);
+	int8& location = *reinterpret_cast<int8*>(&m_pMemory[m_IX + static_cast<int16>(m_pMemory[m_PC++])]);
 	int8 orig = location++;
 	m_F = (location & (eF_S | eF_X | eF_Y)) | ((location == 0) ? eF_Z : 0) | ((location ^ orig) & eF_H) | ((location == 0x7F) & eF_PV);
 	m_tstate += 23;
@@ -2829,7 +2829,7 @@ void CZ80::ImplementINC_IYd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	int8& location = *reinterpret_cast<int8*>(&m_pMemory[m_IY + m_pMemory[m_PC++]]);
+	int8& location = *reinterpret_cast<int8*>(&m_pMemory[m_IY + static_cast<int16>(m_pMemory[m_PC++])]);
 	int8 orig = location++;
 	m_F = (location & (eF_S | eF_X | eF_Y)) | ((location == 0) ? eF_Z : 0) | ((location ^ orig) & eF_H) | ((location == 0x7F) & eF_PV);
 	m_tstate += 23;
@@ -2910,7 +2910,7 @@ void CZ80::ImplementDEC_IXd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	int8& location = *reinterpret_cast<int8*>(&m_pMemory[m_IX + m_pMemory[m_PC++]]);
+	int8& location = *reinterpret_cast<int8*>(&m_pMemory[m_IX + static_cast<int16>(m_pMemory[m_PC++])]);
 	int8 orig = location--;
 	m_F = (location & (eF_S | eF_X | eF_Y | eF_N)) | ((location == 0) ? eF_Z : 0) | ((location ^ orig) & eF_H) | ((location == 0x80) & eF_PV);
 	m_tstate += 23;
@@ -2937,7 +2937,7 @@ void CZ80::ImplementDEC_IYd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	int8& location = *reinterpret_cast<int8*>(&m_pMemory[m_IY + m_pMemory[m_PC++]]);
+	int8& location = *reinterpret_cast<int8*>(&m_pMemory[m_IY + static_cast<int16>(m_pMemory[m_PC++])]);
 	int8 orig = location--;
 	m_F = (location & (eF_S | eF_X | eF_Y | eF_N)) | ((location == 0) ? eF_Z : 0) | ((location ^ orig) & eF_H) | ((location == 0x80) & eF_PV);
 	m_tstate += 23;
@@ -3565,9 +3565,9 @@ void CZ80::ImplementRLCA(void)
 	//								1						4									1.00	
 	//
 	IncrementR(1);
-	uint8 temp = (m_A & eF_S) >> 7;
-	m_A = (m_A << 1) | temp;
-	m_F = (m_F & ~(eF_C | eF_H | eF_N)) | temp;
+	uint8 carry = (m_A & eF_S) >> 7;
+	m_A = (m_A << 1) | carry;
+	m_F = (m_F & ~(eF_C | eF_H | eF_N)) | carry;
 	m_tstate += 4;
 }
 
@@ -3589,9 +3589,9 @@ void CZ80::ImplementRLA(void)
 	//								1						4									1.00	
 	//
 	IncrementR(1);
-	uint8 temp = (m_A & eF_S) >> 7;
+	uint8 carry = (m_A & eF_S) >> 7;
 	m_A = (m_A << 1) | (m_F & eF_C);
-	m_F = (m_F & ~(eF_C | eF_H | eF_N)) | temp;
+	m_F = (m_F & ~(eF_C | eF_H | eF_N)) | carry;
 	m_tstate += 4;
 }
 
@@ -3612,9 +3612,9 @@ void CZ80::ImplementRRCA(void)
 	//								1						4									1.00	
 	//
 	IncrementR(1);
-	uint8 temp = (m_A & eF_C);
-	m_A = (m_A >> 1) | (temp << 7);
-	m_F = (m_F & ~(eF_C | eF_H | eF_N)) | temp;
+	uint8 carry = (m_A & eF_C);
+	m_A = (m_A >> 1) | (carry << 7);
+	m_F = (m_F & ~(eF_C | eF_H | eF_N)) | carry;
 	m_tstate += 4;
 }
 
@@ -3635,9 +3635,9 @@ void CZ80::ImplementRRA(void)
 	//								1						4									1.00	
 	//
 	IncrementR(1);
-	uint8 temp = (m_A & eF_C);
+	uint8 carry = (m_A & eF_C);
 	m_A = (m_A >> 1) | ((m_F & eF_C) << 7);
-	m_F = (m_F & ~(eF_C | eF_H | eF_N)) | temp;
+	m_F = (m_F & ~(eF_C | eF_H | eF_N)) | carry;
 	m_tstate += 4;
 }
 
@@ -3645,120 +3645,658 @@ void CZ80::ImplementRRA(void)
 
 void CZ80::ImplementRLCr(void)
 {
+	//
+	// Operation:	C <- 7<-0 r
+	//								 +--+
+	// Op Code:		RLC
+	// Operands:	r
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|0|1|0|1|1| CB
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|0|0|0|0|r|r|r|
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								2						8	(4,4)						2.00	
+	//
+	IncrementR(2);
+	uint8& reg = REGISTER_8BIT(m_pMemory[(++m_PC)++]);
+	uint8 carry = (reg & eF_S) >> 7;
+	reg = (reg << 1) | carry;
+	uint8 parity = reg;
+	parity ^= parity >> 4;
+	parity &= 0xF;
+	parity = ((0x6996 >> parity) << 2) & eF_PV;
+	m_F = (reg & (eF_S | eF_X | eF_Y)) | ((reg == 0) ? eF_Z : 0) | parity | carry;
+	m_tstate += 8;
 }
 
 //=============================================================================
 
 void CZ80::ImplementRLC_HL_(void)
 {
+	//
+	// Operation:	C <- 7<-0 (HL)
+	//								 +--+
+	// Op Code:		RLC
+	// Operands:	(HL)
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|0|1|0|1|1| CB
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|0|0|0|0|1|1|0| 06
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								4						15 (4,4,4,3)			3.75	
+	//
+	IncrementR(2);
+	++++m_PC;
+	uint8& loc = m_pMemory[m_HL];
+	uint8 carry = (loc & eF_S) >> 7;
+	loc = (loc << 1) | carry;
+	uint8 parity = loc;
+	parity ^= parity >> 4;
+	parity &= 0xF;
+	parity = ((0x6996 >> parity) << 2) & eF_PV;
+	m_F = (loc & (eF_S | eF_X | eF_Y)) | ((loc == 0) ? eF_Z : 0) | parity | carry;
+	m_tstate += 15;
 }
 
 //=============================================================================
 
 void CZ80::ImplementRLC_IXd_(void)
 {
+	//
+	// Operation:	C <- 7<-0 (IX+d)
+	//								 +--+
+	// Op Code:		RLC
+	// Operands:	(IX+d)
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|1|1|1|0|1| DD
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|0|1|0|1|1| CB
+	//						+-+-+-+-+-+-+-+-+
+	//						|d|d|d|d|d|d|d|d|
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|0|0|0|0|1|1|0| 06
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								6						23 (4,4,3,5,4,3)	5.75	
+	//
+	IncrementR(2);
+	++++m_PC;
+	uint8& loc = m_pMemory[m_IX + static_cast<int16>(m_pMemory[m_PC])];
+	++++m_PC;
+	uint8 carry = (loc & eF_S) >> 7;
+	loc = (loc << 1) | carry;
+	uint8 parity = loc;
+	parity ^= parity >> 4;
+	parity &= 0xF;
+	parity = ((0x6996 >> parity) << 2) & eF_PV;
+	m_F = (loc & (eF_S | eF_X | eF_Y)) | ((loc == 0) ? eF_Z : 0) | parity | carry;
+	m_tstate += 23;
 }
 
 //=============================================================================
 
 void CZ80::ImplementRLC_IYd_(void)
 {
+	//
+	// Operation:	C <- 7<-0 (IY+d)
+	//								 +--+
+	// Op Code:		RLC
+	// Operands:	(IY+d)
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|1|1|1|0|1| FD
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|0|1|0|1|1| CB
+	//						+-+-+-+-+-+-+-+-+
+	//						|d|d|d|d|d|d|d|d|
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|0|0|0|0|1|1|0| 06
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								6						23 (4,4,3,5,4,3)	5.75	
+	//
+	IncrementR(2);
+	++++m_PC;
+	uint8& loc = m_pMemory[m_IY + static_cast<int16>(m_pMemory[m_PC])];
+	++++m_PC;
+	uint8 carry = (loc & eF_S) >> 7;
+	loc = (loc << 1) | carry;
+	uint8 parity = loc;
+	parity ^= parity >> 4;
+	parity &= 0xF;
+	parity = ((0x6996 >> parity) << 2) & eF_PV;
+	m_F = (loc & (eF_S | eF_X | eF_Y)) | ((loc == 0) ? eF_Z : 0) | parity | carry;
+	m_tstate += 23;
 }
 
 //=============================================================================
 
 void CZ80::ImplementRLr(void)
 {
+	// Operation:	C <- 7<-0 r
+	//						+-------+
+	// Op Code:		RL
+	// Operands:	r
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|0|1|0|1|1| CB
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|0|0|1|0|r|r|r|
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								2						8	(4,4)						2.00	
+	//
+	IncrementR(2);
+	uint8& reg = REGISTER_8BIT(m_pMemory[(++m_PC)++]);
+	uint8 carry = (reg & eF_S) >> 7;
+	reg = (reg << 1) | (m_F & eF_C);
+	uint8 parity = reg;
+	parity ^= parity >> 4;
+	parity &= 0xF;
+	parity = ((0x6996 >> parity) << 2) & eF_PV;
+	m_F = (reg & (eF_S | eF_X | eF_Y)) | ((reg == 0) ? eF_Z : 0) | parity | carry;
+	m_tstate += 8;
 }
 
 //=============================================================================
 
 void CZ80::ImplementRL_HL_(void)
 {
+	//
+	// Operation:	C <- 7<-0 (HL)
+	//						+-------+
+	// Op Code:		RL
+	// Operands:	(HL)
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|0|1|0|1|1| CB
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|0|0|1|0|1|1|0| 16
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								4						15 (4,4,4,3)			3.75	
+	//
+	IncrementR(2);
+	++++m_PC;
+	uint8& loc = m_pMemory[m_HL];
+	uint8 carry = (loc & eF_S) >> 7;
+	loc = (loc << 1) | (m_F & eF_C);
+	uint8 parity = loc;
+	parity ^= parity >> 4;
+	parity &= 0xF;
+	parity = ((0x6996 >> parity) << 2) & eF_PV;
+	m_F = (loc & (eF_S | eF_X | eF_Y)) | ((loc == 0) ? eF_Z : 0) | parity | carry;
+	m_tstate += 15;
 }
 
 //=============================================================================
 
 void CZ80::ImplementRL_IXd_(void)
 {
+	//
+	// Operation:	C <- 7<-0 (IX+d)
+	//						+-------+
+	// Op Code:		RL
+	// Operands:	(IX+d)
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|1|1|1|0|1| DD
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|0|1|0|1|1| CB
+	//						+-+-+-+-+-+-+-+-+
+	//						|d|d|d|d|d|d|d|d|
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|0|0|1|0|1|1|0| 16
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								6						23 (4,4,3,5,4,3)	5.75
+	//
+	IncrementR(2);
+	++++m_PC;
+	uint8& loc = m_pMemory[m_IX + static_cast<int16>(m_pMemory[m_PC])];
+	++++m_PC;
+	uint8 carry = (loc & eF_S) >> 7;
+	loc = (loc << 1) | (m_F & eF_C);
+	uint8 parity = loc;
+	parity ^= parity >> 4;
+	parity &= 0xF;
+	parity = ((0x6996 >> parity) << 2) & eF_PV;
+	m_F = (loc & (eF_S | eF_X | eF_Y)) | ((loc == 0) ? eF_Z : 0) | parity | carry;
+	m_tstate += 23;
 }
 
 //=============================================================================
 
 void CZ80::ImplementRL_IYd_(void)
 {
+	//
+	// Operation:	C <- 7<-0 (IY+d)
+	//						+-------+
+	// Op Code:		RL
+	// Operands:	(IY+d)
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|1|1|1|0|1| FD
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|0|1|0|1|1| CB
+	//						+-+-+-+-+-+-+-+-+
+	//						|d|d|d|d|d|d|d|d|
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|0|0|1|0|1|1|0| 16
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								6						23 (4,4,3,5,4,3)	5.75
+	//
+	IncrementR(2);
+	++++m_PC;
+	uint8& loc = m_pMemory[m_IY + static_cast<int16>(m_pMemory[m_PC])];
+	++++m_PC;
+	uint8 carry = (loc & eF_S) >> 7;
+	loc = (loc << 1) | (m_F & eF_C);
+	uint8 parity = loc;
+	parity ^= parity >> 4;
+	parity &= 0xF;
+	parity = ((0x6996 >> parity) << 2) & eF_PV;
+	m_F = (loc & (eF_S | eF_X | eF_Y)) | ((loc == 0) ? eF_Z : 0) | parity | carry;
+	m_tstate += 23;
 }
 
 //=============================================================================
 
 void CZ80::ImplementRRCr(void)
 {
+	//
+	// Operation:	r 7->0 -> C
+	//						  +--+
+	// Op Code:		RRC
+	// Operands:	r
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|0|1|0|1|1| CB
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|0|0|0|1|r|r|r|
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								2						8	(4,4)						2.00	
+	//
+	IncrementR(2);
+	uint8& reg = REGISTER_8BIT(m_pMemory[(++m_PC)++]);
+	uint8 carry = (reg & eF_C);
+	reg = (reg >> 1) | (carry << 7);
+	uint8 parity = reg;
+	parity ^= parity >> 4;
+	parity &= 0xF;
+	parity = ((0x6996 >> parity) << 2) & eF_PV;
+	m_F = (reg & (eF_S | eF_X | eF_Y)) | ((reg == 0) ? eF_Z : 0) | parity | carry;
+	m_tstate += 8;
 }
 
 //=============================================================================
 
 void CZ80::ImplementRRC_HL_(void)
 {
+	//
+	// Operation:	(HL) 7->0 -> C
+	//								 +--+
+	// Op Code:		RRC
+	// Operands:	(HL)
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|0|1|0|1|1| CB
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|0|0|0|1|1|1|0| 0E
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								4						15 (4,4,4,3)			3.75	
+	//
+	IncrementR(2);
+	++++m_PC;
+	uint8& loc = m_pMemory[m_HL];
+	uint8 carry = (loc & eF_C);
+	loc = (loc >> 1) | (carry << 7);
+	uint8 parity = loc;
+	parity ^= parity >> 4;
+	parity &= 0xF;
+	parity = ((0x6996 >> parity) << 2) & eF_PV;
+	m_F = (loc & (eF_S | eF_X | eF_Y)) | ((loc == 0) ? eF_Z : 0) | parity | carry;
+	m_tstate += 15;
 }
 
 //=============================================================================
 
 void CZ80::ImplementRRC_IXd_(void)
 {
+	//
+	// Operation:	(IX+d) 7->0 -> C
+	//									 +--+
+	// Op Code:		RRC
+	// Operands:	(IX+d)
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|1|1|1|0|1| DD
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|0|1|0|1|1| CB
+	//						+-+-+-+-+-+-+-+-+
+	//						|d|d|d|d|d|d|d|d|
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|0|0|0|1|1|1|0| 0E
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								6						23 (4,4,3,5,4,3)	5.75	
+	//
+	IncrementR(2);
+	++++m_PC;
+	uint8& loc = m_pMemory[m_IX + static_cast<int16>(m_pMemory[m_PC])];
+	++++m_PC;
+	uint8 carry = (loc & eF_C);
+	loc = (loc >> 1) | (carry << 7);
+	uint8 parity = loc;
+	parity ^= parity >> 4;
+	parity &= 0xF;
+	parity = ((0x6996 >> parity) << 2) & eF_PV;
+	m_F = (loc & (eF_S | eF_X | eF_Y)) | ((loc == 0) ? eF_Z : 0) | parity | carry;
+	m_tstate += 23;
 }
 
 //=============================================================================
 
 void CZ80::ImplementRRC_IYd_(void)
 {
+	//
+	// Operation:	(IY+d) 7->0 -> C
+	//									 +--+
+	// Op Code:		RRC
+	// Operands:	(IY+d)
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|1|1|1|0|1| FD
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|0|1|0|1|1| CB
+	//						+-+-+-+-+-+-+-+-+
+	//						|d|d|d|d|d|d|d|d|
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|0|0|0|1|1|1|0| 0E
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								6						23 (4,4,3,5,4,3)	5.75
+	//
+	IncrementR(2);
+	++++m_PC;
+	uint8& loc = m_pMemory[m_IX + static_cast<int16>(m_pMemory[m_PC])];
+	++++m_PC;
+	uint8 carry = (loc & eF_C);
+	loc = (loc >> 1) | (carry << 7);
+	uint8 parity = loc;
+	parity ^= parity >> 4;
+	parity &= 0xF;
+	parity = ((0x6996 >> parity) << 2) & eF_PV;
+	m_F = (loc & (eF_S | eF_X | eF_Y)) | ((loc == 0) ? eF_Z : 0) | parity | carry;
+	m_tstate += 23;
 }
 
 //=============================================================================
 
 void CZ80::ImplementRRr(void)
 {
+	//
+	// Operation:	r 7->0 -> C
+	//						  +-------+
+	// Op Code:		RR
+	// Operands:	r
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|0|1|0|1|1| CB
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|0|0|1|1|r|r|r|
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								2						8	(4,4)						2.00	
+	//
+	IncrementR(2);
+	uint8& reg = REGISTER_8BIT(m_pMemory[(++m_PC)++]);
+	uint8 carry = (reg & eF_C);
+	reg = (reg >> 1) | ((m_F & eF_C) << 7);
+	uint8 parity = reg;
+	parity ^= parity >> 4;
+	parity &= 0xF;
+	parity = ((0x6996 >> parity) << 2) & eF_PV;
+	m_F = (reg & (eF_S | eF_X | eF_Y)) | ((reg == 0) ? eF_Z : 0) | parity | carry;
+	m_tstate += 8;
 }
 
 //=============================================================================
 
 void CZ80::ImplementRR_HL_(void)
 {
+	//
+	// Operation:	(HL) 7->0 -> C
+	//								 +-------+
+	// Op Code:		RR
+	// Operands:	(HL)
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|0|1|0|1|1| CB
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|0|0|1|1|1|1|0| 1E
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								4						15 (4,4,4,3)			3.75	
+	//
+	IncrementR(2);
+	++++m_PC;
+	uint8& loc = m_pMemory[m_HL];
+	uint8 carry = (loc & eF_C);
+	loc = (loc >> 1) | ((m_F & eF_C) << 7);
+	uint8 parity = loc;
+	parity ^= parity >> 4;
+	parity &= 0xF;
+	parity = ((0x6996 >> parity) << 2) & eF_PV;
+	m_F = (loc & (eF_S | eF_X | eF_Y)) | ((loc == 0) ? eF_Z : 0) | parity | carry;
+	m_tstate += 15;
 }
 
 //=============================================================================
 
 void CZ80::ImplementRR_IXd_(void)
 {
+	// Operation:	(IX+d) 7->0 -> C
+	//									 +-------+
+	// Op Code:		RR
+	// Operands:	(IX+d)
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|1|1|1|0|1| DD
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|0|1|0|1|1| CB
+	//						+-+-+-+-+-+-+-+-+
+	//						|d|d|d|d|d|d|d|d|
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|0|0|1|1|1|1|0| 1E
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								6						23 (4,4,3,5,4,3)	5.75	
+	//
+	IncrementR(2);
+	++++m_PC;
+	uint8& loc = m_pMemory[m_IX + static_cast<int16>(m_pMemory[m_PC])];
+	++++m_PC;
+	uint8 carry = (loc & eF_C);
+	loc = (loc >> 1) | ((m_F & eF_C) << 7);
+	uint8 parity = loc;
+	parity ^= parity >> 4;
+	parity &= 0xF;
+	parity = ((0x6996 >> parity) << 2) & eF_PV;
+	m_F = (loc & (eF_S | eF_X | eF_Y)) | ((loc == 0) ? eF_Z : 0) | parity | carry;
+	m_tstate += 23;
 }
 
 //=============================================================================
 
 void CZ80::ImplementRR_IYd_(void)
 {
+	//
+	// Operation:	(IY+d) 7->0 -> C
+	//									 +-------+
+	// Op Code:		RR
+	// Operands:	(IY+d)
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|1|1|1|0|1| FD
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|0|1|0|1|1| CB
+	//						+-+-+-+-+-+-+-+-+
+	//						|d|d|d|d|d|d|d|d|
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|0|0|1|1|1|1|0| 1E
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								6						23 (4,4,3,5,4,3)	5.75	
+	//
+	IncrementR(2);
+	++++m_PC;
+	uint8& loc = m_pMemory[m_IX + static_cast<int16>(m_pMemory[m_PC])];
+	++++m_PC;
+	uint8 carry = (loc & eF_C);
+	loc = (loc >> 1) | ((m_F & eF_C) << 7);
+	uint8 parity = loc;
+	parity ^= parity >> 4;
+	parity &= 0xF;
+	parity = ((0x6996 >> parity) << 2) & eF_PV;
+	m_F = (loc & (eF_S | eF_X | eF_Y)) | ((loc == 0) ? eF_Z : 0) | parity | carry;
+	m_tstate += 23;
 }
 
 //=============================================================================
 
 void CZ80::ImplementSLAr(void)
 {
+	// Operation:	C <- 7<-0 r
+	// Op Code:		SLA
+	// Operands:	r
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|0|1|0|1|1| CB
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|0|1|0|0|r|r|r|
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								2						8	(4,4)						2.00	
+	//
+	IncrementR(2);
+	uint8& reg = REGISTER_8BIT(m_pMemory[(++m_PC)++]);
+	uint8 carry = (reg & eF_S) >> 7;
+	reg = (reg << 1);
+	uint8 parity = reg;
+	parity ^= parity >> 4;
+	parity &= 0xF;
+	parity = ((0x6996 >> parity) << 2) & eF_PV;
+	m_F = (reg & (eF_S | eF_X | eF_Y)) | ((reg == 0) ? eF_Z : 0) | parity | carry;
+	m_tstate += 8;
 }
 
 //=============================================================================
 
 void CZ80::ImplementSLA_HL_(void)
 {
+	//
+	// Operation:	C <- 7<-0 (HL)
+	// Op Code:		SLA
+	// Operands:	(HL)
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|0|1|0|1|1| CB
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|0|1|0|0|1|1|0| 26
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								4						15 (4,4,4,3)			3.75	
+	//
+	IncrementR(2);
+	++++m_PC;
+	uint8& loc = m_pMemory[m_HL];
+	uint8 carry = (loc & eF_S) >> 7;
+	loc = (loc << 1);
+	uint8 parity = loc;
+	parity ^= parity >> 4;
+	parity &= 0xF;
+	parity = ((0x6996 >> parity) << 2) & eF_PV;
+	m_F = (loc & (eF_S | eF_X | eF_Y)) | ((loc == 0) ? eF_Z : 0) | parity | carry;
+	m_tstate += 23;
 }
 
 //=============================================================================
 
 void CZ80::ImplementSLA_IXd_(void)
 {
+	//
+	// Operation:	C <- 7<-0 (IX+d)
+	// Op Code:		SLA
+	// Operands:	(IX+d)
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|1|1|1|0|1| DD
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|0|1|0|1|1| CB
+	//						+-+-+-+-+-+-+-+-+
+	//						|d|d|d|d|d|d|d|d|
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|0|1|0|0|1|1|0| 26
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								6						23 (4,4,3,5,4,3)	5.75
+	//
+	IncrementR(2);
+	++++m_PC;
+	uint8& loc = m_pMemory[m_IX + static_cast<int16>(m_pMemory[m_PC])];
+	++++m_PC;
+	uint8 carry = (loc & eF_S) >> 7;
+	loc = (loc << 1);
+	uint8 parity = loc;
+	parity ^= parity >> 4;
+	parity &= 0xF;
+	parity = ((0x6996 >> parity) << 2) & eF_PV;
+	m_F = (loc & (eF_S | eF_X | eF_Y)) | ((loc == 0) ? eF_Z : 0) | parity | carry;
+	m_tstate += 15;
 }
 
 //=============================================================================
 
 void CZ80::ImplementSLA_IYd_(void)
 {
+	//
+	// Operation:	C <- 7<-0 (IY+d)
+	// Op Code:		SLA
+	// Operands:	(IY+d)
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|1|1|1|0|1| FD
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|0|1|0|1|1| CB
+	//						+-+-+-+-+-+-+-+-+
+	//						|d|d|d|d|d|d|d|d|
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|0|0|1|0|1|1|0| 16
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								6						23 (4,4,3,5,4,3)	5.75
+	//
+	IncrementR(2);
+	++++m_PC;
+	uint8& loc = m_pMemory[m_IY + static_cast<int16>(m_pMemory[m_PC])];
+	++++m_PC;
+	uint8 carry = (loc & eF_S) >> 7;
+	loc = (loc << 1);
+	uint8 parity = loc;
+	parity ^= parity >> 4;
+	parity &= 0xF;
+	parity = ((0x6996 >> parity) << 2) & eF_PV;
+	m_F = (loc & (eF_S | eF_X | eF_Y)) | ((loc == 0) ? eF_Z : 0) | parity | carry;
+	m_tstate += 23;
 }
 
 //=============================================================================
