@@ -209,6 +209,23 @@ class CZ80
 		void ImplementRRD(void);
 
 		//-----------------------------------------------------------------------------
+		//	Bit Set, Reset and Test Group
+		//-----------------------------------------------------------------------------
+
+		void ImplementBITbr(void);
+		void ImplementBITb_HL_(void);
+		void ImplementBITb_IXd_(void);
+		void ImplementBITb_IYd_(void);
+		void ImplementSETbr(void);
+		void ImplementSETb_HL_(void);
+		void ImplementSETb_IXd_(void);
+		void ImplementSETb_IYd_(void);
+		void ImplementRESbr(void);
+		void ImplementRESb_HL_(void);
+		void ImplementRESb_IXd_(void);
+		void ImplementRESb_IYd_(void);
+
+		//-----------------------------------------------------------------------------
 		//	8-Bit Load Group
 		//-----------------------------------------------------------------------------
 
