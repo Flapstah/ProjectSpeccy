@@ -4693,9 +4693,13 @@ void ImplementBITbr(void)
 	//						+-+-+-+-+-+-+-+-+
 	//
 	//							M Cycles		T States					MHz E.T.
-	//								2						8 (4,4)						4.50	
+	//								2						8 (4,4)						2.00
 	//
 	IncrementR(2);
+	uint8 mask = 1 << ((m_pMemory[++m_PC] & 0x38) >> 3);
+	uint8& reg = REGISTER_8BIT(m_pMemory[m_PC]);
+	m_F &= ~eF_Z;
+	m_F |= (reg & mask) ? eF_Z : 0;
 	m_tstate += 8;
 }
 
@@ -4703,6 +4707,25 @@ void ImplementBITbr(void)
 
 void ImplementBITb_HL_(void)
 {
+	//
+	// Operation:	Z <- (HL)b
+	// Op Code:		BIT
+	// Operands:	b, (HL)
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|0|1|0|1|1| CB
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|1|b|b|b|1|1|0|
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								3						12 (4,4,4)				3.00
+	//
+	IncrementR(2);
+	uint8 mask = 1 << ((m_pMemory[++m_PC] & 0x38) >> 3);
+	uint8& loc = m_pMemory[m_HL];
+	m_F &= ~eF_Z;
+	m_F |= (loc & mask) ? eF_Z : 0;
+	m_tstate += 8;
 }
 
 //=============================================================================
