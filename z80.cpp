@@ -4680,7 +4680,7 @@ void CZ80::ImplementRRD(void)
 
 //=============================================================================
 
-void ImplementBITbr(void)
+void CZ80::ImplementBITbr(void)
 {
 	//
 	// Operation:	Z <- rb
@@ -4692,11 +4692,21 @@ void ImplementBITbr(void)
 	//						|0|1|b|b|b|r|r|r|
 	//						+-+-+-+-+-+-+-+-+
 	//
+	//						where rrr is any of:
+	//								B						000
+	//								C						001
+	//								D						010
+	//								E						011
+	//								H						100
+	//								L						101
+	//								A						111
+	//
 	//							M Cycles		T States					MHz E.T.
 	//								2						8 (4,4)						2.00
 	//
 	IncrementR(2);
 	uint8 mask = 1 << ((m_pMemory[++m_PC] & 0x38) >> 3);
+	++m_PC;
 	uint8& reg = REGISTER_8BIT(m_pMemory[m_PC]);
 	m_F &= ~eF_Z;
 	m_F |= (reg & mask) ? eF_Z : 0;
@@ -4705,7 +4715,7 @@ void ImplementBITbr(void)
 
 //=============================================================================
 
-void ImplementBITb_HL_(void)
+void CZ80::ImplementBITb_HL_(void)
 {
 	//
 	// Operation:	Z <- (HL)b
@@ -4722,70 +4732,311 @@ void ImplementBITb_HL_(void)
 	//
 	IncrementR(2);
 	uint8 mask = 1 << ((m_pMemory[++m_PC] & 0x38) >> 3);
+	++m_PC;
 	uint8& loc = m_pMemory[m_HL];
 	m_F &= ~eF_Z;
 	m_F |= (loc & mask) ? eF_Z : 0;
+	m_tstate += 12;
+}
+
+//=============================================================================
+
+void CZ80::ImplementBITb_IXd_(void)
+{
+	//
+	// Operation:	Z <- (IX+d)b
+	// Op Code:		BIT
+	// Operands:	b, (IX+d)
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|1|1|1|0|1| DD
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|0|1|0|1|1| CB
+	//						+-+-+-+-+-+-+-+-+
+	//						|d|d|d|d|d|d|d|d|
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|1|b|b|b|1|1|0|
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								5						20 (4,4,3,5,4)		5.00
+	//
+	IncrementR(2);
+	++++m_PC;
+	uint8& loc = m_pMemory[m_IX + m_pMemory[m_PC]];
+	uint8 mask = 1 << ((m_pMemory[++m_PC] & 0x38) >> 3);
+	++m_PC;
+	m_F &= ~eF_Z;
+	m_F |= (loc & mask) ? eF_Z : 0;
+	m_tstate += 20;
+}
+
+//=============================================================================
+
+void CZ80::ImplementBITb_IYd_(void)
+{
+	//
+	// Operation:	Z <- (IX+d)b
+	// Op Code:		BIT
+	// Operands:	b, (IX+d)
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|1|1|1|0|1| FD
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|0|1|0|1|1| CB
+	//						+-+-+-+-+-+-+-+-+
+	//						|d|d|d|d|d|d|d|d|
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|1|b|b|b|1|1|0|
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								5						20 (4,4,3,5,4)		5.00
+	//
+	IncrementR(2);
+	++++m_PC;
+	uint8& loc = m_pMemory[m_IY + m_pMemory[m_PC]];
+	uint8 mask = 1 << ((m_pMemory[++m_PC] & 0x38) >> 3);
+	++m_PC;
+	m_F &= ~eF_Z;
+	m_F |= (loc & mask) ? eF_Z : 0;
+	m_tstate += 20;
+}
+
+//=============================================================================
+
+void CZ80::ImplementSETbr(void)
+{
+	//
+	// Operation:	rb <- 1
+	// Op Code:		SET
+	// Operands:	b, r
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|0|1|0|1|1| CB
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|b|b|b|r|r|r|
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//						where rrr is any of:
+	//								B						000
+	//								C						001
+	//								D						010
+	//								E						011
+	//								H						100
+	//								L						101
+	//								A						111
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								2						8 (4,4)						2.00
+	//
+	IncrementR(2);
+	uint8 mask = 1 << ((m_pMemory[++m_PC] & 0x38) >> 3);
+	++m_PC;
+	uint8& reg = REGISTER_8BIT(m_pMemory[m_PC]);
+	reg |= mask;
 	m_tstate += 8;
 }
 
 //=============================================================================
 
-void ImplementBITb_IXd_(void)
+void CZ80::ImplementSETb_HL_(void)
 {
+	//
+	// Operation:	(HL) <- 1
+	// Op Code:		SET
+	// Operands:	b, (HL)
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|0|1|0|1|1| CB
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|b|b|b|1|1|0|
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								3						12 (4,4,4)				3.00
+	//
+	IncrementR(2);
+	uint8 mask = 1 << ((m_pMemory[++m_PC] & 0x38) >> 3);
+	++m_PC;
+	uint8& loc = m_pMemory[m_HL];
+	loc |= mask;
+	m_tstate += 12;
 }
 
 //=============================================================================
 
-void ImplementBITb_IYd_(void)
+void CZ80::ImplementSETb_IXd_(void)
 {
+	//
+	// Operation:	(IX+d)b <- 1
+	// Op Code:		BIT
+	// Operands:	b, (IX+d)
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|1|1|1|0|1| DD
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|0|1|0|1|1| CB
+	//						+-+-+-+-+-+-+-+-+
+	//						|d|d|d|d|d|d|d|d|
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|b|b|b|1|1|0|
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								5						20 (4,4,3,5,4)		5.00
+	//
+	IncrementR(2);
+	++++m_PC;
+	uint8& loc = m_pMemory[m_IX + m_pMemory[m_PC]];
+	uint8 mask = 1 << ((m_pMemory[++m_PC] & 0x38) >> 3);
+	++m_PC;
+	loc |= mask;
+	m_tstate += 20;
 }
 
 //=============================================================================
 
-void ImplementSETbr(void)
+void CZ80::ImplementSETb_IYd_(void)
 {
+	//
+	// Operation:	(IY+d)b <- 1
+	// Op Code:		BIT
+	// Operands:	b, (IY+d)
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|1|1|1|0|1| FD
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|0|1|0|1|1| CB
+	//						+-+-+-+-+-+-+-+-+
+	//						|d|d|d|d|d|d|d|d|
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|b|b|b|1|1|0|
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								5						20 (4,4,3,5,4)		5.00
+	//
+	IncrementR(2);
+	++++m_PC;
+	uint8& loc = m_pMemory[m_IY + m_pMemory[m_PC]];
+	uint8 mask = 1 << ((m_pMemory[++m_PC] & 0x38) >> 3);
+	++m_PC;
+	loc |= mask;
+	m_tstate += 20;
 }
 
 //=============================================================================
 
-void ImplementSETb_HL_(void)
+void CZ80::ImplementRESbr(void)
 {
+	//
+	// Operation:	rb <- 1
+	// Op Code:		RES
+	// Operands:	b, r
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|0|1|0|1|1| CB
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|0|b|b|b|r|r|r|
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//						where rrr is any of:
+	//								B						000
+	//								C						001
+	//								D						010
+	//								E						011
+	//								H						100
+	//								L						101
+	//								A						111
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								2						8 (4,4)						2.00
+	//
+	IncrementR(2);
+	uint8 mask = 1 << ((m_pMemory[++m_PC] & 0x38) >> 3);
+	++m_PC;
+	uint8& reg = REGISTER_8BIT(m_pMemory[m_PC]);
+	reg &= ~mask;
+	m_tstate += 8;
 }
 
 //=============================================================================
 
-void ImplementSETb_IXd_(void)
+void CZ80::ImplementRESb_HL_(void)
 {
+	//
+	// Operation:	(HL) <- 1
+	// Op Code:		RES
+	// Operands:	b, (HL)
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|0|1|0|1|1| CB
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|0|b|b|b|1|1|0|
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								3						12 (4,4,4)				3.00
+	//
+	IncrementR(2);
+	uint8 mask = 1 << ((m_pMemory[++m_PC] & 0x38) >> 3);
+	++m_PC;
+	uint8& loc = m_pMemory[m_HL];
+	loc &= ~mask;
+	m_tstate += 12;
 }
 
 //=============================================================================
 
-void ImplementSETb_IYd_(void)
+void CZ80::ImplementRESb_IXd_(void)
 {
+	//
+	// Operation:	(IX+d)b <- 1
+	// Op Code:		BIT
+	// Operands:	b, (IX+d)
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|1|1|1|0|1| DD
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|0|1|0|1|1| CB
+	//						+-+-+-+-+-+-+-+-+
+	//						|d|d|d|d|d|d|d|d|
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|0|b|b|b|1|1|0|
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								5						20 (4,4,3,5,4)		5.00
+	//
+	IncrementR(2);
+	++++m_PC;
+	uint8& loc = m_pMemory[m_IX + m_pMemory[m_PC]];
+	uint8 mask = 1 << ((m_pMemory[++m_PC] & 0x38) >> 3);
+	++m_PC;
+	loc &= ~mask;
+	m_tstate += 20;
 }
 
 //=============================================================================
 
-void ImplementRESbr(void)
+void CZ80::ImplementRESb_IYd_(void)
 {
-}
-
-//=============================================================================
-
-void ImplementRESb_HL_(void)
-{
-}
-
-//=============================================================================
-
-void ImplementRESb_IXd_(void)
-{
-}
-
-//=============================================================================
-
-void ImplementRESb_IYd_(void)
-{
+	//
+	// Operation:	(IY+d)b <- 1
+	// Op Code:		BIT
+	// Operands:	b, (IY+d)
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|1|1|1|0|1| FD
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|0|1|0|1|1| CB
+	//						+-+-+-+-+-+-+-+-+
+	//						|d|d|d|d|d|d|d|d|
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|0|b|b|b|1|1|0|
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								5						20 (4,4,3,5,4)		5.00
+	//
+	IncrementR(2);
+	++++m_PC;
+	uint8& loc = m_pMemory[m_IY + m_pMemory[m_PC]];
+	uint8 mask = 1 << ((m_pMemory[++m_PC] & 0x38) >> 3);
+	++m_PC;
+	loc &= ~mask;
+	m_tstate += 20;
 }
 
 //=============================================================================
@@ -5762,6 +6013,295 @@ void CZ80::DecodeDECIYdd(uint16& address, char* pMnemonic)
 }
 
 //=============================================================================
+
+//-----------------------------------------------------------------------------
+//	Rotate and Shift Group
+//-----------------------------------------------------------------------------
+
+//=============================================================================
+
+void CZ80::DecodeRLCA(uint16& address, char* pMnemonic)
+{
+}
+
+//=============================================================================
+
+void CZ80::DecodeRLA(uint16& address, char* pMnemonic)
+{
+}
+
+//=============================================================================
+
+void CZ80::DecodeRRCA(uint16& address, char* pMnemonic)
+{
+}
+
+//=============================================================================
+
+void CZ80::DecodeRRA(uint16& address, char* pMnemonic)
+{
+}
+
+//=============================================================================
+
+void CZ80::DecodeRLCr(uint16& address, char* pMnemonic)
+{
+}
+
+//=============================================================================
+
+void CZ80::DecodeRLC_HL_(uint16& address, char* pMnemonic)
+{
+}
+
+//=============================================================================
+
+void CZ80::DecodeRLC_IXd_(uint16& address, char* pMnemonic)
+{
+}
+
+//=============================================================================
+
+void CZ80::DecodeRLC_IYd_(uint16& address, char* pMnemonic)
+{
+}
+
+//=============================================================================
+
+void CZ80::DecodeRLr(uint16& address, char* pMnemonic)
+{
+}
+
+//=============================================================================
+
+void CZ80::DecodeRL_HL_(uint16& address, char* pMnemonic)
+{
+}
+
+//=============================================================================
+
+void CZ80::DecodeRL_IXd_(uint16& address, char* pMnemonic)
+{
+}
+
+//=============================================================================
+
+void CZ80::DecodeRL_IYd_(uint16& address, char* pMnemonic)
+{
+}
+
+//=============================================================================
+
+void CZ80::DecodeRRCr(uint16& address, char* pMnemonic)
+{
+}
+
+//=============================================================================
+
+void CZ80::DecodeRRC_HL_(uint16& address, char* pMnemonic)
+{
+}
+
+//=============================================================================
+
+void CZ80::DecodeRRC_IXd_(uint16& address, char* pMnemonic)
+{
+}
+
+//=============================================================================
+
+void CZ80::DecodeRRC_IYd_(uint16& address, char* pMnemonic)
+{
+}
+
+//=============================================================================
+
+void CZ80::DecodeRRr(uint16& address, char* pMnemonic)
+{
+}
+
+//=============================================================================
+
+void CZ80::DecodeRR_HL_(uint16& address, char* pMnemonic)
+{
+}
+
+//=============================================================================
+
+void CZ80::DecodeRR_IXd_(uint16& address, char* pMnemonic)
+{
+}
+
+//=============================================================================
+
+void CZ80::DecodeRR_IYd_(uint16& address, char* pMnemonic)
+{
+}
+
+//=============================================================================
+
+void CZ80::DecodeSLAr(uint16& address, char* pMnemonic)
+{
+}
+
+//=============================================================================
+
+void CZ80::DecodeSLA_HL_(uint16& address, char* pMnemonic)
+{
+}
+
+//=============================================================================
+
+void CZ80::DecodeSLA_IXd_(uint16& address, char* pMnemonic)
+{
+}
+
+//=============================================================================
+
+void CZ80::DecodeSLA_IYd_(uint16& address, char* pMnemonic)
+{
+}
+
+//=============================================================================
+
+void CZ80::DecodeSRAr(uint16& address, char* pMnemonic)
+{
+}
+
+//=============================================================================
+
+void CZ80::DecodeSRA_HL_(uint16& address, char* pMnemonic)
+{
+}
+
+//=============================================================================
+
+void CZ80::DecodeSRA_IXd_(uint16& address, char* pMnemonic)
+{
+}
+
+//=============================================================================
+
+void CZ80::DecodeSRA_IYd_(uint16& address, char* pMnemonic)
+{
+}
+
+//=============================================================================
+
+void CZ80::DecodeSRLr(uint16& address, char* pMnemonic)
+{
+}
+
+//=============================================================================
+
+void CZ80::DecodeSRL_HL_(uint16& address, char* pMnemonic)
+{
+}
+
+//=============================================================================
+
+void CZ80::DecodeSRL_IXd_(uint16& address, char* pMnemonic)
+{
+}
+
+//=============================================================================
+
+void CZ80::DecodeSRL_IYd_(uint16& address, char* pMnemonic)
+{
+}
+
+//=============================================================================
+
+void CZ80::DecodeRLD(uint16& address, char* pMnemonic)
+{
+}
+
+//=============================================================================
+
+void CZ80::DecodeRRD(uint16& address, char* pMnemonic)
+{
+}
+
+//=============================================================================
+
+//-----------------------------------------------------------------------------
+//	Bit Set, Reset and Test Group
+//-----------------------------------------------------------------------------
+
+//=============================================================================
+
+void CZ80::DecodeBITbr(uint16& address, char* pMnemonic)
+{
+}
+
+//=============================================================================
+
+void CZ80::DecodeBITb_HL_(uint16& address, char* pMnemonic)
+{
+}
+
+//=============================================================================
+
+void CZ80::DecodeBITb_IXd_(uint16& address, char* pMnemonic)
+{
+}
+
+//=============================================================================
+
+void CZ80::DecodeBITb_IYd_(uint16& address, char* pMnemonic)
+{
+}
+
+//=============================================================================
+
+void CZ80::DecodeSETbr(uint16& address, char* pMnemonic)
+{
+}
+
+//=============================================================================
+
+void CZ80::DecodeSETb_HL_(uint16& address, char* pMnemonic)
+{
+}
+
+//=============================================================================
+
+void CZ80::DecodeSETb_IXd_(uint16& address, char* pMnemonic)
+{
+}
+
+//=============================================================================
+
+void CZ80::DecodeSETb_IYd_(uint16& address, char* pMnemonic)
+{
+}
+
+//=============================================================================
+
+void CZ80::DecodeRESbr(uint16& address, char* pMnemonic)
+{
+}
+
+//=============================================================================
+
+void CZ80::DecodeRESb_HL_(uint16& address, char* pMnemonic)
+{
+}
+
+//=============================================================================
+
+void CZ80::DecodeRESb_IXd_(uint16& address, char* pMnemonic)
+{
+}
+
+//=============================================================================
+
+void CZ80::DecodeRESb_IYd_(uint16& address, char* pMnemonic)
+{
+}
+
+//=============================================================================
+
 
 
 
