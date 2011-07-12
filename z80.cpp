@@ -6022,204 +6022,216 @@ void CZ80::DecodeDECIYdd(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeRLCA(uint16& address, char* pMnemonic)
 {
+	sprintf(pMnemonic, "RLCA");
+	address += 1;
 }
 
 //=============================================================================
 
 void CZ80::DecodeRLA(uint16& address, char* pMnemonic)
 {
+	sprintf(pMnemonic, "RLA");
+	address += 1;
 }
 
 //=============================================================================
 
 void CZ80::DecodeRRCA(uint16& address, char* pMnemonic)
 {
+	sprintf(pMnemonic, "RRCA");
+	address += 1;
 }
 
 //=============================================================================
 
 void CZ80::DecodeRRA(uint16& address, char* pMnemonic)
 {
+	sprintf(pMnemonic, "RRA");
+	address += 1;
 }
 
 //=============================================================================
 
 void CZ80::DecodeRLCr(uint16& address, char* pMnemonic)
 {
-}
-
-//=============================================================================
-
-void CZ80::DecodeRLC_HL_(uint16& address, char* pMnemonic)
-{
+	sprintf(pMnemonic, "RLC %s", Get8BitRegisterString(m_pMemory[++address]));
+	++address;
 }
 
 //=============================================================================
 
 void CZ80::DecodeRLC_IXd_(uint16& address, char* pMnemonic)
 {
+	sprintf(pMnemonic, "RLC (IX+0x%02X)", m_pMemory[address + 2]);
+	address += 4;
 }
 
 //=============================================================================
 
 void CZ80::DecodeRLC_IYd_(uint16& address, char* pMnemonic)
 {
+	sprintf(pMnemonic, "RLC (IY+0x%02X)", m_pMemory[address + 2]);
+	address += 4;
 }
 
 //=============================================================================
 
 void CZ80::DecodeRLr(uint16& address, char* pMnemonic)
 {
-}
-
-//=============================================================================
-
-void CZ80::DecodeRL_HL_(uint16& address, char* pMnemonic)
-{
+	sprintf(pMnemonic, "RL %s", Get8BitRegisterString(m_pMemory[++address]));
+	++address;
 }
 
 //=============================================================================
 
 void CZ80::DecodeRL_IXd_(uint16& address, char* pMnemonic)
 {
+	sprintf(pMnemonic, "RL (IX+0x%02X)", m_pMemory[address + 2]);
+	address += 4;
 }
 
 //=============================================================================
 
 void CZ80::DecodeRL_IYd_(uint16& address, char* pMnemonic)
 {
+	sprintf(pMnemonic, "RL (IY+0x%02X)", m_pMemory[address + 2]);
+	address += 4;
 }
 
 //=============================================================================
 
 void CZ80::DecodeRRCr(uint16& address, char* pMnemonic)
 {
-}
-
-//=============================================================================
-
-void CZ80::DecodeRRC_HL_(uint16& address, char* pMnemonic)
-{
+	sprintf(pMnemonic, "RRC %s", Get8BitRegisterString(m_pMemory[++address]));
+	++address;
 }
 
 //=============================================================================
 
 void CZ80::DecodeRRC_IXd_(uint16& address, char* pMnemonic)
 {
+	sprintf(pMnemonic, "RRC (IX+0x%02X)", m_pMemory[address + 2]);
+	address += 4;
 }
 
 //=============================================================================
 
 void CZ80::DecodeRRC_IYd_(uint16& address, char* pMnemonic)
 {
+	sprintf(pMnemonic, "RRC (IY+0x%02X)", m_pMemory[address + 2]);
+	address += 4;
 }
 
 //=============================================================================
 
 void CZ80::DecodeRRr(uint16& address, char* pMnemonic)
 {
-}
-
-//=============================================================================
-
-void CZ80::DecodeRR_HL_(uint16& address, char* pMnemonic)
-{
+	sprintf(pMnemonic, "RR %s", Get8BitRegisterString(m_pMemory[++address]));
+	++address;
 }
 
 //=============================================================================
 
 void CZ80::DecodeRR_IXd_(uint16& address, char* pMnemonic)
 {
+	sprintf(pMnemonic, "RR (IX+0x%02X)", m_pMemory[address + 2]);
+	address += 4;
 }
 
 //=============================================================================
 
 void CZ80::DecodeRR_IYd_(uint16& address, char* pMnemonic)
 {
+	sprintf(pMnemonic, "RR (IY+0x%02X)", m_pMemory[address + 2]);
+	address += 4;
 }
 
 //=============================================================================
 
 void CZ80::DecodeSLAr(uint16& address, char* pMnemonic)
 {
-}
-
-//=============================================================================
-
-void CZ80::DecodeSLA_HL_(uint16& address, char* pMnemonic)
-{
+	sprintf(pMnemonic, "SLA %s", Get8BitRegisterString(m_pMemory[++address]));
+	++address;
 }
 
 //=============================================================================
 
 void CZ80::DecodeSLA_IXd_(uint16& address, char* pMnemonic)
 {
+	sprintf(pMnemonic, "SLA (IX+0x%02X)", m_pMemory[address + 2]);
+	address += 4;
 }
 
 //=============================================================================
 
 void CZ80::DecodeSLA_IYd_(uint16& address, char* pMnemonic)
 {
+	sprintf(pMnemonic, "SLA (IY+0x%02X)", m_pMemory[address + 2]);
+	address += 4;
 }
 
 //=============================================================================
 
 void CZ80::DecodeSRAr(uint16& address, char* pMnemonic)
 {
-}
-
-//=============================================================================
-
-void CZ80::DecodeSRA_HL_(uint16& address, char* pMnemonic)
-{
+	sprintf(pMnemonic, "SRA %s", Get8BitRegisterString(m_pMemory[++address]));
+	++address;
 }
 
 //=============================================================================
 
 void CZ80::DecodeSRA_IXd_(uint16& address, char* pMnemonic)
 {
+	sprintf(pMnemonic, "SRA (IX+0x%02X)", m_pMemory[address + 2]);
+	address += 4;
 }
 
 //=============================================================================
 
 void CZ80::DecodeSRA_IYd_(uint16& address, char* pMnemonic)
 {
+	sprintf(pMnemonic, "SRA (IY+0x%02X)", m_pMemory[address + 2]);
+	address += 4;
 }
 
 //=============================================================================
 
 void CZ80::DecodeSRLr(uint16& address, char* pMnemonic)
 {
-}
-
-//=============================================================================
-
-void CZ80::DecodeSRL_HL_(uint16& address, char* pMnemonic)
-{
+	sprintf(pMnemonic, "SRL %s", Get8BitRegisterString(m_pMemory[++address]));
+	++address;
 }
 
 //=============================================================================
 
 void CZ80::DecodeSRL_IXd_(uint16& address, char* pMnemonic)
 {
+	sprintf(pMnemonic, "SRL (IX+0x%02X)", m_pMemory[address + 2]);
+	address += 4;
 }
 
 //=============================================================================
 
 void CZ80::DecodeSRL_IYd_(uint16& address, char* pMnemonic)
 {
+	sprintf(pMnemonic, "SRL (IY+0x%02X)", m_pMemory[address + 2]);
+	address += 4;
 }
 
 //=============================================================================
 
 void CZ80::DecodeRLD(uint16& address, char* pMnemonic)
 {
+	sprintf(pMnemonic, "RLD");
+	address += 2;
 }
 
 //=============================================================================
 
 void CZ80::DecodeRRD(uint16& address, char* pMnemonic)
 {
+	sprintf(pMnemonic, "RRD");
+	address += 2;
 }
 
 //=============================================================================
@@ -6232,72 +6244,72 @@ void CZ80::DecodeRRD(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeBITbr(uint16& address, char* pMnemonic)
 {
-}
-
-//=============================================================================
-
-void CZ80::DecodeBITb_HL_(uint16& address, char* pMnemonic)
-{
+	sprintf(pMnemonic, "BIT %d,%s", (m_pMemory[address + 1] >> 3) & 0x07, Get8BitRegisterString(m_pMemory[address + 1]));
+	address += 2;
 }
 
 //=============================================================================
 
 void CZ80::DecodeBITb_IXd_(uint16& address, char* pMnemonic)
 {
+	sprintf(pMnemonic, "BIT %d,(IX+0x%02X)", m_pMemory[address + 2], (m_pMemory[address + 3] >> 3) & 0x07);
+	address += 4;
 }
 
 //=============================================================================
 
 void CZ80::DecodeBITb_IYd_(uint16& address, char* pMnemonic)
 {
+	sprintf(pMnemonic, "BIT %d,(IY+0x%02X)", m_pMemory[address + 2], (m_pMemory[address + 3] >> 3) & 0x07);
+	address += 4;
 }
 
 //=============================================================================
 
 void CZ80::DecodeSETbr(uint16& address, char* pMnemonic)
 {
-}
-
-//=============================================================================
-
-void CZ80::DecodeSETb_HL_(uint16& address, char* pMnemonic)
-{
+	sprintf(pMnemonic, "SET %d,%s", (m_pMemory[address + 1] >> 3) & 0x07, Get8BitRegisterString(m_pMemory[address + 1]));
+	address += 2;
 }
 
 //=============================================================================
 
 void CZ80::DecodeSETb_IXd_(uint16& address, char* pMnemonic)
 {
+	sprintf(pMnemonic, "SET %d,(IX+0x%02X)", m_pMemory[address + 2], (m_pMemory[address + 3] >> 3) & 0x07);
+	address += 4;
 }
 
 //=============================================================================
 
 void CZ80::DecodeSETb_IYd_(uint16& address, char* pMnemonic)
 {
+	sprintf(pMnemonic, "SET %d,(IY+0x%02X)", m_pMemory[address + 2], (m_pMemory[address + 3] >> 3) & 0x07);
+	address += 4;
 }
 
 //=============================================================================
 
 void CZ80::DecodeRESbr(uint16& address, char* pMnemonic)
 {
-}
-
-//=============================================================================
-
-void CZ80::DecodeRESb_HL_(uint16& address, char* pMnemonic)
-{
+	sprintf(pMnemonic, "RES %d,%s", (m_pMemory[address + 1] >> 3) & 0x07, Get8BitRegisterString(m_pMemory[address + 1]));
+	address += 2;
 }
 
 //=============================================================================
 
 void CZ80::DecodeRESb_IXd_(uint16& address, char* pMnemonic)
 {
+	sprintf(pMnemonic, "RES %d,(IX+0x%02X)", m_pMemory[address + 2], (m_pMemory[address + 3] >> 3) & 0x07);
+	address += 4;
 }
 
 //=============================================================================
 
 void CZ80::DecodeRESb_IYd_(uint16& address, char* pMnemonic)
 {
+	sprintf(pMnemonic, "RES %d,(IY+0x%02X)", m_pMemory[address + 2], (m_pMemory[address + 3] >> 3) & 0x07);
+	address += 4;
 }
 
 //=============================================================================

@@ -379,31 +379,24 @@ class CZ80
 		void DecodeRRCA(uint16& address, char* pMnemonic);
 		void DecodeRRA(uint16& address, char* pMnemonic);
 		void DecodeRLCr(uint16& address, char* pMnemonic);
-		void DecodeRLC_HL_(uint16& address, char* pMnemonic);
 		void DecodeRLC_IXd_(uint16& address, char* pMnemonic);
 		void DecodeRLC_IYd_(uint16& address, char* pMnemonic);
 		void DecodeRLr(uint16& address, char* pMnemonic);
-		void DecodeRL_HL_(uint16& address, char* pMnemonic);
 		void DecodeRL_IXd_(uint16& address, char* pMnemonic);
 		void DecodeRL_IYd_(uint16& address, char* pMnemonic);
 		void DecodeRRCr(uint16& address, char* pMnemonic);
-		void DecodeRRC_HL_(uint16& address, char* pMnemonic);
 		void DecodeRRC_IXd_(uint16& address, char* pMnemonic);
 		void DecodeRRC_IYd_(uint16& address, char* pMnemonic);
 		void DecodeRRr(uint16& address, char* pMnemonic);
-		void DecodeRR_HL_(uint16& address, char* pMnemonic);
 		void DecodeRR_IXd_(uint16& address, char* pMnemonic);
 		void DecodeRR_IYd_(uint16& address, char* pMnemonic);
 		void DecodeSLAr(uint16& address, char* pMnemonic);
-		void DecodeSLA_HL_(uint16& address, char* pMnemonic);
 		void DecodeSLA_IXd_(uint16& address, char* pMnemonic);
 		void DecodeSLA_IYd_(uint16& address, char* pMnemonic);
 		void DecodeSRAr(uint16& address, char* pMnemonic);
-		void DecodeSRA_HL_(uint16& address, char* pMnemonic);
 		void DecodeSRA_IXd_(uint16& address, char* pMnemonic);
 		void DecodeSRA_IYd_(uint16& address, char* pMnemonic);
 		void DecodeSRLr(uint16& address, char* pMnemonic);
-		void DecodeSRL_HL_(uint16& address, char* pMnemonic);
 		void DecodeSRL_IXd_(uint16& address, char* pMnemonic);
 		void DecodeSRL_IYd_(uint16& address, char* pMnemonic);
 		void DecodeRLD(uint16& address, char* pMnemonic);
@@ -414,15 +407,12 @@ class CZ80
 		//-----------------------------------------------------------------------------
 
 		void DecodeBITbr(uint16& address, char* pMnemonic);
-		void DecodeBITb_HL_(uint16& address, char* pMnemonic);
 		void DecodeBITb_IXd_(uint16& address, char* pMnemonic);
 		void DecodeBITb_IYd_(uint16& address, char* pMnemonic);
 		void DecodeSETbr(uint16& address, char* pMnemonic);
-		void DecodeSETb_HL_(uint16& address, char* pMnemonic);
 		void DecodeSETb_IXd_(uint16& address, char* pMnemonic);
 		void DecodeSETb_IYd_(uint16& address, char* pMnemonic);
 		void DecodeRESbr(uint16& address, char* pMnemonic);
-		void DecodeRESb_HL_(uint16& address, char* pMnemonic);
 		void DecodeRESb_IXd_(uint16& address, char* pMnemonic);
 		void DecodeRESb_IYd_(uint16& address, char* pMnemonic);
 
