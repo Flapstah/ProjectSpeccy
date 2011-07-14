@@ -226,6 +226,22 @@ class CZ80
 		void ImplementRESb_IYd_(void);
 
 		//-----------------------------------------------------------------------------
+		//	Jump Group
+		//-----------------------------------------------------------------------------
+
+		void ImplementJPnn(void);
+		void ImplementJPccnn(void);
+		void ImplementJRe(void);
+		void ImplementJRCe(void);
+		void ImplementJRNCe(void);
+		void ImplementJRZe(void);
+		void ImplementJRNZe(void);
+		void ImplementJP_HL_(void);
+		void ImplementJP_IX_(void);
+		void ImplementJP_IY_(void);
+		void ImplementDJNZe(void);
+
+		//-----------------------------------------------------------------------------
 		//	8-Bit Load Group
 		//-----------------------------------------------------------------------------
 

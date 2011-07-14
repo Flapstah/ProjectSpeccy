@@ -4762,7 +4762,7 @@ void CZ80::ImplementBITb_IXd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	uint8& loc = m_pMemory[m_IX + m_pMemory[m_PC]];
+	uint8& loc = m_pMemory[m_IX + static_cast<int16>(m_pMemory[m_PC])];
 	uint8 mask = 1 << ((m_pMemory[++m_PC] & 0x38) >> 3);
 	++m_PC;
 	m_F &= ~eF_Z;
@@ -4793,7 +4793,7 @@ void CZ80::ImplementBITb_IYd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	uint8& loc = m_pMemory[m_IY + m_pMemory[m_PC]];
+	uint8& loc = m_pMemory[m_IY + static_cast<int16>(m_pMemory[m_PC])];
 	uint8 mask = 1 << ((m_pMemory[++m_PC] & 0x38) >> 3);
 	++m_PC;
 	m_F &= ~eF_Z;
@@ -4883,7 +4883,7 @@ void CZ80::ImplementSETb_IXd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	uint8& loc = m_pMemory[m_IX + m_pMemory[m_PC]];
+	uint8& loc = m_pMemory[m_IX + static_cast<int16>(m_pMemory[m_PC])];
 	uint8 mask = 1 << ((m_pMemory[++m_PC] & 0x38) >> 3);
 	++m_PC;
 	loc |= mask;
@@ -4913,7 +4913,7 @@ void CZ80::ImplementSETb_IYd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	uint8& loc = m_pMemory[m_IY + m_pMemory[m_PC]];
+	uint8& loc = m_pMemory[m_IY + static_cast<int16>(m_pMemory[m_PC])];
 	uint8 mask = 1 << ((m_pMemory[++m_PC] & 0x38) >> 3);
 	++m_PC;
 	loc |= mask;
@@ -5002,7 +5002,7 @@ void CZ80::ImplementRESb_IXd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	uint8& loc = m_pMemory[m_IX + m_pMemory[m_PC]];
+	uint8& loc = m_pMemory[m_IX + static_cast<int16>(m_pMemory[m_PC])];
 	uint8 mask = 1 << ((m_pMemory[++m_PC] & 0x38) >> 3);
 	++m_PC;
 	loc &= ~mask;
@@ -5032,7 +5032,7 @@ void CZ80::ImplementRESb_IYd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	uint8& loc = m_pMemory[m_IY + m_pMemory[m_PC]];
+	uint8& loc = m_pMemory[m_IY + static_cast<int16>(m_pMemory[m_PC])];
 	uint8 mask = 1 << ((m_pMemory[++m_PC] & 0x38) >> 3);
 	++m_PC;
 	loc &= ~mask;
@@ -5040,6 +5040,139 @@ void CZ80::ImplementRESb_IYd_(void)
 }
 
 //=============================================================================
+
+void CZ80::ImplementJPnn(void)
+{
+	//
+	// Operation:	PC <- nn
+	// Op Code:		JP
+	// Operands:	nn
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|0|0|0|1|1| C3
+	//						+-+-+-+-+-+-+-+-+
+	//						|n|n|n|n|n|n|n|n|
+	//						+-+-+-+-+-+-+-+-+
+	//						|n|n|n|n|n|n|n|n|
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								3						10 (4,3,3)				2.50
+	//
+	IncrementR(1);
+	++m_PC;
+	uint16 addr = m_pMemory[m_PC] + (static_cast<int16>(m_pMemory[m_PC + 1]) << 8);
+	m_PC = addr;
+	m_tstate += 20;
+}
+
+//=============================================================================
+
+void CZ80::ImplementJPccnn(void)
+{
+	//
+	// Operation:	If cc true, PC <- nn
+	// Op Code:		JP
+	// Operands:	cc, nn
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|c|c|c|0|1|0| C3
+	//						+-+-+-+-+-+-+-+-+
+	//						|n|n|n|n|n|n|n|n|
+	//						+-+-+-+-+-+-+-+-+
+	//						|n|n|n|n|n|n|n|n|
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								3						10 (4,3,3)				2.50
+	//
+	IncrementR(1);
+	uint8 cc = (m_pMemory[m_PC++] & 0x38) >> 3;
+	uint16 addr = m_pMemory[m_PC] + (static_cast<int16>(m_pMemory[m_PC + 1]) << 8);
+	switch (cc)
+	{
+		case 0: // NZ
+			m_PC = (m_F & eF_Z) ? m_PC + 2 : addr;
+			break;
+		case 1: // Z
+			m_PC = (m_F & eF_Z) ? addr : m_PC + 2;
+			break;
+		case 2: // NC
+			m_PC = (m_F & eF_C) ? m_PC + 2 : addr;
+			break;
+		case 3: // C
+			m_PC = (m_F & eF_C) ? addr : m_PC + 2;
+			break;
+		case 4: // NP (odd)
+			m_PC = (m_F & eF_PV) ? m_PC + 2 : addr;
+			break;
+		case 5: // P (even)
+			m_PC = (m_F & eF_PV) ? addr : m_PC + 2;
+			break;
+		case 6: // NS (positive)
+			m_PC = (m_F & eF_S) ? m_PC + 2 : addr;
+			break;
+		case 7: // S (negative)
+			m_PC = (m_F & eF_S) ? addr : m_PC + 2;
+			break;
+	}
+	m_tstate += 20;
+}
+
+//=============================================================================
+
+void CZ80::ImplementJRe(void)
+{
+}
+
+//=============================================================================
+
+void CZ80::ImplementJRCe(void)
+{
+}
+
+//=============================================================================
+
+void CZ80::ImplementJRNCe(void)
+{
+}
+
+//=============================================================================
+
+void CZ80::ImplementJRZe(void)
+{
+}
+
+//=============================================================================
+
+void CZ80::ImplementJRNZe(void)
+{
+}
+
+//=============================================================================
+
+void CZ80::ImplementJP_HL_(void)
+{
+}
+
+//=============================================================================
+
+void CZ80::ImplementJP_IX_(void)
+{
+}
+
+//=============================================================================
+
+void CZ80::ImplementJP_IY_(void)
+{
+}
+
+//=============================================================================
+
+void CZ80::ImplementDJNZe(void)
+{
+}
+
+//=============================================================================
+
 
 
 
