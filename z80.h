@@ -432,6 +432,22 @@ class CZ80
 		void DecodeRESb_IXd_(uint16& address, char* pMnemonic);
 		void DecodeRESb_IYd_(uint16& address, char* pMnemonic);
 
+		//-----------------------------------------------------------------------------
+		//	Jump Group
+		//-----------------------------------------------------------------------------
+
+		void DecodeJPnn(uint16& address, char* pMnemonic);
+		void DecodeJPccnn(uint16& address, char* pMnemonic);
+		void DecodeJRe(uint16& address, char* pMnemonic);
+		void DecodeJRCe(uint16& address, char* pMnemonic);
+		void DecodeJRNCe(uint16& address, char* pMnemonic);
+		void DecodeJRZe(uint16& address, char* pMnemonic);
+		void DecodeJRNZe(uint16& address, char* pMnemonic);
+		void DecodeJP_HL_(uint16& address, char* pMnemonic);
+		void DecodeJP_IX_(uint16& address, char* pMnemonic);
+		void DecodeJP_IY_(uint16& address, char* pMnemonic);
+		void DecodeDJNZe(uint16& address, char* pMnemonic);
+
 		struct SProcessorState
 		{
 			uint16 m_InterruptMode : 2;

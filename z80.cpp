@@ -5062,7 +5062,7 @@ void CZ80::ImplementJPnn(void)
 	++m_PC;
 	uint16 addr = m_pMemory[m_PC] + (static_cast<int16>(m_pMemory[m_PC + 1]) << 8);
 	m_PC = addr;
-	m_tstate += 20;
+	m_tstate += 10;
 }
 
 //=============================================================================
@@ -5114,61 +5114,256 @@ void CZ80::ImplementJPccnn(void)
 			m_PC = (m_F & eF_S) ? addr : m_PC + 2;
 			break;
 	}
-	m_tstate += 20;
+	m_tstate += 10;
 }
 
 //=============================================================================
 
 void CZ80::ImplementJRe(void)
 {
+	//
+	// Operation:	PC <- PC + e
+	// Op Code:		JR
+	// Operands:	e
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|0|0|1|1|0|0|0| 18
+	//						+-+-+-+-+-+-+-+-+
+	//						|e|e|e|e|e|e|e|e| e-2
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								3						12 (4,3,5)				3.00
+	//
+	IncrementR(1);
+	m_PC = (m_PC + 2) + static_cast<int16>(m_pMemory[m_PC + 1]);
+	m_tstate += 12;
 }
 
 //=============================================================================
 
 void CZ80::ImplementJRCe(void)
 {
+	//
+	// Operation: if C == 0, continue
+	//						if C == 1, PC <- PC + e
+	// Op Code:		JR
+	// Operands:	C, e
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|0|1|1|1|0|0|0| 38
+	//						+-+-+-+-+-+-+-+-+
+	//						|e|e|e|e|e|e|e|e| e-2
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								2						7 (4,3)						1.75		C == 0
+	//								3						12 (4,3,5)				3.00		C == 1
+	//
+	IncrementR(1);
+	uint16 addr = (m_PC + 2) + static_cast<int16>(m_pMemory[m_PC + 1]);
+	if (m_F & eF_C)
+	{
+		m_PC = addr;
+		m_tstate += 12;
+	}
+	else
+	{
+		m_PC += 2;
+		m_tstate += 7;
+	}
 }
 
 //=============================================================================
 
 void CZ80::ImplementJRNCe(void)
 {
+	//
+	// Operation: if C == 1, continue
+	//						if C == 0, PC <- PC + e
+	// Op Code:		JR
+	// Operands:	C, e
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|0|1|1|0|0|0|0| 30
+	//						+-+-+-+-+-+-+-+-+
+	//						|e|e|e|e|e|e|e|e| e-2
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								2						7 (4,3)						1.75		C == 1
+	//								3						12 (4,3,5)				3.00		C == 0
+	//
+	IncrementR(1);
+	uint16 addr = (m_PC + 2) + static_cast<int16>(m_pMemory[m_PC + 1]);
+	if (m_F & eF_C)
+	{
+		m_PC += 2;
+		m_tstate += 7;
+	}
+	else
+	{
+		m_PC = addr;
+		m_tstate += 12;
+	}
 }
 
 //=============================================================================
 
 void CZ80::ImplementJRZe(void)
 {
+	//
+	// Operation: if Z == 0, continue
+	//						if Z == 1, PC <- PC + e
+	// Op Code:		JR
+	// Operands:	Z, e
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|0|1|0|1|0|0|0| 28
+	//						+-+-+-+-+-+-+-+-+
+	//						|e|e|e|e|e|e|e|e| e-2
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								2						7 (4,3)						1.75		Z == 0
+	//								3						12 (4,3,5)				3.00		Z == 1
+	//
+	IncrementR(1);
+	uint16 addr = (m_PC + 2) + static_cast<int16>(m_pMemory[m_PC + 1]);
+	if (m_F & eF_Z)
+	{
+		m_PC = addr;
+		m_tstate += 12;
+	}
+	else
+	{
+		m_PC += 2;
+		m_tstate += 7;
+	}
 }
 
 //=============================================================================
 
 void CZ80::ImplementJRNZe(void)
 {
+	//
+	// Operation: if Z == 1, continue
+	//						if Z == 0, PC <- PC + e
+	// Op Code:		JR
+	// Operands:	Z, e
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|0|1|0|0|0|0|0| 20
+	//						+-+-+-+-+-+-+-+-+
+	//						|e|e|e|e|e|e|e|e| e-2
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								2						7 (4,3)						1.75		Z == 1
+	//								3						12 (4,3,5)				3.00		Z == 0
+	//
+	IncrementR(1);
+	uint16 addr = (m_PC + 2) + static_cast<int16>(m_pMemory[m_PC + 1]);
+	if (m_F & eF_Z)
+	{
+		m_PC += 2;
+		m_tstate += 7;
+	}
+	else
+	{
+		m_PC = addr;
+		m_tstate += 12;
+	}
 }
 
 //=============================================================================
 
 void CZ80::ImplementJP_HL_(void)
 {
+	//
+	// Operation: PC <- HL
+	// Op Code:		JP
+	// Operands:	(HL)
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|0|1|0|0|1| E9
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								1						4									1.00
+	//
+	IncrementR(1);
+	m_PC = m_HL;
+	m_tstate += 4;
 }
 
 //=============================================================================
 
 void CZ80::ImplementJP_IX_(void)
 {
+	// Operation: PC <- IX
+	// Op Code:		JP
+	// Operands:	(IX)
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|1|1|1|0|1| DD
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|0|1|0|0|1| E9
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								2						8 (4,4)						1.00
+	//
+	IncrementR(2);
+	m_PC = m_IX;
+	m_tstate += 8;
 }
 
 //=============================================================================
 
 void CZ80::ImplementJP_IY_(void)
 {
+	// Operation: PC <- IY
+	// Op Code:		JP
+	// Operands:	(IY)
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|1|1|1|0|1| FD
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|0|1|0|0|1| E9
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								2						8 (4,4)						1.00
+	//
+	IncrementR(2);
+	m_PC = m_IY;
+	m_tstate += 8;
 }
 
 //=============================================================================
 
 void CZ80::ImplementDJNZe(void)
 {
+	//
+	// Operation: if (BC - 1) == 0, continue
+	//						if (BC - 1) != 0, PC <- PC + e
+	// Op Code:		DJNZ
+	// Operands:	BC, e
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|0|0|1|0|0|0|0| 20
+	//						+-+-+-+-+-+-+-+-+
+	//						|e|e|e|e|e|e|e|e| e-2
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								2						8 (5,3)						2.00		BC != 0
+	//								3						13 (5,3,5)				3.25		BC == 0
+	//
+	IncrementR(1);
+	uint16 addr = (m_PC + 2) + static_cast<int16>(m_pMemory[m_PC + 1]);
+	if (--m_BC == 0)
+	{
+		m_PC += 2;
+		m_tstate += 8;
+	}
+	else
+	{
+		m_PC = addr;
+		m_tstate += 13;
+	}
 }
 
 //=============================================================================
@@ -6446,6 +6641,133 @@ void CZ80::DecodeRESb_IYd_(uint16& address, char* pMnemonic)
 }
 
 //=============================================================================
+
+//-----------------------------------------------------------------------------
+//	Jump Group
+//-----------------------------------------------------------------------------
+
+//=============================================================================
+
+void CZ80::DecodeJPnn(uint16& address, char* pMnemonic)
+{
+	uint16 addr = m_pMemory[address + 1] + (static_cast<int16>(m_pMemory[address + 2]) << 8);
+	address += 3;
+	sprintf(pMnemonic, "JP %04X", addr);
+}
+
+//=============================================================================
+
+void CZ80::DecodeJPccnn(uint16& address, char* pMnemonic)
+{
+	uint8 cc = (m_pMemory[address++] & 0x38) >> 3;
+	uint16 addr = m_pMemory[address] + (static_cast<int16>(m_pMemory[address + 1]) << 8);
+	address += 2;
+	const char* pCondition = NULL;
+	switch (cc)
+	{
+		case 0: // NZ
+			pCondition = "NZ";
+			break;
+		case 1: // Z
+			pCondition = "Z";
+			break;
+		case 2: // NC
+			pCondition = "NC";
+			break;
+		case 3: // C
+			pCondition = "C";
+			break;
+		case 4: // NP (odd)
+			pCondition = "PO";
+			break;
+		case 5: // P (even)
+			pCondition = "PE";
+			break;
+		case 6: // NS (positive)
+			pCondition = "P";
+			break;
+		case 7: // S (negative)
+			pCondition = "M";
+			break;
+	}
+
+	sprintf(pMnemonic, "JP %s,%04x", pCondition, addr);
+}
+
+//=============================================================================
+
+void CZ80::DecodeJRe(uint16& address, char* pMnemonic)
+{
+	sprintf(pMnemonic, "JR %02x", static_cast<int8>(m_pMemory[address + 1]));
+	address += 2;
+}
+
+//=============================================================================
+
+void CZ80::DecodeJRCe(uint16& address, char* pMnemonic)
+{
+	sprintf(pMnemonic, "JR C,%02x", static_cast<int8>(m_pMemory[address + 1]));
+	address += 2;
+}
+
+//=============================================================================
+
+void CZ80::DecodeJRNCe(uint16& address, char* pMnemonic)
+{
+	sprintf(pMnemonic, "JR NC,%02x", static_cast<int8>(m_pMemory[address + 1]));
+	address += 2;
+}
+
+//=============================================================================
+
+void CZ80::DecodeJRZe(uint16& address, char* pMnemonic)
+{
+	sprintf(pMnemonic, "JR Z,%02x", static_cast<int8>(m_pMemory[address + 1]));
+	address += 2;
+}
+
+//=============================================================================
+
+void CZ80::DecodeJRNZe(uint16& address, char* pMnemonic)
+{
+	sprintf(pMnemonic, "JR NZ,%02x", static_cast<int8>(m_pMemory[address + 1]));
+	address += 2;
+}
+
+//=============================================================================
+
+void CZ80::DecodeJP_HL_(uint16& address, char* pMnemonic)
+{
+	sprintf(pMnemonic, "JP (HL)");
+	address += 1;
+}
+
+//=============================================================================
+
+void CZ80::DecodeJP_IX_(uint16& address, char* pMnemonic)
+{
+	sprintf(pMnemonic, "JP (IX)");
+	address += 2;
+}
+
+//=============================================================================
+
+void CZ80::DecodeJP_IY_(uint16& address, char* pMnemonic)
+{
+	sprintf(pMnemonic, "JP (IX)");
+	address += 2;
+}
+
+//=============================================================================
+
+void CZ80::DecodeDJNZe(uint16& address, char* pMnemonic)
+{
+	sprintf(pMnemonic, "DJNZ %02x", static_cast<int8>(m_pMemory[address + 1]));
+	address += 2;
+}
+
+//=============================================================================
+
 
 
 
