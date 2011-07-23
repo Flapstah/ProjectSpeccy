@@ -38,6 +38,8 @@ CZ80::CZ80(uint8* pMemory, float clockSpeedMHz)
 	, m_IYl(m_RegisterMemory[eR_IYl])
 	, m_SP(*(reinterpret_cast<uint16*>(&m_RegisterMemory[eR_SP])))
 	, m_PC(*(reinterpret_cast<uint16*>(&m_RegisterMemory[eR_PC])))
+	, m_PCh(m_RegisterMemory[eR_PCh])
+	, m_PCl(m_RegisterMemory[eR_PCl])
 	, m_AFalt(*(reinterpret_cast<uint16*>(&m_RegisterMemory[eR_AFalt])))
 	, m_BCalt(*(reinterpret_cast<uint16*>(&m_RegisterMemory[eR_BCalt])))
 	, m_DEalt(*(reinterpret_cast<uint16*>(&m_RegisterMemory[eR_DEalt])))
@@ -5041,6 +5043,12 @@ void CZ80::ImplementRESb_IYd_(void)
 
 //=============================================================================
 
+//-----------------------------------------------------------------------------
+//	Jump Group
+//-----------------------------------------------------------------------------
+
+//=============================================================================
+
 void CZ80::ImplementJPnn(void)
 {
 	//
@@ -5368,6 +5376,74 @@ void CZ80::ImplementDJNZe(void)
 
 //=============================================================================
 
+//-----------------------------------------------------------------------------
+//	Call and Return Group
+//-----------------------------------------------------------------------------
+
+//=============================================================================
+
+void CZ80::ImplementCALLnn(void)
+{
+	//
+	// Operation: (SP - 1) <- PCH, (SP - 2) <- PCL, PC <- nn
+	// Op Code:		CALL
+	// Operands:	nn
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|0|1|1|0|1| CD
+	//						+-+-+-+-+-+-+-+-+
+	//						|n|n|n|n|n|n|n|n|
+	//						+-+-+-+-+-+-+-+-+
+	//						|n|n|n|n|n|n|n|n|
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								5						17 (4,3,4,3,3)		4.25
+	//
+	IncrementR(1);
+	uint16 addr = m_pMemory[m_PC + 1] + (static_cast<int16>(m_pMemory[m_PC + 2]) << 8);
+	m_pMemory[--m_SP] = m_PCh;
+	m_pMemory[--m_SP] = m_PCl;
+	m_PC = addr;
+	m_tstate += 17;
+}
+
+//=============================================================================
+
+void CZ80::ImplementCALLccnn(void)
+{
+}
+
+//=============================================================================
+
+void CZ80::ImplementRET(void)
+{
+}
+
+//=============================================================================
+
+void CZ80::ImplementRETcc(void)
+{
+}
+
+//=============================================================================
+
+void CZ80::ImplementRETI(void)
+{
+}
+
+//=============================================================================
+
+void CZ80::ImplementRETN(void)
+{
+}
+
+//=============================================================================
+
+void CZ80::ImplementRSTp(void)
+{
+}
+
+//=============================================================================
 
 
 

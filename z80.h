@@ -242,6 +242,18 @@ class CZ80
 		void ImplementDJNZe(void);
 
 		//-----------------------------------------------------------------------------
+		//	Call and Return Group
+		//-----------------------------------------------------------------------------
+
+		void ImplementCALLnn(void);
+		void ImplementCALLccnn(void);
+		void ImplementRET(void);
+		void ImplementRETcc(void);
+		void ImplementRETI(void);
+		void ImplementRETN(void);
+		void ImplementRSTp(void);
+
+		//-----------------------------------------------------------------------------
 		//	8-Bit Load Group
 		//-----------------------------------------------------------------------------
 
@@ -448,6 +460,10 @@ class CZ80
 		void DecodeJP_IY_(uint16& address, char* pMnemonic);
 		void DecodeDJNZe(uint16& address, char* pMnemonic);
 
+		//-----------------------------------------------------------------------------
+		//	Call and Return Group
+		//-----------------------------------------------------------------------------
+
 		struct SProcessorState
 		{
 			uint16 m_InterruptMode : 2;
@@ -518,6 +534,8 @@ class CZ80
 			eR_IYl = eR_IY + LO,
 			eR_SP = eR_IY + sizeof(uint16),
 			eR_PC = eR_SP + sizeof(uint16),
+			eR_PCh = eR_PC + HI,
+			eR_PCl = eR_PC + LO,
 			eR_I = eR_PC + sizeof(uint8),
 			eR_R = eR_I + sizeof(uint8),
 			eR_AFalt = eR_R + sizeof(uint8),
@@ -543,6 +561,8 @@ class CZ80
 		uint8&	m_IYl;
 		uint16& m_SP;
 		uint16& m_PC;
+		uint8&	m_PCh;
+		uint8&	m_PCl;
 		uint16& m_AFalt;
 		uint16& m_BCalt;
 		uint16& m_DEalt;
