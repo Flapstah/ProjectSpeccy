@@ -5082,7 +5082,7 @@ void CZ80::ImplementJPccnn(void)
 	// Op Code:		JP
 	// Operands:	cc, nn
 	//						+-+-+-+-+-+-+-+-+
-	//						|1|1|c|c|c|0|1|0| C3
+	//						|1|1|c|c|c|0|1|0|
 	//						+-+-+-+-+-+-+-+-+
 	//						|n|n|n|n|n|n|n|n|
 	//						+-+-+-+-+-+-+-+-+
@@ -5411,18 +5411,146 @@ void CZ80::ImplementCALLnn(void)
 
 void CZ80::ImplementCALLccnn(void)
 {
+	//
+	// Operation: If cc true, (SP - 1) <- PCH, (SP - 2) <- PCL, PC <- nn
+	// Op Code:		CALL
+	// Operands:	nn
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|c|c|c|1|0|0|
+	//						+-+-+-+-+-+-+-+-+
+	//						|n|n|n|n|n|n|n|n|
+	//						+-+-+-+-+-+-+-+-+
+	//						|n|n|n|n|n|n|n|n|
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								5						17 (4,3,4,3,3)		4.25	cc is true
+	//								3						10 (4,3,3)				2.50	cc is false
+	//
+	IncrementR(1);
+	uint8 cc = (m_pMemory[m_PC++] & 0x38) >> 3;
+	uint16 addr = m_pMemory[m_PC] + (static_cast<int16>(m_pMemory[m_PC + 1]) << 8);
+	bool call = false;
+	switch (cc)
+	{
+		case 0: // NZ
+			call = (m_F & eF_Z) ? false : true;
+			break;
+		case 1: // Z
+			call = (m_F & eF_Z) ? true : false;
+			break;
+		case 2: // NC
+			call = (m_F & eF_C) ? false : true;
+			break;
+		case 3: // C
+			call = (m_F & eF_C) ? true : false;
+			break;
+		case 4: // NP (odd)
+			call = (m_F & eF_PV) ? false : true;
+			break;
+		case 5: // P (even)
+			call = (m_F & eF_PV) ? true : false;
+			break;
+		case 6: // NS (positive)
+			call = (m_F & eF_S) ? false : true;
+			break;
+		case 7: // S (negative)
+			call = (m_F & eF_S) ? true : false;
+			break;
+	}
+
+	if (call)
+	{
+		m_pMemory[--m_SP] = m_PCh;
+		m_pMemory[--m_SP] = m_PCl;
+		m_PC = addr;
+		m_tstate += 17;
+	}
+	else
+	{
+		m_PC += 2;
+		m_tstate += 10;
+	}
 }
 
 //=============================================================================
 
 void CZ80::ImplementRET(void)
 {
+	//
+	// Operation: PCl <- (SP), PCh <- (SP + 1)
+	// Op Code:		RET
+	// Operands:	--
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|0|1|0|0|1| C9
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								3						10 (4,3,3)				2.50
+	//
+	IncrementR(1);
+	m_PCl = m_pMemory[m_SP++];
+	m_PCh = m_pMemory[m_SP++];
+	m_tstate += 10;
 }
 
 //=============================================================================
 
 void CZ80::ImplementRETcc(void)
 {
+	//
+	// Operation: If cc true, PCl <- (SP), PCh <- (SP + 1)
+	// Op Code:		RET
+	// Operands:	cc
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|c|c|c|0|0|0|
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								3						11 (5,3,3)				2.75	cc is true
+	//								1						5									1.25	cc is false
+	//
+	IncrementR(1);
+	uint8 cc = (m_pMemory[m_PC++] & 0x38) >> 3;
+	bool ret = false;
+	switch (cc)
+	{
+		case 0: // NZ
+			ret = (m_F & eF_Z) ? false : true;
+			break;
+		case 1: // Z
+			ret = (m_F & eF_Z) ? true : false;
+			break;
+		case 2: // NC
+			ret = (m_F & eF_C) ? false : true;
+			break;
+		case 3: // C
+			ret = (m_F & eF_C) ? true : false;
+			break;
+		case 4: // NP (odd)
+			ret = (m_F & eF_PV) ? false : true;
+			break;
+		case 5: // P (even)
+			ret = (m_F & eF_PV) ? true : false;
+			break;
+		case 6: // NS (positive)
+			ret = (m_F & eF_S) ? false : true;
+			break;
+		case 7: // S (negative)
+			ret = (m_F & eF_S) ? true : false;
+			break;
+	}
+
+	if (ret)
+	{
+		m_PCl = m_pMemory[m_SP++];
+		m_PCh = m_pMemory[m_SP++];
+		m_tstate += 11;
+	}
+	else
+	{
+		m_tstate += 5;
+	}
 }
 
 //=============================================================================
