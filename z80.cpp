@@ -5557,50 +5557,389 @@ void CZ80::ImplementRETcc(void)
 
 void CZ80::ImplementRETI(void)
 {
+	//
+	// Operation:	Return from Interrupt
+	// Op Code:		RETI
+	// Operands:	--
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|0|1|1|0|1| ED
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|1|0|0|1|1|0|1| 4D
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								4						14 (4,4,3,3)			3.50
+	//
+	IncrementR(2);
+	++++m_PC;
+	// TODO: fix me
+	m_tstate += 14;
 }
 
 //=============================================================================
 
 void CZ80::ImplementRETN(void)
 {
+	//
+	// Operation:	Return from Interrupt
+	// Op Code:		RETN
+	// Operands:	--
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|0|1|1|0|1| ED
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|1|0|0|0|1|0|1| 45
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								4						14 (4,4,3,3)			3.50
+	//
+	IncrementR(2);
+	m_PCl = m_pMemory[m_SP++];
+	m_PCh = m_pMemory[m_SP++];
+	m_tstate += 14;
 }
 
 //=============================================================================
 
 void CZ80::ImplementRSTp(void)
 {
+	//
+	// Operation:	(SP - 1) <- PCH, (SP - 2) <- PCL, PCH <- 0, PCL <- p
+	// Op Code:		RST
+	// Operands:	p
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|t|t|t|1|1|1|
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//								p						 t
+	//							 00H					000
+	//							 08H					001
+	//							 10H					010
+	//							 18H					011
+	//							 20H					100
+	//							 28H					101
+	//							 30H					110
+	//							 38H					111
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								3						11 (5,3,3)				2.75
+	//
+	IncrementR(1);
+	uint8 t = (m_pMemory[m_PC++] & 0x38) >> 3;
+	m_pMemory[--m_SP] = m_PCh;
+	m_pMemory[--m_SP] = m_PCl;
+	m_PCh = 0;
+	m_PCl = 8 * t;
+	m_tstate += 11;
 }
 
 //=============================================================================
 
+//-----------------------------------------------------------------------------
+//	Input and Output Group
+//-----------------------------------------------------------------------------
 
+//=============================================================================
 
+void CZ80::ImplementINA_n_(void)
+{
+	//
+	// Operation:	A <- (n)
+	// Op Code:		IN
+	// Operands:	A, (n)
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|1|1|0|1|1| DB
+	//						+-+-+-+-+-+-+-+-+
+	//						|n|n|n|n|n|n|n|n|
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								3						11 (4,3,4)				2.75
+	//
+	IncrementR(2);
+	++++m_PC;
+	// TODO: fix me
+	m_tstate += 11;
+}
 
+//=============================================================================
 
+void CZ80::ImplementINr_C_(void)
+{
+	//
+	// Operation:	r <- (C)
+	// Op Code:		IN
+	// Operands:	r, (C)
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|0|1|0|1|1| EB
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|1|r|r|r|0|0|0|
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//						where rrr is any of:
+	//								B						000
+	//								C						001
+	//								D						010
+	//								E						011
+	//								H						100
+	//								L						101
+	//						Undefined				110
+	//								A						111
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								3						12 (4,4,4)				3.00
+	//
+	IncrementR(2);
+	++++m_PC;
+	// TODO: fix me
+	m_tstate += 12;
+}
 
+//=============================================================================
 
+void CZ80::ImplementINI(void)
+{
+	//
+	// Operation:	(HL) <- (C), B <- B - 1, HL <- HL + 1
+	// Op Code:		INI
+	// Operands:	--
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|0|1|1|0|1| ED
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|0|1|0|0|0|1|0| A2
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								4						16 (4,5,3,4)			4.00
+	//
+	IncrementR(2);
+	++++m_PC;
+	// TODO: fix me
+	m_tstate += 16;
+}
 
+//=============================================================================
 
+void CZ80::ImplementINIR(void)
+{
+	//
+	// Operation:	(HL) <- (C), B <- B - 1, HL <- HL + 1
+	// Op Code:		INI
+	// Operands:	--
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|0|1|1|0|1| ED
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|0|1|0|0|0|1|0| A2
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								5						21 (4,5,3,4,5)		5.25		B != 0
+	//								4						16 (4,5,3,4)			4.00		B == 0
+	//
+	IncrementR(2);
+	++++m_PC;
+	// TODO: fix me
+	m_tstate += 16;
+}
 
+//=============================================================================
 
+void CZ80::ImplementIND(void)
+{
+	//
+	// Operation:	(HL) <- (C), B <- B - 1, HL <- HL - 1
+	// Op Code:		IND
+	// Operands:	A, (n)
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|0|1|1|0|1| ED
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|0|1|0|1|0|1|0| AA
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								4						16 (4,5,3,4)			4.00		B == 0
+	//
+	IncrementR(2);
+	++++m_PC;
+	// TODO: fix me
+	m_tstate += 16;
+}
 
+//=============================================================================
 
+void CZ80::ImplementINDR(void)
+{
+	//
+	// Operation:	(HL) <- (C), B <- B - 1, HL <- HL 1 1
+	// Op Code:		INI
+	// Operands:	A, (n)
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|0|1|1|0|1| ED
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|0|1|1|0|0|1|0| BA
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								5						21 (4,5,3,4,5)		5.25		B != 0
+	//								4						16 (4,5,3,4)			4.00		B == 0
+	//
+	IncrementR(2);
+	++++m_PC;
+	// TODO: fix me
+	m_tstate += 16;
+}
 
+//=============================================================================
 
+void CZ80::ImplementOUT_n_A(void)
+{
+	//
+	// Operation:	(n) <- A
+	// Op Code:		OUT
+	// Operands:	(n), A
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|1|0|0|1|1| D3
+	//						+-+-+-+-+-+-+-+-+
+	//						|n|n|n|n|n|n|n|n|
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								3						11 (4,3,4)				2.75
+	//
+	IncrementR(2);
+	++++m_PC;
+	// TODO: fix me
+	m_tstate += 11;
+}
 
+//=============================================================================
 
+void CZ80::ImplementOUT_C_r(void)
+{
+	//
+	// Operation:	(C) <- r
+	// Op Code:		OUT
+	// Operands:	(C), r
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|0|1|1|0|1| ED
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|1|r|r|r|0|0|1|
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//						where rrr is any of:
+	//								B						000
+	//								C						001
+	//								D						010
+	//								E						011
+	//								H						100
+	//								L						101
+	//						Undefined				110
+	//								A						111
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								3						12 (4,4,4)				3.00
+	//
+	IncrementR(2);
+	++++m_PC;
+	// TODO: fix me
+	m_tstate += 12;
+}
 
+//=============================================================================
 
+void CZ80::ImplementOUTI(void)
+{
+	//
+	// Operation:	(C) <- (HL), B <- B - 1, HL <- HL + 1
+	// Op Code:		OUTI
+	// Operands:	--
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|0|1|1|0|1| ED
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|0|1|0|0|0|1|1| A3
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								4						16 (4,5,3,4)			4.00
+	//
+	IncrementR(2);
+	++++m_PC;
+	// TODO: fix me
+	m_tstate += 16;
+}
 
+//=============================================================================
 
+void CZ80::ImplementOTIR(void)
+{
+	//
+	// Operation:	(C) <- (HL), B <- B - 1, HL <- HL + 1
+	// Op Code:		OTIR
+	// Operands:	--
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|0|1|1|0|1| ED
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|0|1|1|0|0|1|1| B3
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								5						21 (4,5,3,4,5)		5.25		B != 0
+	//								4						16 (4,5,3,4)			4.00		B == 0
+	//
+	IncrementR(2);
+	++++m_PC;
+	// TODO: fix me
+	m_tstate += 16;
+}
 
+//=============================================================================
 
+void CZ80::ImplementOUTD(void)
+{
+	//
+	// Operation:	(C) <- (HL), B <- B - 1, HL <- HL - 1
+	// Op Code:		OUTD
+	// Operands:	--
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|0|1|1|0|1| ED
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|0|1|0|1|0|1|1| AB
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								4						16 (4,5,3,4)			4.00
+	//
+	IncrementR(2);
+	++++m_PC;
+	// TODO: fix me
+	m_tstate += 16;
+}
 
+//=============================================================================
 
+void CZ80::ImplementOTDR(void)
+{
+	//
+	// Operation:	(C) <- (HL), B <- B - 1, HL <- HL - 1
+	// Op Code:		OTIR
+	// Operands:	--
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|0|1|1|0|1| ED
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|0|1|1|1|0|1|1| BB
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								5						21 (4,5,3,4,5)		5.25		B != 0
+	//								4						16 (4,5,3,4)			4.00		B == 0
+	//
+	IncrementR(2);
+	++++m_PC;
+	// TODO: fix me
+	m_tstate += 16;
+}
 
-
-
-
+//=============================================================================
 
 //-----------------------------------------------------------------------------
 //	8-Bit Load Group
@@ -6972,26 +7311,230 @@ void CZ80::DecodeDJNZe(uint16& address, char* pMnemonic)
 
 //=============================================================================
 
+//-----------------------------------------------------------------------------
+//	Call and Return Group
+//-----------------------------------------------------------------------------
 
+//=============================================================================
 
+void CZ80::DecodeCALLnn(uint16& address, char* pMnemonic)
+{
+	uint16 addr = m_pMemory[address + 1] + (static_cast<int16>(m_pMemory[address + 2]) << 8);
+	sprintf(pMnemonic, "CALL %04x", addr);
+	address += 3;
+}
 
+//=============================================================================
 
+void CZ80::DecodeCALLccnn(uint16& address, char* pMnemonic)
+{
+	uint8 cc = (m_pMemory[address] & 0x38) >> 3;
+	uint16 addr = m_pMemory[address + 1] + (static_cast<int16>(m_pMemory[address + 2]) << 8);
+	const char* condition = "";
+	switch (cc)
+	{
+		case 0: // NZ
+			condition = "NZ";
+			break;
+		case 1: // Z
+			condition = "Z";
+			break;
+		case 2: // NC
+			condition = "NC";
+			break;
+		case 3: // C
+			condition = "C";
+			break;
+		case 4: // NP (odd)
+			condition = "NP";
+			break;
+		case 5: // P (even)
+			condition = "P";
+			break;
+		case 6: // NS (positive)
+			condition = "NS";
+			break;
+		case 7: // S (negative)
+			condition = "S";
+			break;
+	}
+	sprintf(pMnemonic, "CALL %s,%04x", condition, addr);
+	address += 3;
+}
 
+//=============================================================================
 
+void CZ80::DecodeRET(uint16& address, char* pMnemonic)
+{
+	sprintf(pMnemonic, "RET");
+	++address;
+}
 
+//=============================================================================
 
+void CZ80::DecodeRETcc(uint16& address, char* pMnemonic)
+{
+	uint8 cc = (m_pMemory[address++] & 0x38) >> 3;
+	const char* condition = "";
+	switch (cc)
+	{
+		case 0: // NZ
+			condition = "NZ";
+			break;
+		case 1: // Z
+			condition = "Z";
+			break;
+		case 2: // NC
+			condition = "NC";
+			break;
+		case 3: // C
+			condition = "C";
+			break;
+		case 4: // NP (odd)
+			condition = "NP";
+			break;
+		case 5: // P (even)
+			condition = "P";
+			break;
+		case 6: // NS (positive)
+			condition = "NS";
+			break;
+		case 7: // S (negative)
+			condition = "S";
+			break;
+	}
+	sprintf(pMnemonic, "RET %s", condition);
+}
 
+//=============================================================================
 
+void CZ80::DecodeRETI(uint16& address, char* pMnemonic)
+{
+	sprintf(pMnemonic, "RETI");
+	address += 2;
+}
 
+//=============================================================================
 
+void CZ80::DecodeRETN(uint16& address, char* pMnemonic)
+{
+	sprintf(pMnemonic, "RETN");
+	address += 2;
+}
 
+//=============================================================================
 
+void CZ80::DecodeRSTp(uint16& address, char* pMnemonic)
+{
+	uint8 t = (m_pMemory[address++] & 0x38) >> 3;
+	sprintf(pMnemonic, "RST %i", t);
+}
 
+//=============================================================================
 
+//-----------------------------------------------------------------------------
+//	Input and Output Group
+//-----------------------------------------------------------------------------
 
+//=============================================================================
 
+void CZ80::DecodeINA_n_(uint16& address, char* pMnemonic)
+{
+	uint8 n = m_pMemory[address + 1];
+	sprintf(pMnemonic, "IN A,(%02X)", n);
+	address += 2;
+}
 
+//=============================================================================
 
+void CZ80::DecodeINr_C_(uint16& address, char* pMnemonic)
+{
+	sprintf(pMnemonic, "IN %s,(C)", Get8BitRegisterString(m_pMemory[address + 1] >> 3));
+	address += 2;
+}
+
+//=============================================================================
+
+void CZ80::DecodeINI(uint16& address, char* pMnemonic)
+{
+	sprintf(pMnemonic, "INI");
+	address += 2;
+}
+
+//=============================================================================
+
+void CZ80::DecodeINIR(uint16& address, char* pMnemonic)
+{
+	sprintf(pMnemonic, "INIR");
+	address += 2;
+}
+
+//=============================================================================
+
+void CZ80::DecodeIND(uint16& address, char* pMnemonic)
+{
+	sprintf(pMnemonic, "IND");
+	address += 2;
+}
+
+//=============================================================================
+
+void CZ80::DecodeINDR(uint16& address, char* pMnemonic)
+{
+	sprintf(pMnemonic, "INDR");
+	address += 2;
+}
+
+//=============================================================================
+
+void CZ80::DecodeOUT_n_A(uint16& address, char* pMnemonic)
+{
+	uint8 n = m_pMemory[address + 1];
+	sprintf(pMnemonic, "OUT (%02X),A", n);
+	address += 2;
+}
+
+//=============================================================================
+
+void CZ80::DecodeOUT_C_r(uint16& address, char* pMnemonic)
+{
+	sprintf(pMnemonic, "OUT (C),%s", Get8BitRegisterString(m_pMemory[address + 1] >> 3));
+	address += 2;
+}
+
+//=============================================================================
+
+void CZ80::DecodeOUTI(uint16& address, char* pMnemonic)
+{
+	sprintf(pMnemonic, "OUTI");
+	address += 2;
+}
+
+//=============================================================================
+
+void CZ80::DecodeOTIR(uint16& address, char* pMnemonic)
+{
+	sprintf(pMnemonic, "OTIR");
+	address += 2;
+}
+
+//=============================================================================
+
+void CZ80::DecodeOUTD(uint16& address, char* pMnemonic)
+{
+	sprintf(pMnemonic, "OUTD");
+	address += 2;
+}
+
+//=============================================================================
+
+void CZ80::DecodeOTDR(uint16& address, char* pMnemonic)
+{
+	sprintf(pMnemonic, "OTDR");
+	address += 2;
+}
+
+//=============================================================================
 
 /*
 	 Z80 Instruction Set

@@ -254,6 +254,23 @@ class CZ80
 		void ImplementRSTp(void);
 
 		//-----------------------------------------------------------------------------
+		//	Input and Output Group
+		//-----------------------------------------------------------------------------
+
+		void ImplementINA_n_(void);
+		void ImplementINr_C_(void);
+		void ImplementINI(void);
+		void ImplementINIR(void);
+		void ImplementIND(void);
+		void ImplementINDR(void);
+		void ImplementOUT_n_A(void);
+		void ImplementOUT_C_r(void);
+		void ImplementOUTI(void);
+		void ImplementOTIR(void);
+		void ImplementOUTD(void);
+		void ImplementOTDR(void);
+
+		//-----------------------------------------------------------------------------
 		//	8-Bit Load Group
 		//-----------------------------------------------------------------------------
 
@@ -463,6 +480,31 @@ class CZ80
 		//-----------------------------------------------------------------------------
 		//	Call and Return Group
 		//-----------------------------------------------------------------------------
+
+		void DecodeCALLnn(uint16& address, char* pMnemonic);
+		void DecodeCALLccnn(uint16& address, char* pMnemonic);
+		void DecodeRET(uint16& address, char* pMnemonic);
+		void DecodeRETcc(uint16& address, char* pMnemonic);
+		void DecodeRETI(uint16& address, char* pMnemonic);
+		void DecodeRETN(uint16& address, char* pMnemonic);
+		void DecodeRSTp(uint16& address, char* pMnemonic);
+
+		//-----------------------------------------------------------------------------
+		//	Input and Output Group
+		//-----------------------------------------------------------------------------
+
+		void DecodeINA_n_(uint16& address, char* pMnemonic);
+		void DecodeINr_C_(uint16& address, char* pMnemonic);
+		void DecodeINI(uint16& address, char* pMnemonic);
+		void DecodeINIR(uint16& address, char* pMnemonic);
+		void DecodeIND(uint16& address, char* pMnemonic);
+		void DecodeINDR(uint16& address, char* pMnemonic);
+		void DecodeOUT_n_A(uint16& address, char* pMnemonic);
+		void DecodeOUT_C_r(uint16& address, char* pMnemonic);
+		void DecodeOUTI(uint16& address, char* pMnemonic);
+		void DecodeOTIR(uint16& address, char* pMnemonic);
+		void DecodeOUTD(uint16& address, char* pMnemonic);
+		void DecodeOTDR(uint16& address, char* pMnemonic);
 
 		struct SProcessorState
 		{
