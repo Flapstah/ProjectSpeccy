@@ -90,25 +90,26 @@ void CZ80::Reset(void)
 float CZ80::Update(float milliseconds)
 {
 	float microseconds = milliseconds * 1000.0f;
-	float tstates_available = microseconds / (1.0f / m_clockSpeedMHz);
+	float estimated_tstates_available = microseconds / (1.0f / m_clockSpeedMHz);
+	uint32 tstates_available = static_cast<uint32>(estimated_tstates_available);
+	microseconds = (estimated_tstates_available - tstates_available) * (1.0f / m_clockSpeedMHz);
+	float remaining_milliseconds = microseconds * 1000.0f;
 
-	while (tstates_available > 0.0f)
+	while (tstates_available > 0)
 	{
 		switch (m_pMemory[m_PC])
 		{
 			case 0:
-				ImplementNOP();
+				tstates_available -= ImplementNOP();
 				break;
 
 			default:
-				ImplementNOP();
+				tstates_available -= ImplementNOP();
 				break;
 		}
 	}
 
-	microseconds = tstates_available * (1.0f / m_clockSpeedMHz); 
-	milliseconds = microseconds * 1000;
-	return microseconds;
+	return remaining_milliseconds;
 }
 
 //=============================================================================
@@ -149,7 +150,7 @@ const char* CZ80::Get16BitRegisterString(uint8 twoBits)
 
 //=============================================================================
 
-void CZ80::ImplementLDrr(void)
+uint32 CZ80::ImplementLDrr(void)
 {
 	//
 	// Operation:	r <- r'
@@ -174,12 +175,12 @@ void CZ80::ImplementLDrr(void)
 	IncrementR(1);
 	REGISTER_8BIT(m_pMemory[m_PC] >> 3) = REGISTER_8BIT(m_pMemory[m_PC]);
 	++m_PC;
-	m_tstate += 4;
+	return 4;
 }
 
 //=============================================================================
 
-void CZ80::ImplementLDrn(void)
+uint32 CZ80::ImplementLDrn(void)
 {
 	//
 	// Operation:	r <- n
@@ -206,12 +207,12 @@ void CZ80::ImplementLDrn(void)
 	IncrementR(1);
 	uint8 opcode = m_pMemory[m_PC++];
 	REGISTER_8BIT(opcode >> 3) = m_pMemory[m_PC++];
-	m_tstate += 7;
+	return 7;
 }
 
 //=============================================================================
 
-void CZ80::ImplementLDr_HL_(void)
+uint32 CZ80::ImplementLDr_HL_(void)
 {
 	//
 	// Operation:	r <- (HL)
@@ -235,12 +236,12 @@ void CZ80::ImplementLDr_HL_(void)
 	//
 	IncrementR(1);
 	REGISTER_8BIT(m_pMemory[m_PC++] >> 3) = m_pMemory[m_HL];
-	m_tstate += 7;
+	return 7;
 }
 
 //=============================================================================
 
-void CZ80::ImplementLDr_IXd_(void)
+uint32 CZ80::ImplementLDr_IXd_(void)
 {
 	//
 	// Operation:	r <- (IX+d)
@@ -269,12 +270,12 @@ void CZ80::ImplementLDr_IXd_(void)
 	IncrementR(2);
 	uint8 opcode = m_pMemory[++m_PC];
 	REGISTER_8BIT(opcode >> 3) = m_pMemory[m_IX + static_cast<int16>(m_pMemory[(++m_PC)++])];
-	m_tstate += 19;
+	return 19;
 }
 
 //=============================================================================
 
-void CZ80::ImplementLDr_IYd_(void)
+uint32 CZ80::ImplementLDr_IYd_(void)
 {
 	//
 	// Operation:	r <- (IY+d)
@@ -303,12 +304,12 @@ void CZ80::ImplementLDr_IYd_(void)
 	IncrementR(2);
 	uint8 opcode = m_pMemory[++m_PC];
 	REGISTER_8BIT(opcode >> 3) = m_pMemory[m_IY + static_cast<int16>(m_pMemory[(++m_PC)++])];
-	m_tstate += 19;
+	return 19;
 }
 
 //=============================================================================
 
-void CZ80::ImplementLD_HL_r(void)
+uint32 CZ80::ImplementLD_HL_r(void)
 {
 	//
 	// Operation:	(HL) <- r
@@ -332,12 +333,12 @@ void CZ80::ImplementLD_HL_r(void)
 	//
 	IncrementR(1);
 	m_pMemory[m_HL] = REGISTER_8BIT(m_pMemory[m_PC++]);
-	m_tstate += 7;
+	return 7;
 }
 
 //=============================================================================
 
-void CZ80::ImplementLD_IXd_r(void)
+uint32 CZ80::ImplementLD_IXd_r(void)
 {
 	//
 	// Operation:	(IX+d) <- r
@@ -366,12 +367,12 @@ void CZ80::ImplementLD_IXd_r(void)
 	IncrementR(2);
 	uint8 opcode = m_pMemory[++m_PC];
 	m_pMemory[m_IX + static_cast<int16>(m_pMemory[(++m_PC)++])] = REGISTER_8BIT(opcode);
-	m_tstate += 19;
+	return 19;
 }
 
 //=============================================================================
 
-void CZ80::ImplementLD_IYd_r(void)
+uint32 CZ80::ImplementLD_IYd_r(void)
 {
 	//
 	// Operation:	(IY+d) <- r
@@ -400,12 +401,12 @@ void CZ80::ImplementLD_IYd_r(void)
 	IncrementR(2);
 	uint8 opcode = m_pMemory[++m_PC];
 	m_pMemory[m_IY + static_cast<int16>(m_pMemory[(++m_PC)++])] = REGISTER_8BIT(opcode);
-	m_tstate += 19;
+	return 19;
 }
 
 //=============================================================================
 
-void CZ80::ImplementLD_HL_n(void)
+uint32 CZ80::ImplementLD_HL_n(void)
 {
 	//
 	// Operation:	(HL) <- n
@@ -422,12 +423,12 @@ void CZ80::ImplementLD_HL_n(void)
 	//
 	IncrementR(1);
 	m_pMemory[m_HL] = m_pMemory[(++m_PC)++];
-	m_tstate += 10;
+	return 10;
 }
 
 //=============================================================================
 
-void CZ80::ImplementLD_IXd_n(void)
+uint32 CZ80::ImplementLD_IXd_n(void)
 {
 	//
 	// Operation:	(IX+d) <- n
@@ -450,12 +451,12 @@ void CZ80::ImplementLD_IXd_n(void)
 	++++m_PC;
 	m_pMemory[m_IX + static_cast<int16>(m_pMemory[m_PC])] = m_pMemory[m_PC + 1];
 	++++m_PC;
-	m_tstate += 19;
+	return 19;
 }
 
 //=============================================================================
 
-void CZ80::ImplementLD_IYd_n(void)
+uint32 CZ80::ImplementLD_IYd_n(void)
 {
 	//
 	// Operation:	(IY+d) <- n
@@ -478,12 +479,12 @@ void CZ80::ImplementLD_IYd_n(void)
 	++++m_PC;
 	m_pMemory[m_IY + static_cast<int16>(m_pMemory[m_PC])] = m_pMemory[m_PC + 1];
 	++++m_PC;
-	m_tstate += 19;
+	return 19;
 }
 
 //=============================================================================
 
-void CZ80::ImplementLDA_BC_(void)
+uint32 CZ80::ImplementLDA_BC_(void)
 {
 	//
 	// Operation:	A <- (BC)
@@ -499,12 +500,12 @@ void CZ80::ImplementLDA_BC_(void)
 	IncrementR(1);
 	m_A = m_pMemory[m_BC];
 	++m_PC;
-	m_tstate += 7;
+	return 7;
 }
 
 //=============================================================================
 
-void CZ80::ImplementLDA_DE_(void)
+uint32 CZ80::ImplementLDA_DE_(void)
 {
 	//
 	// Operation:	A <- (DE)
@@ -520,12 +521,12 @@ void CZ80::ImplementLDA_DE_(void)
 	IncrementR(1);
 	m_A = m_pMemory[m_DE];
 	++m_PC;
-	m_tstate += 7;
+	return 7;
 }
 
 //=============================================================================
 
-void CZ80::ImplementLDA_nn_(void)
+uint32 CZ80::ImplementLDA_nn_(void)
 {
 	//
 	// Operation:	A <- (nn)
@@ -547,12 +548,12 @@ void CZ80::ImplementLDA_nn_(void)
 	uint16 address = m_pMemory[m_PC] | (m_pMemory[m_PC + 1] << 8);
 	++++m_PC;
 	m_A = m_pMemory[address];
-	m_tstate += 13;
+	return 13;
 }
 
 //=============================================================================
 
-void CZ80::ImplementLDBCA(void)
+uint32 CZ80::ImplementLDBCA(void)
 {
 	//
 	// Operation:	(BC) <- A
@@ -568,12 +569,12 @@ void CZ80::ImplementLDBCA(void)
 	IncrementR(1);
 	m_pMemory[m_BC] = m_A;
 	++m_PC; 
-	m_tstate += 7;
+	return 7;
 }
 
 //=============================================================================
 
-void CZ80::ImplementLDDEA(void)
+uint32 CZ80::ImplementLDDEA(void)
 {
 	//
 	// Operation:	(DE) <- A
@@ -589,12 +590,12 @@ void CZ80::ImplementLDDEA(void)
 	IncrementR(1);
 	m_pMemory[m_DE] = m_A;
 	++m_PC; 
-	m_tstate += 7;
+	return 7;
 }
 
 //=============================================================================
 
-void CZ80::ImplementLD_nn_A(void)
+uint32 CZ80::ImplementLD_nn_A(void)
 {
 	//
 	// Operation:	(nn) <- A
@@ -616,12 +617,12 @@ void CZ80::ImplementLD_nn_A(void)
 	uint16 address = m_pMemory[m_PC] | (m_pMemory[m_PC + 1] << 8);
 	++++m_PC;
 	m_pMemory[address] = m_A;
-	m_tstate += 13;
+	return 13;
 }
 
 //=============================================================================
 
-void CZ80::ImplementLDAI(void)
+uint32 CZ80::ImplementLDAI(void)
 {
 	//
 	// Operation:	A <- I
@@ -641,12 +642,12 @@ void CZ80::ImplementLDAI(void)
 	m_F &= eF_C;
 	m_F |= (m_A & eF_S) | (eF_Z & (m_A == 0)) | (eF_PV & m_State.m_IFF2) | (m_A & (eF_X | eF_Y));
 	++++m_PC;
-	m_tstate += 9;
+	return 9;
 }
 
 //=============================================================================
 
-void CZ80::ImplementLDAR(void)
+uint32 CZ80::ImplementLDAR(void)
 {
 	//
 	// Operation:	A <- R
@@ -666,12 +667,12 @@ void CZ80::ImplementLDAR(void)
 	m_F &= eF_C;
 	m_F |= (m_A & eF_S) | (eF_Z & (m_A == 0)) | (eF_PV & m_State.m_IFF2) | (m_A & (eF_X | eF_Y));
 	++++m_PC;
-	m_tstate += 9;
+	return 9;
 }
 
 //=============================================================================
 
-void CZ80::ImplementLDIA(void)
+uint32 CZ80::ImplementLDIA(void)
 {
 	//
 	// Operation:	I <- A
@@ -689,12 +690,12 @@ void CZ80::ImplementLDIA(void)
 	IncrementR(2);
 	m_I = m_A;
 	++++m_PC;
-	m_tstate += 9;
+	return 9;
 }
 
 //=============================================================================
 
-void CZ80::ImplementLDRA(void)
+uint32 CZ80::ImplementLDRA(void)
 {
 	//
 	// Operation:	R <- A
@@ -712,7 +713,7 @@ void CZ80::ImplementLDRA(void)
 	IncrementR(2);
 	m_R = m_A;
 	++++m_PC;
-	m_tstate += 9;
+	return 9;
 }
 
 //=============================================================================
@@ -723,7 +724,7 @@ void CZ80::ImplementLDRA(void)
 
 //=============================================================================
 
-void CZ80::ImplementLDddnn(void)
+uint32 CZ80::ImplementLDddnn(void)
 {
 	//
 	// Operation:	dd <- nn
@@ -750,12 +751,12 @@ void CZ80::ImplementLDddnn(void)
 	uint8 opcode = m_pMemory[m_PC];
 	REGISTER_16BIT_LO(opcode >> 4) = m_pMemory[++m_PC];
 	REGISTER_16BIT_HI(opcode >> 4) = m_pMemory[(++m_PC)++];
-	m_tstate += 10;
+	return 10;
 }
 
 //=============================================================================
 
-void CZ80::ImplementLDIXnn(void)
+uint32 CZ80::ImplementLDIXnn(void)
 {
 	//
 	// Operation:	IX <- nn
@@ -778,12 +779,12 @@ void CZ80::ImplementLDIXnn(void)
 	++++m_PC;
 	m_IXl = m_pMemory[m_PC];
 	m_IXh = m_pMemory[(++m_PC)++];
-	m_tstate += 14;
+	return 14;
 }
 
 //=============================================================================
 
-void CZ80::ImplementLDIYnn(void)
+uint32 CZ80::ImplementLDIYnn(void)
 {
 	//
 	// Operation:	IY <- nn
@@ -806,12 +807,12 @@ void CZ80::ImplementLDIYnn(void)
 	++++m_PC;
 	m_IYl = m_pMemory[m_PC];
 	m_IYh = m_pMemory[(++m_PC)++];
-	m_tstate += 14;
+	return 14;
 }
 
 //=============================================================================
 
-void CZ80::ImplementLDHL_nn_(void)
+uint32 CZ80::ImplementLDHL_nn_(void)
 {
 	// Operation:	H <- (nn+1), L <- (nn)
 	// Op Code:		LD
@@ -833,12 +834,12 @@ void CZ80::ImplementLDHL_nn_(void)
 	++++m_PC;
 	m_L = m_pMemory[address];
 	m_H = m_pMemory[++address];
-	m_tstate += 16;
+	return 16;
 }
 
 //=============================================================================
 
-void CZ80::ImplementLDdd_nn_(void)
+uint32 CZ80::ImplementLDdd_nn_(void)
 {
 	//
 	// Operation:	ddh <- (nn+1), ddl <- (nn)
@@ -869,12 +870,12 @@ void CZ80::ImplementLDdd_nn_(void)
 	++++m_PC;
 	REGISTER_16BIT_LO(opcode >> 4) = m_pMemory[address];
 	REGISTER_16BIT_HI(opcode >> 4) = m_pMemory[++address];
-	m_tstate += 20;
+	return 20;
 }
 
 //=============================================================================
 
-void CZ80::ImplementLDIX_nn_(void)
+uint32 CZ80::ImplementLDIX_nn_(void)
 {
 	//
 	// Operation:	IXh <- (nn+1), IXl <- (nn)
@@ -899,12 +900,12 @@ void CZ80::ImplementLDIX_nn_(void)
 	++++m_PC;
 	m_IXl = m_pMemory[address];
 	m_IXh = m_pMemory[++address];
-	m_tstate += 20;
+	return 20;
 }
 
 //=============================================================================
 
-void CZ80::ImplementLDIY_nn_(void)
+uint32 CZ80::ImplementLDIY_nn_(void)
 {
 	//
 	// Operation:	IYh <- (nn+1), IYl <- (nn)
@@ -929,12 +930,12 @@ void CZ80::ImplementLDIY_nn_(void)
 	++++m_PC;
 	m_IYl = m_pMemory[address];
 	m_IYh = m_pMemory[++address];
-	m_tstate += 20;
+	return 20;
 }
 
 //=============================================================================
 
-void CZ80::ImplementLD_nn_HL(void)
+uint32 CZ80::ImplementLD_nn_HL(void)
 {
 	// Operation:	(nn+1) <- H, (nn) <- L
 	// Op Code:		LD
@@ -956,12 +957,12 @@ void CZ80::ImplementLD_nn_HL(void)
 	++++m_PC;
 	m_pMemory[address] = m_L;
 	m_pMemory[++address] = m_H;
-	m_tstate += 16;
+	return 16;
 }
 
 //=============================================================================
 
-void CZ80::ImplementLD_nn_dd(void)
+uint32 CZ80::ImplementLD_nn_dd(void)
 {
 	//
 	// Operation:	(nn+1) <- ddh, (nn) <- ddl
@@ -992,12 +993,12 @@ void CZ80::ImplementLD_nn_dd(void)
 	++++m_PC;
 	m_pMemory[address] = REGISTER_16BIT_LO(opcode >> 4);
 	m_pMemory[++address] = REGISTER_16BIT_HI(opcode >> 4);
-	m_tstate += 20;
+	return 20;
 }
 
 //=============================================================================
 
-void CZ80::ImplementLD_nn_IX(void)
+uint32 CZ80::ImplementLD_nn_IX(void)
 {
 	//
 	// Operation:	(nn+1) <- IXh, (nn) <- IXl
@@ -1022,12 +1023,12 @@ void CZ80::ImplementLD_nn_IX(void)
 	++++m_PC;
 	m_pMemory[address] = m_IXl;
 	m_pMemory[++address] = m_IXh;
-	m_tstate += 20;
+	return 20;
 }
 
 //=============================================================================
 
-void CZ80::ImplementLD_nn_IY(void)
+uint32 CZ80::ImplementLD_nn_IY(void)
 {
 	//
 	// Operation:	(nn+1) <- IYh, (nn) <- IYl
@@ -1052,12 +1053,12 @@ void CZ80::ImplementLD_nn_IY(void)
 	++++m_PC;
 	m_pMemory[address] = m_IYl;
 	m_pMemory[++address] = m_IYh;
-	m_tstate += 20;
+	return 20;
 }
 
 //=============================================================================
 
-void CZ80::ImplementLDSPHL(void)
+uint32 CZ80::ImplementLDSPHL(void)
 {
 	//
 	// Operation:	SP <- HL
@@ -1073,12 +1074,12 @@ void CZ80::ImplementLDSPHL(void)
 	IncrementR(1);
 	m_SP = m_HL;
 	++m_PC;
-	m_tstate += 6;
+	return 6;
 }
 
 //=============================================================================
 
-void CZ80::ImplementLDSPIX(void)
+uint32 CZ80::ImplementLDSPIX(void)
 {
 	//
 	// Operation:	SP <- IX
@@ -1096,12 +1097,12 @@ void CZ80::ImplementLDSPIX(void)
 	IncrementR(2);
 	m_SP = m_IX;
 	++m_PC;
-	m_tstate += 10;
+	return 10;
 }
 
 //=============================================================================
 
-void CZ80::ImplementLDSPIY(void)
+uint32 CZ80::ImplementLDSPIY(void)
 {
 	//
 	// Operation:	SP <- IY
@@ -1119,12 +1120,12 @@ void CZ80::ImplementLDSPIY(void)
 	IncrementR(2);
 	m_SP = m_IY;
 	++m_PC;
-	m_tstate += 10;
+	return 10;
 }
 
 //=============================================================================
 
-void CZ80::ImplementPUSHqq(void)
+uint32 CZ80::ImplementPUSHqq(void)
 {
 	//
 	// Operation:	(SP-2) <- qql, (SP-1) <- qqh
@@ -1147,12 +1148,12 @@ void CZ80::ImplementPUSHqq(void)
 	uint8 opcode = m_pMemory[m_PC++];
 	m_pMemory[--m_SP] = REGISTER_16BIT_HI(opcode >> 4);
 	m_pMemory[--m_SP] = REGISTER_16BIT_LO(opcode >> 4);
-	m_tstate += 11;
+	return 11;
 }
 
 //=============================================================================
 
-void CZ80::ImplementPUSHIX(void)
+uint32 CZ80::ImplementPUSHIX(void)
 {
 	//
 	// Operation:	(SP-2) <- IXl, (SP-1) <- IXh
@@ -1171,12 +1172,12 @@ void CZ80::ImplementPUSHIX(void)
 	++++m_PC;
 	m_pMemory[--m_SP] = m_IXh;
 	m_pMemory[--m_SP] = m_IXl;
-	m_tstate += 15;
+	return 15;
 }
 
 //=============================================================================
 
-void CZ80::ImplementPUSHIY(void)
+uint32 CZ80::ImplementPUSHIY(void)
 {
 	//
 	// Operation:	(SP-2) <- IYl, (SP-1) <- IYh
@@ -1195,12 +1196,12 @@ void CZ80::ImplementPUSHIY(void)
 	++++m_PC;
 	m_pMemory[--m_SP] = m_IYh;
 	m_pMemory[--m_SP] = m_IYl;
-	m_tstate += 15;
+	return 15;
 }
 
 //=============================================================================
 
-void CZ80::ImplementPOPqq(void)
+uint32 CZ80::ImplementPOPqq(void)
 {
 	//
 	// Operation:	qqh <- (SP+1), qql <- (SP)
@@ -1223,12 +1224,12 @@ void CZ80::ImplementPOPqq(void)
 	uint8 opcode = m_pMemory[m_PC++];
 	REGISTER_16BIT_LO(opcode >> 4) = m_pMemory[m_SP];
 	REGISTER_16BIT_HI(opcode >> 4) = m_pMemory[(++m_SP)++];
-	m_tstate += 10;
+	return 10;
 }
 
 //=============================================================================
 
-void CZ80::ImplementPOPIX(void)
+uint32 CZ80::ImplementPOPIX(void)
 {
 	//
 	// Operation:	IXh <- (SP+1), IXl <- (SP)
@@ -1247,12 +1248,12 @@ void CZ80::ImplementPOPIX(void)
 	++++m_PC;
 	m_IXl = m_pMemory[m_SP];
 	m_IXh = m_pMemory[(++m_SP)++];
-	m_tstate += 14;
+	return 14;
 }
 
 //=============================================================================
 
-void CZ80::ImplementPOPIY(void)
+uint32 CZ80::ImplementPOPIY(void)
 {
 	//
 	// Operation:	IYh <- (SP+1), IYh <- (SP)
@@ -1271,7 +1272,7 @@ void CZ80::ImplementPOPIY(void)
 	++++m_PC;
 	m_IYl = m_pMemory[m_SP];
 	m_IYh = m_pMemory[(++m_SP)++];
-	m_tstate += 14;
+	return 14;
 }
 
 //=============================================================================
@@ -1282,7 +1283,7 @@ void CZ80::ImplementPOPIY(void)
 
 //=============================================================================
 
-void CZ80::ImplementEXDEHL(void)
+uint32 CZ80::ImplementEXDEHL(void)
 {
 	//
 	// Operation:	DE <-> HL
@@ -1300,12 +1301,12 @@ void CZ80::ImplementEXDEHL(void)
 	m_DE ^= m_HL;
 	m_HL ^= m_DE;
 	m_DE ^= m_HL;
-	m_tstate += 4;
+	return 4;
 }
 
 //=============================================================================
 
-void CZ80::ImplementEXAFAF(void)
+uint32 CZ80::ImplementEXAFAF(void)
 {
 	//
 	// Operation:	AF <-> AF'
@@ -1323,12 +1324,12 @@ void CZ80::ImplementEXAFAF(void)
 	m_AF ^= m_AFalt;
 	m_AFalt ^= m_AF;
 	m_AF ^= m_AFalt;
-	m_tstate += 4;
+	return 4;
 }
 
 //=============================================================================
 
-void CZ80::ImplementEXX(void)
+uint32 CZ80::ImplementEXX(void)
 {
 	//
 	// Operation:	BC <-> BC', DE <-> DE', HL <-> HL'
@@ -1354,12 +1355,12 @@ void CZ80::ImplementEXX(void)
 	m_HL ^= m_HLalt;
 	m_HLalt ^= m_HL;
 	m_HL ^= m_HLalt;
-	m_tstate += 4;
+	return 4;
 }
 
 //=============================================================================
 
-void CZ80::ImplementEX_SP_HL(void)
+uint32 CZ80::ImplementEX_SP_HL(void)
 {
 	//
 	// Operation:	H <-> (SP+1), L <-> (SP)
@@ -1381,12 +1382,12 @@ void CZ80::ImplementEX_SP_HL(void)
 	m_H ^= m_pMemory[m_SP + 1];
 	m_pMemory[m_SP + 1] ^= m_H;
 	m_H ^= m_pMemory[m_SP + 1];
-	m_tstate += 19;
+	return 19;
 }
 
 //=============================================================================
 
-void CZ80::ImplementEX_SP_IX(void)
+uint32 CZ80::ImplementEX_SP_IX(void)
 {
 	//
 	// Operation:	IXh <-> (SP+1), IXl <-> (SP)
@@ -1410,12 +1411,12 @@ void CZ80::ImplementEX_SP_IX(void)
 	m_IXh ^= m_pMemory[m_SP + 1];
 	m_pMemory[m_SP + 1] ^= m_IXh;
 	m_IXh ^= m_pMemory[m_SP + 1];
-	m_tstate += 23;
+	return 23;
 }
 
 //=============================================================================
 
-void CZ80::ImplementEX_SP_IY(void)
+uint32 CZ80::ImplementEX_SP_IY(void)
 {
 	//
 	// Operation:	IYh <-> (SP+1), IYl <-> (SP)
@@ -1439,12 +1440,12 @@ void CZ80::ImplementEX_SP_IY(void)
 	m_IYh ^= m_pMemory[m_SP + 1];
 	m_pMemory[m_SP + 1] ^= m_IYh;
 	m_IYh ^= m_pMemory[m_SP + 1];
-	m_tstate += 23;
+	return 23;
 }
 
 //=============================================================================
 
-void CZ80::ImplementLDI(void)
+uint32 CZ80::ImplementLDI(void)
 {
 	//
 	// Operation:	(DE) <- (HL), DE <- DE+1, HL <- HL+1, BC <- BC-1
@@ -1465,12 +1466,12 @@ void CZ80::ImplementLDI(void)
 	--m_BC;
 	m_F &= (eF_S | eF_Z | eF_C);
 	m_F |= (m_BC != 0) ? eF_PV : 0;
-	m_tstate += 16;
+	return 16;
 }
 
 //=============================================================================
 
-void CZ80::ImplementLDIR(void)
+uint32 CZ80::ImplementLDIR(void)
 {
 	//
 	// Operation:	(DE) <- (HL), DE <- DE+1, HL <- HL+1, BC <- BC-1
@@ -1491,18 +1492,20 @@ void CZ80::ImplementLDIR(void)
 	//								4						16 (4,4,3,5)			4.00
 	//
 	++++m_PC;
+	uint32 tstates = 0;
 	do
 	{
 		IncrementR(2);
 		m_pMemory[m_DE++] = m_pMemory[m_HL++];
-		m_tstate += 16;
-	} while ((--m_BC != 0) && ((m_tstate += 5), true));
+		tstates += 16;
+	} while ((--m_BC != 0) && ((tstates += 5), true));
 	m_F &= (eF_S | eF_Z | eF_C);
+	return tstates;
 }
 
 //=============================================================================
 
-void CZ80::ImplementLDD(void)
+uint32 CZ80::ImplementLDD(void)
 {
 	//
 	// Operation:	(DE) <- (HL), DE <- DE-1, HL <- HL-1, BC <- BC-1
@@ -1523,12 +1526,12 @@ void CZ80::ImplementLDD(void)
 	--m_BC;
 	m_F &= (eF_S | eF_Z | eF_C);
 	m_F |= (m_BC != 0) ? eF_PV : 0;
-	m_tstate += 16;
+	return 16;
 }
 
 //=============================================================================
 
-void CZ80::ImplementLDDR(void)
+uint32 CZ80::ImplementLDDR(void)
 {
 	//
 	// Operation:	(DE) <- (HL), DE <- DE-1, HL <- HL-1, BC <- BC-1
@@ -1549,18 +1552,20 @@ void CZ80::ImplementLDDR(void)
 	//								4						16 (4,4,3,5)			4.00
 	//
 	++++m_PC;
+	uint32 tstates = 0;
 	do
 	{
 		IncrementR(2);
 		m_pMemory[m_DE--] = m_pMemory[m_HL--];
-		m_tstate += 16;
-	} while ((--m_BC != 0) && ((m_tstate += 5), true));
+		tstates += 16;
+	} while ((--m_BC != 0) && ((tstates += 5), true));
 	m_F &= (eF_S | eF_Z | eF_C);
+	return tstates;
 }
 
 //=============================================================================
 
-void CZ80::ImplementCPI(void)
+uint32 CZ80::ImplementCPI(void)
 {
 	//
 	// Operation:	A - (HL), HL <- HL+1, BC <- BC-1
@@ -1584,12 +1589,12 @@ void CZ80::ImplementCPI(void)
 	--m_BC;
 	m_F &= eF_C;
 	m_F |= (result & eF_S) | ((m_A == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((m_BC != 0) ? eF_PV : 0) | (m_A & (eF_X | eF_Y)) | eF_N;
-	m_tstate += 16;
+	return 16;
 }
 
 //=============================================================================
 
-void CZ80::ImplementCPIR(void)
+uint32 CZ80::ImplementCPIR(void)
 {
 	//
 	// Operation:	A - (HL), HL <- HL+1, BC <- BC-1
@@ -1611,21 +1616,23 @@ void CZ80::ImplementCPIR(void)
 	//
 	++++m_PC;
 	int8 _HL_, origA, result;
+	uint32 tstates = 0;
 	do
 	{
 		_HL_ = static_cast<int8>(m_pMemory[m_HL++]);
 		origA = static_cast<int8>(m_A);
 		result = origA - _HL_;
-		m_tstate += 16;
-	} while ((--m_BC != 0) && (result != 0) && ((m_tstate += 5), true));
+		tstates += 16;
+	} while ((--m_BC != 0) && (result != 0) && ((tstates += 5), true));
 	uint8 flag_calc = ((origA & _HL_ & !result) | (!origA & !_HL_ & result));
 	m_F &= eF_C;
 	m_F |= (result & eF_S) | ((m_A == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((m_BC != 0) ? eF_PV : 0) | (m_A & (eF_X | eF_Y)) | eF_N;
+	return tstates;
 }
 
 //=============================================================================
 
-void CZ80::ImplementCPD(void)
+uint32 CZ80::ImplementCPD(void)
 {
 	//
 	// Operation:	A - (HL), HL <- HL-1, BC <- BC-1
@@ -1648,12 +1655,12 @@ void CZ80::ImplementCPD(void)
 	--m_BC;
 	m_F &= eF_C;
 	m_F |= (result & eF_S) | ((m_A == 0) ? eF_Z : 0) | ((half_result >> 3) & eF_H) | ((m_BC != 0) ? eF_PV : 0) | (m_A & (eF_X | eF_Y)) | eF_N;
-	m_tstate += 16;
+	return 16;
 }
 
 //=============================================================================
 
-void CZ80::ImplementCPDR(void)
+uint32 CZ80::ImplementCPDR(void)
 {
 	//
 	// Operation:	A - (HL), HL <- HL-1, BC <- BC-1
@@ -1675,16 +1682,18 @@ void CZ80::ImplementCPDR(void)
 	//
 	++++m_PC;
 	int8 result, half_result;
+	uint32 tstates = 0;
 	do
 	{
 		IncrementR(2);
 		uint8 _HL_ = m_pMemory[m_HL--];
 		result = static_cast<int8>(m_A) - static_cast<int8>(_HL_);
 		half_result = static_cast<int8>(m_A & 0x0F) - static_cast<int8>(_HL_ & 0x0F);
-		m_tstate += 16;
-	} while ((--m_BC != 0) && (result != 0) && ((m_tstate += 5), true));
+		tstates += 16;
+	} while ((--m_BC != 0) && (result != 0) && ((tstates += 5), true));
 	m_F &= eF_C;
 	m_F |= (result & eF_S) | ((m_A == 0) ? eF_Z : 0) | ((half_result >> 3) & eF_H) | ((m_BC != 0) ? eF_PV : 0) | (m_A & (eF_X | eF_Y)) | eF_N;
+	return tstates;
 }
 
 //=============================================================================
@@ -1695,7 +1704,7 @@ void CZ80::ImplementCPDR(void)
 
 //=============================================================================
 
-void CZ80::ImplementADDAr(void)
+uint32 CZ80::ImplementADDAr(void)
 {
 	//
 	// Operation:	A <- A+r
@@ -1723,12 +1732,12 @@ void CZ80::ImplementADDAr(void)
 	m_A = origA + source;
 	uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((flag_calc >> 5) & eF_PV) | ((flag_calc >> 7) & eF_C);
-	m_tstate += 4;
+	return 4;
 }
 
 //=============================================================================
 
-void CZ80::ImplementADDAn(void)
+uint32 CZ80::ImplementADDAn(void)
 {
 	//
 	// Operation:	A <- A+n
@@ -1749,12 +1758,12 @@ void CZ80::ImplementADDAn(void)
 	m_A = origA + source;
 	uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((flag_calc >> 5) & eF_PV) | ((flag_calc >> 7) & eF_C);
-	m_tstate += 7;
+	return 7;
 }
 
 //=============================================================================
 
-void CZ80::ImplementADDA_HL_(void)
+uint32 CZ80::ImplementADDA_HL_(void)
 {
 	//
 	// Operation:	A <- A+(HL)
@@ -1774,12 +1783,12 @@ void CZ80::ImplementADDA_HL_(void)
 	m_A = origA + source;
 	uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((flag_calc >> 5) & eF_PV) | ((flag_calc >> 7) & eF_C);
-	m_tstate += 7;
+	return 7;
 }
 
 //=============================================================================
 
-void CZ80::ImplementADDA_IXd_(void)
+uint32 CZ80::ImplementADDA_IXd_(void)
 {
 	//
 	// Operation:	A <- A+(IX+d)
@@ -1803,12 +1812,12 @@ void CZ80::ImplementADDA_IXd_(void)
 	m_A = origA + source;
 	uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((flag_calc >> 5) & eF_PV) | ((flag_calc >> 7) & eF_C);
-	m_tstate += 16;
+	return 19;
 }
 
 //=============================================================================
 
-void CZ80::ImplementADDA_IYd_(void)
+uint32 CZ80::ImplementADDA_IYd_(void)
 {
 	//
 	// Operation:	A <- A+(IY+d)
@@ -1832,12 +1841,12 @@ void CZ80::ImplementADDA_IYd_(void)
 	m_A = origA + source;
 	uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((flag_calc >> 5) & eF_PV) | ((flag_calc >> 7) & eF_C);
-	m_tstate += 16;
+	return 19;
 }
 
 //=============================================================================
 
-void CZ80::ImplementADCAr(void)
+uint32 CZ80::ImplementADCAr(void)
 {
 	//
 	// Operation:	A <- A+r+C
@@ -1865,12 +1874,12 @@ void CZ80::ImplementADCAr(void)
 	m_A = origA + source;
 	uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((flag_calc >> 5) & eF_PV) | ((flag_calc >> 7) & eF_C);
-	m_tstate += 4;
+	return 4;
 }
 
 //=============================================================================
 
-void CZ80::ImplementADCAn(void)
+uint32 CZ80::ImplementADCAn(void)
 {
 	//
 	// Operation:	A <- A+n+C
@@ -1891,12 +1900,12 @@ void CZ80::ImplementADCAn(void)
 	m_A = origA + source;
 	uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((flag_calc >> 5) & eF_PV) | ((flag_calc >> 7) & eF_C);
-	m_tstate += 7;
+	return 7;
 }
 
 //=============================================================================
 
-void CZ80::ImplementADCA_HL_(void)
+uint32 CZ80::ImplementADCA_HL_(void)
 {
 	//
 	// Operation:	A <- A+(HL)+C
@@ -1916,12 +1925,12 @@ void CZ80::ImplementADCA_HL_(void)
 	m_A = origA + source;
 	uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((flag_calc >> 5) & eF_PV) | ((flag_calc >> 7) & eF_C);
-	m_tstate += 7;
+	return 7;
 }
 
 //=============================================================================
 
-void CZ80::ImplementADCA_IXd_(void)
+uint32 CZ80::ImplementADCA_IXd_(void)
 {
 	//
 	// Operation:	A <- A+(IX+d)+C
@@ -1945,12 +1954,12 @@ void CZ80::ImplementADCA_IXd_(void)
 	m_A = origA + source;
 	uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((flag_calc >> 5) & eF_PV) | ((flag_calc >> 7) & eF_C);
-	m_tstate += 16;
+	return 19;
 }
 
 //=============================================================================
 
-void CZ80::ImplementADCA_IYd_(void)
+uint32 CZ80::ImplementADCA_IYd_(void)
 {
 	//
 	// Operation:	A <- A+(IY+d)+C
@@ -1974,12 +1983,12 @@ void CZ80::ImplementADCA_IYd_(void)
 	m_A = origA + source;
 	uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((flag_calc >> 5) & eF_PV) | ((flag_calc >> 7) & eF_C);
-	m_tstate += 16;
+	return 19;
 }
 
 //=============================================================================
 
-void CZ80::ImplementSUBr(void)
+uint32 CZ80::ImplementSUBr(void)
 {
 	//
 	// Operation:	A <- A-r
@@ -2007,12 +2016,12 @@ void CZ80::ImplementSUBr(void)
 	m_A = origA - source;
 	uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	m_F = (m_A & (eF_S | eF_X | eF_Y | eF_N)) | ((m_A == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((flag_calc >> 5) & eF_PV) | ((flag_calc >> 7) & eF_C);
-	m_tstate += 4;
+	return 4;
 }
 
 //=============================================================================
 
-void CZ80::ImplementSUBn(void)
+uint32 CZ80::ImplementSUBn(void)
 {
 	//
 	// Operation:	A <- A-n
@@ -2033,12 +2042,12 @@ void CZ80::ImplementSUBn(void)
 	m_A = origA - source;
 	uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	m_F = (m_A & (eF_S | eF_X | eF_Y | eF_N)) | ((m_A == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((flag_calc >> 5) & eF_PV) | ((flag_calc >> 7) & eF_C);
-	m_tstate += 7;
+	return 7;
 }
 
 //=============================================================================
 
-void CZ80::ImplementSUB_HL_(void)
+uint32 CZ80::ImplementSUB_HL_(void)
 {
 	//
 	// Operation:	A <- A-(HL)
@@ -2058,12 +2067,12 @@ void CZ80::ImplementSUB_HL_(void)
 	m_A = origA - source;
 	uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	m_F = (m_A & (eF_S | eF_X | eF_Y | eF_N)) | ((m_A == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((flag_calc >> 5) & eF_PV) | ((flag_calc >> 7) & eF_C);
-	m_tstate += 7;
+	return 7;
 }
 
 //=============================================================================
 
-void CZ80::ImplementSUB_IXd_(void)
+uint32 CZ80::ImplementSUB_IXd_(void)
 {
 	//
 	// Operation:	A <- A-(IX+d)
@@ -2087,12 +2096,12 @@ void CZ80::ImplementSUB_IXd_(void)
 	m_A = origA - source;
 	uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	m_F = (m_A & (eF_S | eF_X | eF_Y | eF_N)) | ((m_A == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((flag_calc >> 5) & eF_PV) | ((flag_calc >> 7) & eF_C);
-	m_tstate += 16;
+	return 19;
 }
 
 //=============================================================================
 
-void CZ80::ImplementSUB_IYd_(void)
+uint32 CZ80::ImplementSUB_IYd_(void)
 {
 	//
 	// Operation:	A <- A-(IY+d)
@@ -2116,12 +2125,12 @@ void CZ80::ImplementSUB_IYd_(void)
 	m_A = origA - source;
 	uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	m_F = (m_A & (eF_S | eF_X | eF_Y | eF_N)) | ((m_A == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((flag_calc >> 5) & eF_PV) | ((flag_calc >> 7) & eF_C);
-	m_tstate += 16;
+	return 19;
 }
 
 //=============================================================================
 
-void CZ80::ImplementSBCAr(void)
+uint32 CZ80::ImplementSBCAr(void)
 {
 	//
 	// Operation:	A <- A-r-C
@@ -2149,12 +2158,12 @@ void CZ80::ImplementSBCAr(void)
 	m_A = origA - source;
 	uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	m_F = (m_A & (eF_S | eF_X | eF_Y | eF_N)) | ((m_A == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((flag_calc >> 5) & eF_PV) | ((flag_calc >> 7) & eF_C);
-	m_tstate += 4;
+	return 4;
 }
 
 //=============================================================================
 
-void CZ80::ImplementSBCAn(void)
+uint32 CZ80::ImplementSBCAn(void)
 {
 	//
 	// Operation:	A <- A-n-C
@@ -2175,12 +2184,12 @@ void CZ80::ImplementSBCAn(void)
 	m_A = origA - source;
 	uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	m_F = (m_A & (eF_S | eF_X | eF_Y | eF_N)) | ((m_A == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((flag_calc >> 5) & eF_PV) | ((flag_calc >> 7) & eF_C);
-	m_tstate += 7;
+	return 7;
 }
 
 //=============================================================================
 
-void CZ80::ImplementSBCA_HL_(void)
+uint32 CZ80::ImplementSBCA_HL_(void)
 {
 	//
 	// Operation:	A <- A-(HL)-C
@@ -2200,12 +2209,12 @@ void CZ80::ImplementSBCA_HL_(void)
 	m_A = origA - source;
 	uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	m_F = (m_A & (eF_S | eF_X | eF_Y | eF_N)) | ((m_A == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((flag_calc >> 5) & eF_PV) | ((flag_calc >> 7) & eF_C);
-	m_tstate += 7;
+	return 7;
 }
 
 //=============================================================================
 
-void CZ80::ImplementSBCA_IXd_(void)
+uint32 CZ80::ImplementSBCA_IXd_(void)
 {
 	//
 	// Operation:	A <- A-(IX+d)-C
@@ -2229,12 +2238,12 @@ void CZ80::ImplementSBCA_IXd_(void)
 	m_A = origA - source;
 	uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	m_F = (m_A & (eF_S | eF_X | eF_Y | eF_N)) | ((m_A == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((flag_calc >> 5) & eF_PV) | ((flag_calc >> 7) & eF_C);
-	m_tstate += 16;
+	return 19;
 }
 
 //=============================================================================
 
-void CZ80::ImplementSBCA_IYd_(void)
+uint32 CZ80::ImplementSBCA_IYd_(void)
 {
 	//
 	// Operation:	A <- A-(IY+d)-C
@@ -2258,12 +2267,12 @@ void CZ80::ImplementSBCA_IYd_(void)
 	m_A = origA - source;
 	uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	m_F = (m_A & (eF_S | eF_X | eF_Y | eF_N)) | ((m_A == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((flag_calc >> 5) & eF_PV) | ((flag_calc >> 7) & eF_C);
-	m_tstate += 16;
+	return 19;
 }
 
 //=============================================================================
 
-void CZ80::ImplementANDr(void)
+uint32 CZ80::ImplementANDr(void)
 {
 	//
 	// Operation:	A <- A&r
@@ -2288,12 +2297,12 @@ void CZ80::ImplementANDr(void)
 	IncrementR(1);
 	m_A = static_cast<int8>(m_A) & static_cast<int8>(REGISTER_8BIT(m_pMemory[m_PC++]));
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | (eF_H);
-	m_tstate += 4;
+	return 4;
 }
 
 //=============================================================================
 
-void CZ80::ImplementANDn(void)
+uint32 CZ80::ImplementANDn(void)
 {
 	//
 	// Operation:	A <- A&n
@@ -2311,12 +2320,12 @@ void CZ80::ImplementANDn(void)
 	IncrementR(1);
 	m_A = static_cast<int8>(m_A) & static_cast<int8>(m_pMemory[(++m_PC)++]);
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | (eF_H);
-	m_tstate += 7;
+	return 7;
 }
 
 //=============================================================================
 
-void CZ80::ImplementAND_HL_(void)
+uint32 CZ80::ImplementAND_HL_(void)
 {
 	//
 	// Operation:	A <- A&(HL)
@@ -2333,12 +2342,12 @@ void CZ80::ImplementAND_HL_(void)
 	++m_PC;
 	m_A = static_cast<int8>(m_A) & static_cast<int8>(m_pMemory[m_HL]);
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | (eF_H);
-	m_tstate += 7;
+	return 7;
 }
 
 //=============================================================================
 
-void CZ80::ImplementAND_IXd_(void)
+uint32 CZ80::ImplementAND_IXd_(void)
 {
 	//
 	// Operation:	A <- A&(IX+d)
@@ -2359,12 +2368,12 @@ void CZ80::ImplementAND_IXd_(void)
 	++++m_PC;
 	m_A = static_cast<int8>(m_A) & static_cast<int8>(m_pMemory[m_IX + static_cast<int16>(m_pMemory[m_PC++])]);
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | (eF_H);
-	m_tstate += 16;
+	return 19;
 }
 
 //=============================================================================
 
-void CZ80::ImplementAND_IYd_(void)
+uint32 CZ80::ImplementAND_IYd_(void)
 {
 	//
 	// Operation:	A <- A&(IY+d)
@@ -2385,12 +2394,12 @@ void CZ80::ImplementAND_IYd_(void)
 	++++m_PC;
 	m_A = static_cast<int8>(m_A) & static_cast<int8>(m_pMemory[m_IY + static_cast<int16>(m_pMemory[m_PC++])]);
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | (eF_H);
-	m_tstate += 16;
+	return 19;
 }
 
 //=============================================================================
 
-void CZ80::ImplementORr(void)
+uint32 CZ80::ImplementORr(void)
 {
 	//
 	// Operation:	A <- A|r
@@ -2415,12 +2424,12 @@ void CZ80::ImplementORr(void)
 	IncrementR(1);
 	m_A = static_cast<int8>(m_A) | static_cast<int8>(REGISTER_8BIT(m_pMemory[m_PC++]));
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | (eF_H);
-	m_tstate += 4;
+	return 4;
 }
 
 //=============================================================================
 
-void CZ80::ImplementORn(void)
+uint32 CZ80::ImplementORn(void)
 {
 	//
 	// Operation:	A <- A|n
@@ -2438,12 +2447,12 @@ void CZ80::ImplementORn(void)
 	IncrementR(1);
 	m_A = static_cast<int8>(m_A) | static_cast<int8>(m_pMemory[(++m_PC)++]);
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | (eF_H);
-	m_tstate += 7;
+	return 7;
 }
 
 //=============================================================================
 
-void CZ80::ImplementOR_HL_(void)
+uint32 CZ80::ImplementOR_HL_(void)
 {
 	//
 	// Operation:	A <- A|(HL)
@@ -2460,12 +2469,12 @@ void CZ80::ImplementOR_HL_(void)
 	++m_PC;
 	m_A = static_cast<int8>(m_A) | static_cast<int8>(m_pMemory[m_HL]);
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | (eF_H);
-	m_tstate += 7;
+	return 7;
 }
 
 //=============================================================================
 
-void CZ80::ImplementOR_IXd_(void)
+uint32 CZ80::ImplementOR_IXd_(void)
 {
 	//
 	// Operation:	A <- A|(IX+d)
@@ -2486,12 +2495,12 @@ void CZ80::ImplementOR_IXd_(void)
 	++++m_PC;
 	m_A = static_cast<int8>(m_A) | static_cast<int8>(m_pMemory[m_IX + static_cast<int16>(m_pMemory[m_PC++])]);
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | (eF_H);
-	m_tstate += 16;
+	return 19;
 }
 
 //=============================================================================
 
-void CZ80::ImplementOR_IYd_(void)
+uint32 CZ80::ImplementOR_IYd_(void)
 {
 	//
 	// Operation:	A <- A|(IY+d)
@@ -2512,12 +2521,12 @@ void CZ80::ImplementOR_IYd_(void)
 	++++m_PC;
 	m_A = static_cast<int8>(m_A) | static_cast<int8>(m_pMemory[m_IY + static_cast<int16>(m_pMemory[m_PC++])]);
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | (eF_H);
-	m_tstate += 16;
+	return 19;
 }
 
 //=============================================================================
 
-void CZ80::ImplementXORr(void)
+uint32 CZ80::ImplementXORr(void)
 {
 	//
 	// Operation:	A <- A^r
@@ -2542,12 +2551,12 @@ void CZ80::ImplementXORr(void)
 	IncrementR(1);
 	m_A = static_cast<int8>(m_A) ^ static_cast<int8>(REGISTER_8BIT(m_pMemory[m_PC++]));
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | (eF_H);
-	m_tstate += 4;
+	return 4;
 }
 
 //=============================================================================
 
-void CZ80::ImplementXORn(void)
+uint32 CZ80::ImplementXORn(void)
 {
 	//
 	// Operation:	A <- A^n
@@ -2565,12 +2574,12 @@ void CZ80::ImplementXORn(void)
 	IncrementR(1);
 	m_A = static_cast<int8>(m_A) ^ static_cast<int8>(m_pMemory[(++m_PC)++]);
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | (eF_H);
-	m_tstate += 7;
+	return 7;
 }
 
 //=============================================================================
 
-void CZ80::ImplementXOR_HL_(void)
+uint32 CZ80::ImplementXOR_HL_(void)
 {
 	//
 	// Operation:	A <- A^(HL)
@@ -2587,12 +2596,12 @@ void CZ80::ImplementXOR_HL_(void)
 	++m_PC;
 	m_A = static_cast<int8>(m_A) ^ static_cast<int8>(m_pMemory[m_HL]);
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | (eF_H);
-	m_tstate += 7;
+	return 7;
 }
 
 //=============================================================================
 
-void CZ80::ImplementXOR_IXd_(void)
+uint32 CZ80::ImplementXOR_IXd_(void)
 {
 	//
 	// Operation:	A <- A^(IX+d)
@@ -2613,12 +2622,12 @@ void CZ80::ImplementXOR_IXd_(void)
 	++++m_PC;
 	m_A = static_cast<int8>(m_A) ^ static_cast<int8>(m_pMemory[m_IX + static_cast<int16>(m_pMemory[m_PC++])]);
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | (eF_H);
-	m_tstate += 16;
+	return 19;
 }
 
 //=============================================================================
 
-void CZ80::ImplementXOR_IYd_(void)
+uint32 CZ80::ImplementXOR_IYd_(void)
 {
 	//
 	// Operation:	A <- A^(IY+d)
@@ -2639,12 +2648,12 @@ void CZ80::ImplementXOR_IYd_(void)
 	++++m_PC;
 	m_A = static_cast<int8>(m_A) ^ static_cast<int8>(m_pMemory[m_IY + static_cast<int16>(m_pMemory[m_PC++])]);
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | (eF_H);
-	m_tstate += 16;
+	return 19;
 }
 
 //=============================================================================
 
-void CZ80::ImplementCPr(void)
+uint32 CZ80::ImplementCPr(void)
 {
 	//
 	// Operation:	A - r
@@ -2672,12 +2681,12 @@ void CZ80::ImplementCPr(void)
 	int8 result = origA - source;
 	uint8 flag_calc = ((origA & source & ~result) | (~origA & ~source & result));
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((flag_calc >> 5) & eF_PV) | ((flag_calc >> 7) & eF_C);
-	m_tstate += 4;
+	return 4;
 }
 
 //=============================================================================
 
-void CZ80::ImplementCPn(void)
+uint32 CZ80::ImplementCPn(void)
 {
 	//
 	// Operation:	A - n
@@ -2698,12 +2707,12 @@ void CZ80::ImplementCPn(void)
 	int8 result = origA - source;
 	uint8 flag_calc = ((origA & source & ~result) | (~origA & ~source & result));
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((flag_calc >> 5) & eF_PV) | ((flag_calc >> 7) & eF_C);
-	m_tstate += 7;
+	return 7;
 }
 
 //=============================================================================
 
-void CZ80::ImplementCP_HL_(void)
+uint32 CZ80::ImplementCP_HL_(void)
 {
 	//
 	// Operation:	A - (HL)
@@ -2723,12 +2732,12 @@ void CZ80::ImplementCP_HL_(void)
 	int8 result = origA - source;
 	uint8 flag_calc = ((origA & source & ~result) | (~origA & ~source & result));
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((flag_calc >> 5) & eF_PV) | ((flag_calc >> 7) & eF_C);
-	m_tstate += 7;
+	return 7;
 }
 
 //=============================================================================
 
-void CZ80::ImplementCP_IXd_(void)
+uint32 CZ80::ImplementCP_IXd_(void)
 {
 	//
 	// Operation:	A - (IX+d)
@@ -2752,12 +2761,12 @@ void CZ80::ImplementCP_IXd_(void)
 	int8 result = origA - source;
 	uint8 flag_calc = ((origA & source & ~result) | (~origA & ~source & result));
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((flag_calc >> 5) & eF_PV) | ((flag_calc >> 7) & eF_C);
-	m_tstate += 16;
+	return 19;
 }
 
 //=============================================================================
 
-void CZ80::ImplementCP_IYd_(void)
+uint32 CZ80::ImplementCP_IYd_(void)
 {
 	//
 	// Operation:	A <- A-(IY+d)
@@ -2781,12 +2790,12 @@ void CZ80::ImplementCP_IYd_(void)
 	int8 result = origA - source;
 	uint8 flag_calc = ((origA & source & ~result) | (~origA & ~source & result));
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((flag_calc >> 5) & eF_PV) | ((flag_calc >> 7) & eF_C);
-	m_tstate += 16;
+	return 19;
 }
 
 //=============================================================================
 
-void CZ80::ImplementINCr(void)
+uint32 CZ80::ImplementINCr(void)
 {
 	//
 	// Operation:	r <- r+1
@@ -2812,12 +2821,12 @@ void CZ80::ImplementINCr(void)
 	int8& reg = *reinterpret_cast<int8*>(&REGISTER_8BIT(m_pMemory[m_PC++] >> 3));
 	int8 orig = reg++;	
 	m_F = (reg & (eF_S | eF_X | eF_Y)) | ((reg == 0) ? eF_Z : 0) | ((reg ^ orig) & eF_H) | ((orig == 0x7F) & eF_PV);
-	m_tstate += 4;
+	return 4;
 }
 
 //=============================================================================
 
-void CZ80::ImplementINC_HL_(void)
+uint32 CZ80::ImplementINC_HL_(void)
 {
 	//
 	// Operation:	(HL) <- (HL)+1
@@ -2835,12 +2844,12 @@ void CZ80::ImplementINC_HL_(void)
 	int8& location = *reinterpret_cast<int8*>(&m_pMemory[m_HL]);
 	int8 orig = location++;
 	m_F = (location & (eF_S | eF_X | eF_Y)) | ((location == 0) ? eF_Z : 0) | ((location ^ orig) & eF_H) | ((location == 0x7F) & eF_PV);
-	m_tstate += 11;
+	return 11;
 }
 
 //=============================================================================
 
-void CZ80::ImplementINC_IXd_(void)
+uint32 CZ80::ImplementINC_IXd_(void)
 {
 	//
 	// Operation:	(IX+d) <- (IX+d)+1
@@ -2862,12 +2871,12 @@ void CZ80::ImplementINC_IXd_(void)
 	int8& location = *reinterpret_cast<int8*>(&m_pMemory[m_IX + static_cast<int16>(m_pMemory[m_PC++])]);
 	int8 orig = location++;
 	m_F = (location & (eF_S | eF_X | eF_Y)) | ((location == 0) ? eF_Z : 0) | ((location ^ orig) & eF_H) | ((location == 0x7F) & eF_PV);
-	m_tstate += 23;
+	return 23;
 }
 
 //=============================================================================
 
-void CZ80::ImplementINC_IYd_(void)
+uint32 CZ80::ImplementINC_IYd_(void)
 {
 	//
 	// Operation:	(IY+d) <- (IY+d)+1
@@ -2889,12 +2898,12 @@ void CZ80::ImplementINC_IYd_(void)
 	int8& location = *reinterpret_cast<int8*>(&m_pMemory[m_IY + static_cast<int16>(m_pMemory[m_PC++])]);
 	int8 orig = location++;
 	m_F = (location & (eF_S | eF_X | eF_Y)) | ((location == 0) ? eF_Z : 0) | ((location ^ orig) & eF_H) | ((location == 0x7F) & eF_PV);
-	m_tstate += 23;
+	return 23;
 }
 
 //=============================================================================
 
-void CZ80::ImplementDECr(void)
+uint32 CZ80::ImplementDECr(void)
 {
 	//
 	// Operation:	r <- r-1
@@ -2920,12 +2929,12 @@ void CZ80::ImplementDECr(void)
 	int8& reg = *reinterpret_cast<int8*>(&REGISTER_8BIT(m_pMemory[m_PC++] >> 3));
 	int8 orig = reg--;	
 	m_F = (reg & (eF_S | eF_X | eF_Y | eF_N)) | ((reg == 0) ? eF_Z : 0) | ((reg ^ orig) & eF_H) | ((orig == 0x80) & eF_PV);
-	m_tstate += 4;
+	return 4;
 }
 
 //=============================================================================
 
-void CZ80::ImplementDEC_HL_(void)
+uint32 CZ80::ImplementDEC_HL_(void)
 {
 	//
 	// Operation:	(HL) <- (HL)-1
@@ -2943,12 +2952,12 @@ void CZ80::ImplementDEC_HL_(void)
 	int8& location = *reinterpret_cast<int8*>(&m_pMemory[m_HL]);
 	int8 orig = location--;
 	m_F = (location & (eF_S | eF_X | eF_Y | eF_N)) | ((location == 0) ? eF_Z : 0) | ((location ^ orig) & eF_H) | ((location == 0x80) & eF_PV);
-	m_tstate += 11;
+	return 11;
 }
 
 //=============================================================================
 
-void CZ80::ImplementDEC_IXd_(void)
+uint32 CZ80::ImplementDEC_IXd_(void)
 {
 	//
 	// Operation:	(IX+d) <- (IX+d)-1
@@ -2970,12 +2979,12 @@ void CZ80::ImplementDEC_IXd_(void)
 	int8& location = *reinterpret_cast<int8*>(&m_pMemory[m_IX + static_cast<int16>(m_pMemory[m_PC++])]);
 	int8 orig = location--;
 	m_F = (location & (eF_S | eF_X | eF_Y | eF_N)) | ((location == 0) ? eF_Z : 0) | ((location ^ orig) & eF_H) | ((location == 0x80) & eF_PV);
-	m_tstate += 23;
+	return 23;
 }
 
 //=============================================================================
 
-void CZ80::ImplementDEC_IYd_(void)
+uint32 CZ80::ImplementDEC_IYd_(void)
 {
 	//
 	// Operation:	(IY+d) <- (IY+d)-1
@@ -2997,7 +3006,7 @@ void CZ80::ImplementDEC_IYd_(void)
 	int8& location = *reinterpret_cast<int8*>(&m_pMemory[m_IY + static_cast<int16>(m_pMemory[m_PC++])]);
 	int8 orig = location--;
 	m_F = (location & (eF_S | eF_X | eF_Y | eF_N)) | ((location == 0) ? eF_Z : 0) | ((location ^ orig) & eF_H) | ((location == 0x80) & eF_PV);
-	m_tstate += 23;
+	return 23;
 }
 
 //=============================================================================
@@ -3008,7 +3017,7 @@ void CZ80::ImplementDEC_IYd_(void)
 
 //=============================================================================
 
-void CZ80::ImplementDAA(void)
+uint32 CZ80::ImplementDAA(void)
 {
 	//
 	// Operation:	A
@@ -3057,12 +3066,12 @@ void CZ80::ImplementDAA(void)
 	uint8 parity = ((0x6996 >> adjustedA) << 2) & eF_PV;
 	m_F &= eF_N;
 	m_F |= (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | parity | carry;
-	m_tstate += 4;
+	return 4;
 }
 
 //=============================================================================
 
-void CZ80::ImplementCPL(void)
+uint32 CZ80::ImplementCPL(void)
 {
 	//
 	// Operation:	A
@@ -3080,12 +3089,12 @@ void CZ80::ImplementCPL(void)
 	m_A = ~m_A;
 	m_F &= (eF_S | eF_Z | eF_PV | eF_C);
 	m_F |= (eF_H | eF_N) | (m_A & (eF_X | eF_Y));
-	m_tstate += 4;
+	return 4;
 }
 
 //=============================================================================
 
-void CZ80::ImplementNEG(void)
+uint32 CZ80::ImplementNEG(void)
 {
 	//
 	// Operation:	A
@@ -3106,12 +3115,12 @@ void CZ80::ImplementNEG(void)
 	m_A = 0 - origA;
 	m_F = eF_N;
 	m_F |= (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | (m_A & ~origA & eF_H) | ((origA = 0x80) ? eF_PV : 0) | ((!origA) ? eF_C : 0);
-	m_tstate += 8;
+	return 8;
 }
 
 //=============================================================================
 
-void CZ80::ImplementCCF(void)
+uint32 CZ80::ImplementCCF(void)
 {
 	//
 	// Operation:	CF <- ~CF
@@ -3129,12 +3138,12 @@ void CZ80::ImplementCCF(void)
 	uint8 origF = m_F;
 	m_F &= (eF_S | eF_Z | eF_PV);
 	m_F |= (origF ^ eF_C) | ((origF & eF_C) << 4) & eF_H;
-	m_tstate += 4;
+	return 4;
 }
 
 //=============================================================================
 
-void CZ80::ImplementSCF(void)
+uint32 CZ80::ImplementSCF(void)
 {
 	//
 	// Operation:	CF <- 1
@@ -3151,12 +3160,12 @@ void CZ80::ImplementSCF(void)
 	++m_PC;
 	m_F &= (eF_S | eF_Z | eF_PV);
 	m_F |= eF_C;
-	m_tstate += 4;
+	return 4;
 }
 
 //=============================================================================
 
-void CZ80::ImplementNOP(void)
+uint32 CZ80::ImplementNOP(void)
 {
 	//
 	// Operation:	---
@@ -3171,12 +3180,12 @@ void CZ80::ImplementNOP(void)
 	//
 	IncrementR(1);
 	++m_PC;
-	m_tstate += 4;
+	return 4;
 }
 
 //=============================================================================
 
-void CZ80::ImplementHALT(void)
+uint32 CZ80::ImplementHALT(void)
 {
 	//
 	// Operation:	---
@@ -3191,12 +3200,12 @@ void CZ80::ImplementHALT(void)
 	//
 	IncrementR(1);
 	// Intentionally don't increment PC
-	m_tstate += 4;
+	return 4;
 }
 
 //=============================================================================
 
-void CZ80::ImplementDI(void)
+uint32 CZ80::ImplementDI(void)
 {
 	//
 	// Operation:	IFF <- 0
@@ -3213,12 +3222,12 @@ void CZ80::ImplementDI(void)
 	++m_PC;
 	m_State.m_IFF1 = 0;
 	m_State.m_IFF2 = 0;
-	m_tstate += 4;
+	return 4;
 }
 
 //=============================================================================
 
-void CZ80::ImplementEI(void)
+uint32 CZ80::ImplementEI(void)
 {
 	//
 	// Operation:	IFF <- 1
@@ -3235,12 +3244,12 @@ void CZ80::ImplementEI(void)
 	++m_PC;
 	m_State.m_IFF1 = 1;
 	m_State.m_IFF2 = 1;
-	m_tstate += 4;
+	return 4;
 }
 
 //=============================================================================
 
-void CZ80::ImplementIM0(void)
+uint32 CZ80::ImplementIM0(void)
 {
 	//
 	// Operation:	---
@@ -3258,12 +3267,12 @@ void CZ80::ImplementIM0(void)
 	IncrementR(2);
 	++++m_PC;
 	m_State.m_InterruptMode = 0;
-	m_tstate += 8;
+	return 8;
 }
 
 //=============================================================================
 
-void CZ80::ImplementIM1(void)
+uint32 CZ80::ImplementIM1(void)
 {
 	//
 	// Operation:	---
@@ -3281,12 +3290,12 @@ void CZ80::ImplementIM1(void)
 	IncrementR(2);
 	++++m_PC;
 	m_State.m_InterruptMode = 1;
-	m_tstate += 8;
+	return 8;
 }
 
 //=============================================================================
 
-void CZ80::ImplementIM2(void)
+uint32 CZ80::ImplementIM2(void)
 {
 	//
 	// Operation:	---
@@ -3304,7 +3313,7 @@ void CZ80::ImplementIM2(void)
 	IncrementR(2);
 	++++m_PC;
 	m_State.m_InterruptMode = 2;
-	m_tstate += 8;
+	return 8;
 }
 
 //=============================================================================
@@ -3315,7 +3324,7 @@ void CZ80::ImplementIM2(void)
 
 //=============================================================================
 
-void CZ80::ImplementADDHLdd(void)
+uint32 CZ80::ImplementADDHLdd(void)
 {
 	//
 	// Operation:	HL <- HL+dd
@@ -3341,12 +3350,12 @@ void CZ80::ImplementADDHLdd(void)
 	uint16 flag_calc = ((origHL & source & ~m_HL) | (~origHL & ~source & m_HL));
 	m_F &= (eF_S | eF_Z | eF_PV);
 	m_F |= (((flag_calc & 0x8000) >> 15) & eF_C) | (((flag_calc & 0x0800) >> 7) & eF_H);
-	m_tstate += 11;
+	return 11;
 }
 
 //=============================================================================
 
-void CZ80::ImplementADCHLdd(void)
+uint32 CZ80::ImplementADCHLdd(void)
 {
 	//
 	// Operation:	HL <- HL+dd+C
@@ -3373,12 +3382,12 @@ void CZ80::ImplementADCHLdd(void)
 	m_HL += source;
 	uint16 flag_calc = ((origHL & source & ~m_HL) | (~origHL & ~source & m_HL));
 	m_F = ((m_HL >> 8) & eF_S) | ((m_HL == 0) ? eF_Z : 0) | (((flag_calc & 0x8000) >> 15) & eF_C) | (((flag_calc & 0x0800) >> 7) & eF_H);
-	m_tstate += 15;
+	return 15;
 }
 
 //=============================================================================
 
-void CZ80::ImplementSBCHLdd(void)
+uint32 CZ80::ImplementSBCHLdd(void)
 {
 	//
 	// Operation:	HL <- HL-dd-C
@@ -3405,12 +3414,12 @@ void CZ80::ImplementSBCHLdd(void)
 	m_HL -= source;
 	uint16 flag_calc = ((origHL & source & ~m_HL) | (~origHL & ~source & m_HL));
 	m_F = ((m_HL >> 8) & eF_S) | ((m_HL == 0) ? eF_Z : 0) | eF_N | (((flag_calc & 0x8000) >> 15) & eF_C) | (((flag_calc & 0x0800) >> 7) & eF_H);
-	m_tstate += 15;
+	return 15;
 }
 
 //=============================================================================
 
-void CZ80::ImplementADDIXdd(void)
+uint32 CZ80::ImplementADDIXdd(void)
 {
 	//
 	// Operation:	HL <- IX+dd
@@ -3439,12 +3448,12 @@ void CZ80::ImplementADDIXdd(void)
 	uint16 flag_calc = ((origHL & source & ~m_HL) | (~origHL & ~source & m_HL));
 	m_F &= (eF_S | eF_Z | eF_PV);
 	m_F |= (((flag_calc & 0x8000) >> 15) & eF_C) | (((flag_calc & 0x0800) >> 7) & eF_H);
-	m_tstate += 15;
+	return 15;
 }
 
 //=============================================================================
 
-void CZ80::ImplementADDIYdd(void)
+uint32 CZ80::ImplementADDIYdd(void)
 {
 	//
 	// Operation:	HL <- IY+dd
@@ -3473,12 +3482,12 @@ void CZ80::ImplementADDIYdd(void)
 	uint16 flag_calc = ((origHL & source & ~m_HL) | (~origHL & ~source & m_HL));
 	m_F &= (eF_S | eF_Z | eF_PV);
 	m_F |= (((flag_calc & 0x8000) >> 15) & eF_C) | (((flag_calc & 0x0800) >> 7) & eF_H);
-	m_tstate += 15;
+	return 15;
 }
 
 //=============================================================================
 
-void CZ80::ImplementINCdd(void)
+uint32 CZ80::ImplementINCdd(void)
 {
 	//
 	// Operation:	dd <- dd+1
@@ -3493,12 +3502,12 @@ void CZ80::ImplementINCdd(void)
 	//
 	IncrementR(1);
 	++REGISTER_16BIT(m_pMemory[m_PC++] >> 4);
-	m_tstate += 6;
+	return 6;
 }
 
 //=============================================================================
 
-void CZ80::ImplementINCIXdd(void)
+uint32 CZ80::ImplementINCIXdd(void)
 {
 	//
 	// Operation:	IX <- IX+1
@@ -3516,12 +3525,12 @@ void CZ80::ImplementINCIXdd(void)
 	IncrementR(2);
 	++++m_PC;
 	++m_IX;
-	m_tstate += 10;
+	return 10;
 }
 
 //=============================================================================
 
-void CZ80::ImplementINCIYdd(void)
+uint32 CZ80::ImplementINCIYdd(void)
 {
 	//
 	// Operation:	IY <- IX+1
@@ -3539,12 +3548,12 @@ void CZ80::ImplementINCIYdd(void)
 	IncrementR(2);
 	++++m_PC;
 	++m_IY;
-	m_tstate += 10;
+	return 10;
 }
 
 //=============================================================================
 
-void CZ80::ImplementDECdd(void)
+uint32 CZ80::ImplementDECdd(void)
 {
 	//
 	// Operation:	dd <- dd-1
@@ -3559,12 +3568,12 @@ void CZ80::ImplementDECdd(void)
 	//
 	IncrementR(1);
 	--REGISTER_16BIT(m_pMemory[m_PC++] >> 4);
-	m_tstate += 6;
+	return 6;
 }
 
 //=============================================================================
 
-void CZ80::ImplementDECIXdd(void)
+uint32 CZ80::ImplementDECIXdd(void)
 {
 	//
 	// Operation:	IX <- IX-1
@@ -3582,12 +3591,12 @@ void CZ80::ImplementDECIXdd(void)
 	IncrementR(2);
 	++++m_PC;
 	--m_IX;
-	m_tstate += 10;
+	return 10;
 }
 
 //=============================================================================
 
-void CZ80::ImplementDECIYdd(void)
+uint32 CZ80::ImplementDECIYdd(void)
 {
 	//
 	// Operation:	IY <- IY-1
@@ -3605,7 +3614,7 @@ void CZ80::ImplementDECIYdd(void)
 	IncrementR(2);
 	++++m_PC;
 	--m_IY;
-	m_tstate += 10;
+	return 10;
 }
 
 //=============================================================================
@@ -3616,7 +3625,7 @@ void CZ80::ImplementDECIYdd(void)
 
 //=============================================================================
 
-void CZ80::ImplementRLCA(void)
+uint32 CZ80::ImplementRLCA(void)
 {
 	//
 	// Operation:	C <- 7<-0 A
@@ -3635,12 +3644,12 @@ void CZ80::ImplementRLCA(void)
 	uint8 carry = (m_A & eF_S) >> 7;
 	m_A = (m_A << 1) | carry;
 	m_F = (m_F & ~(eF_C | eF_H | eF_N)) | carry;
-	m_tstate += 4;
+	return 4;
 }
 
 //=============================================================================
 
-void CZ80::ImplementRLA(void)
+uint32 CZ80::ImplementRLA(void)
 {
 	//
 	// Operation:	C <- 7<-0 A
@@ -3659,12 +3668,12 @@ void CZ80::ImplementRLA(void)
 	uint8 carry = (m_A & eF_S) >> 7;
 	m_A = (m_A << 1) | (m_F & eF_C);
 	m_F = (m_F & ~(eF_C | eF_H | eF_N)) | carry;
-	m_tstate += 4;
+	return 4;
 }
 
 //=============================================================================
 
-void CZ80::ImplementRRCA(void)
+uint32 CZ80::ImplementRRCA(void)
 {
 	//
 	// Operation:	A 7->0 -> C
@@ -3683,12 +3692,12 @@ void CZ80::ImplementRRCA(void)
 	uint8 carry = (m_A & eF_C);
 	m_A = (m_A >> 1) | (carry << 7);
 	m_F = (m_F & ~(eF_C | eF_H | eF_N)) | carry;
-	m_tstate += 4;
+	return 4;
 }
 
 //=============================================================================
 
-void CZ80::ImplementRRA(void)
+uint32 CZ80::ImplementRRA(void)
 {
 	//
 	// Operation:	A 7->0 -> C
@@ -3707,12 +3716,12 @@ void CZ80::ImplementRRA(void)
 	uint8 carry = (m_A & eF_C);
 	m_A = (m_A >> 1) | ((m_F & eF_C) << 7);
 	m_F = (m_F & ~(eF_C | eF_H | eF_N)) | carry;
-	m_tstate += 4;
+	return 4;
 }
 
 //=============================================================================
 
-void CZ80::ImplementRLCr(void)
+uint32 CZ80::ImplementRLCr(void)
 {
 	//
 	// Operation:	C <- 7<-0 r
@@ -3738,12 +3747,12 @@ void CZ80::ImplementRLCr(void)
 	parity &= 0xF;
 	parity = ((0x6996 >> parity) << 2) & eF_PV;
 	m_F = (reg & (eF_S | eF_X | eF_Y)) | ((reg == 0) ? eF_Z : 0) | parity | carry;
-	m_tstate += 8;
+	return 8;
 }
 
 //=============================================================================
 
-void CZ80::ImplementRLC_HL_(void)
+uint32 CZ80::ImplementRLC_HL_(void)
 {
 	//
 	// Operation:	C <- 7<-0 (HL)
@@ -3769,12 +3778,12 @@ void CZ80::ImplementRLC_HL_(void)
 	parity &= 0xF;
 	parity = ((0x6996 >> parity) << 2) & eF_PV;
 	m_F = (loc & (eF_S | eF_X | eF_Y)) | ((loc == 0) ? eF_Z : 0) | parity | carry;
-	m_tstate += 15;
+	return 15;
 }
 
 //=============================================================================
 
-void CZ80::ImplementRLC_IXd_(void)
+uint32 CZ80::ImplementRLC_IXd_(void)
 {
 	//
 	// Operation:	C <- 7<-0 (IX+d)
@@ -3805,12 +3814,12 @@ void CZ80::ImplementRLC_IXd_(void)
 	parity &= 0xF;
 	parity = ((0x6996 >> parity) << 2) & eF_PV;
 	m_F = (loc & (eF_S | eF_X | eF_Y)) | ((loc == 0) ? eF_Z : 0) | parity | carry;
-	m_tstate += 23;
+	return 23;
 }
 
 //=============================================================================
 
-void CZ80::ImplementRLC_IYd_(void)
+uint32 CZ80::ImplementRLC_IYd_(void)
 {
 	//
 	// Operation:	C <- 7<-0 (IY+d)
@@ -3841,12 +3850,12 @@ void CZ80::ImplementRLC_IYd_(void)
 	parity &= 0xF;
 	parity = ((0x6996 >> parity) << 2) & eF_PV;
 	m_F = (loc & (eF_S | eF_X | eF_Y)) | ((loc == 0) ? eF_Z : 0) | parity | carry;
-	m_tstate += 23;
+	return 23;
 }
 
 //=============================================================================
 
-void CZ80::ImplementRLr(void)
+uint32 CZ80::ImplementRLr(void)
 {
 	//
 	// Operation:	C <- 7<-0 r
@@ -3872,12 +3881,12 @@ void CZ80::ImplementRLr(void)
 	parity &= 0xF;
 	parity = ((0x6996 >> parity) << 2) & eF_PV;
 	m_F = (reg & (eF_S | eF_X | eF_Y)) | ((reg == 0) ? eF_Z : 0) | parity | carry;
-	m_tstate += 8;
+	return 8;
 }
 
 //=============================================================================
 
-void CZ80::ImplementRL_HL_(void)
+uint32 CZ80::ImplementRL_HL_(void)
 {
 	//
 	// Operation:	C <- 7<-0 (HL)
@@ -3903,12 +3912,12 @@ void CZ80::ImplementRL_HL_(void)
 	parity &= 0xF;
 	parity = ((0x6996 >> parity) << 2) & eF_PV;
 	m_F = (loc & (eF_S | eF_X | eF_Y)) | ((loc == 0) ? eF_Z : 0) | parity | carry;
-	m_tstate += 15;
+	return 15;
 }
 
 //=============================================================================
 
-void CZ80::ImplementRL_IXd_(void)
+uint32 CZ80::ImplementRL_IXd_(void)
 {
 	//
 	// Operation:	C <- 7<-0 (IX+d)
@@ -3939,12 +3948,12 @@ void CZ80::ImplementRL_IXd_(void)
 	parity &= 0xF;
 	parity = ((0x6996 >> parity) << 2) & eF_PV;
 	m_F = (loc & (eF_S | eF_X | eF_Y)) | ((loc == 0) ? eF_Z : 0) | parity | carry;
-	m_tstate += 23;
+	return 23;
 }
 
 //=============================================================================
 
-void CZ80::ImplementRL_IYd_(void)
+uint32 CZ80::ImplementRL_IYd_(void)
 {
 	//
 	// Operation:	C <- 7<-0 (IY+d)
@@ -3975,12 +3984,12 @@ void CZ80::ImplementRL_IYd_(void)
 	parity &= 0xF;
 	parity = ((0x6996 >> parity) << 2) & eF_PV;
 	m_F = (loc & (eF_S | eF_X | eF_Y)) | ((loc == 0) ? eF_Z : 0) | parity | carry;
-	m_tstate += 23;
+	return 23;
 }
 
 //=============================================================================
 
-void CZ80::ImplementRRCr(void)
+uint32 CZ80::ImplementRRCr(void)
 {
 	//
 	// Operation:	r 7->0 -> C
@@ -4006,12 +4015,12 @@ void CZ80::ImplementRRCr(void)
 	parity &= 0xF;
 	parity = ((0x6996 >> parity) << 2) & eF_PV;
 	m_F = (reg & (eF_S | eF_X | eF_Y)) | ((reg == 0) ? eF_Z : 0) | parity | carry;
-	m_tstate += 8;
+	return 8;
 }
 
 //=============================================================================
 
-void CZ80::ImplementRRC_HL_(void)
+uint32 CZ80::ImplementRRC_HL_(void)
 {
 	//
 	// Operation:	(HL) 7->0 -> C
@@ -4037,12 +4046,12 @@ void CZ80::ImplementRRC_HL_(void)
 	parity &= 0xF;
 	parity = ((0x6996 >> parity) << 2) & eF_PV;
 	m_F = (loc & (eF_S | eF_X | eF_Y)) | ((loc == 0) ? eF_Z : 0) | parity | carry;
-	m_tstate += 15;
+	return 15;
 }
 
 //=============================================================================
 
-void CZ80::ImplementRRC_IXd_(void)
+uint32 CZ80::ImplementRRC_IXd_(void)
 {
 	//
 	// Operation:	(IX+d) 7->0 -> C
@@ -4073,12 +4082,12 @@ void CZ80::ImplementRRC_IXd_(void)
 	parity &= 0xF;
 	parity = ((0x6996 >> parity) << 2) & eF_PV;
 	m_F = (loc & (eF_S | eF_X | eF_Y)) | ((loc == 0) ? eF_Z : 0) | parity | carry;
-	m_tstate += 23;
+	return 23;
 }
 
 //=============================================================================
 
-void CZ80::ImplementRRC_IYd_(void)
+uint32 CZ80::ImplementRRC_IYd_(void)
 {
 	//
 	// Operation:	(IY+d) 7->0 -> C
@@ -4109,12 +4118,12 @@ void CZ80::ImplementRRC_IYd_(void)
 	parity &= 0xF;
 	parity = ((0x6996 >> parity) << 2) & eF_PV;
 	m_F = (loc & (eF_S | eF_X | eF_Y)) | ((loc == 0) ? eF_Z : 0) | parity | carry;
-	m_tstate += 23;
+	return 23;
 }
 
 //=============================================================================
 
-void CZ80::ImplementRRr(void)
+uint32 CZ80::ImplementRRr(void)
 {
 	//
 	// Operation:	r 7->0 -> C
@@ -4140,12 +4149,12 @@ void CZ80::ImplementRRr(void)
 	parity &= 0xF;
 	parity = ((0x6996 >> parity) << 2) & eF_PV;
 	m_F = (reg & (eF_S | eF_X | eF_Y)) | ((reg == 0) ? eF_Z : 0) | parity | carry;
-	m_tstate += 8;
+	return 8;
 }
 
 //=============================================================================
 
-void CZ80::ImplementRR_HL_(void)
+uint32 CZ80::ImplementRR_HL_(void)
 {
 	//
 	// Operation:	(HL) 7->0 -> C
@@ -4171,12 +4180,12 @@ void CZ80::ImplementRR_HL_(void)
 	parity &= 0xF;
 	parity = ((0x6996 >> parity) << 2) & eF_PV;
 	m_F = (loc & (eF_S | eF_X | eF_Y)) | ((loc == 0) ? eF_Z : 0) | parity | carry;
-	m_tstate += 15;
+	return 15;
 }
 
 //=============================================================================
 
-void CZ80::ImplementRR_IXd_(void)
+uint32 CZ80::ImplementRR_IXd_(void)
 {
 	//
 	// Operation:	(IX+d) 7->0 -> C
@@ -4207,12 +4216,12 @@ void CZ80::ImplementRR_IXd_(void)
 	parity &= 0xF;
 	parity = ((0x6996 >> parity) << 2) & eF_PV;
 	m_F = (loc & (eF_S | eF_X | eF_Y)) | ((loc == 0) ? eF_Z : 0) | parity | carry;
-	m_tstate += 23;
+	return 23;
 }
 
 //=============================================================================
 
-void CZ80::ImplementRR_IYd_(void)
+uint32 CZ80::ImplementRR_IYd_(void)
 {
 	//
 	// Operation:	(IY+d) 7->0 -> C
@@ -4243,12 +4252,12 @@ void CZ80::ImplementRR_IYd_(void)
 	parity &= 0xF;
 	parity = ((0x6996 >> parity) << 2) & eF_PV;
 	m_F = (loc & (eF_S | eF_X | eF_Y)) | ((loc == 0) ? eF_Z : 0) | parity | carry;
-	m_tstate += 23;
+	return 23;
 }
 
 //=============================================================================
 
-void CZ80::ImplementSLAr(void)
+uint32 CZ80::ImplementSLAr(void)
 {
 	//
 	// Operation:	C <- 7<-0 r
@@ -4273,12 +4282,12 @@ void CZ80::ImplementSLAr(void)
 	parity &= 0xF;
 	parity = ((0x6996 >> parity) << 2) & eF_PV;
 	m_F = (reg & (eF_S | eF_X | eF_Y)) | ((reg == 0) ? eF_Z : 0) | parity | carry;
-	m_tstate += 8;
+	return 8;
 }
 
 //=============================================================================
 
-void CZ80::ImplementSLA_HL_(void)
+uint32 CZ80::ImplementSLA_HL_(void)
 {
 	//
 	// Operation:	C <- 7<-0 (HL)
@@ -4303,12 +4312,12 @@ void CZ80::ImplementSLA_HL_(void)
 	parity &= 0xF;
 	parity = ((0x6996 >> parity) << 2) & eF_PV;
 	m_F = (loc & (eF_S | eF_X | eF_Y)) | ((loc == 0) ? eF_Z : 0) | parity | carry;
-	m_tstate += 15;
+	return 15;
 }
 
 //=============================================================================
 
-void CZ80::ImplementSLA_IXd_(void)
+uint32 CZ80::ImplementSLA_IXd_(void)
 {
 	//
 	// Operation:	C <- 7<-0 (IX+d)
@@ -4338,12 +4347,12 @@ void CZ80::ImplementSLA_IXd_(void)
 	parity &= 0xF;
 	parity = ((0x6996 >> parity) << 2) & eF_PV;
 	m_F = (loc & (eF_S | eF_X | eF_Y)) | ((loc == 0) ? eF_Z : 0) | parity | carry;
-	m_tstate += 23;
+	return 23;
 }
 
 //=============================================================================
 
-void CZ80::ImplementSLA_IYd_(void)
+uint32 CZ80::ImplementSLA_IYd_(void)
 {
 	//
 	// Operation:	C <- 7<-0 (IY+d)
@@ -4373,12 +4382,12 @@ void CZ80::ImplementSLA_IYd_(void)
 	parity &= 0xF;
 	parity = ((0x6996 >> parity) << 2) & eF_PV;
 	m_F = (loc & (eF_S | eF_X | eF_Y)) | ((loc == 0) ? eF_Z : 0) | parity | carry;
-	m_tstate += 23;
+	return 23;
 }
 
 //=============================================================================
 
-void CZ80::ImplementSRAr(void)
+uint32 CZ80::ImplementSRAr(void)
 {
 	//
 	// Operation:	r 7->0 -> C
@@ -4404,12 +4413,12 @@ void CZ80::ImplementSRAr(void)
 	parity &= 0xF;
 	parity = ((0x6996 >> parity) << 2) & eF_PV;
 	m_F = (reg & (eF_S | eF_X | eF_Y)) | ((reg == 0) ? eF_Z : 0) | parity | carry;
-	m_tstate += 8;
+	return 8;
 }
 
 //=============================================================================
 
-void CZ80::ImplementSRA_HL_(void)
+uint32 CZ80::ImplementSRA_HL_(void)
 {
 	//
 	// Operation:	(HL) 7->0 -> C
@@ -4436,12 +4445,12 @@ void CZ80::ImplementSRA_HL_(void)
 	parity &= 0xF;
 	parity = ((0x6996 >> parity) << 2) & eF_PV;
 	m_F = (loc & (eF_S | eF_X | eF_Y)) | ((loc == 0) ? eF_Z : 0) | parity | carry;
-	m_tstate += 15;
+	return 15;
 }
 
 //=============================================================================
 
-void CZ80::ImplementSRA_IXd_(void)
+uint32 CZ80::ImplementSRA_IXd_(void)
 {
 	//
 	// Operation:	(IX+d) 7->0 -> C
@@ -4473,12 +4482,12 @@ void CZ80::ImplementSRA_IXd_(void)
 	parity &= 0xF;
 	parity = ((0x6996 >> parity) << 2) & eF_PV;
 	m_F = (loc & (eF_S | eF_X | eF_Y)) | ((loc == 0) ? eF_Z : 0) | parity | carry;
-	m_tstate += 23;
+	return 23;
 }
 
 //=============================================================================
 
-void CZ80::ImplementSRA_IYd_(void)
+uint32 CZ80::ImplementSRA_IYd_(void)
 {
 	//
 	// Operation:	(IY+d) 7->0 -> C
@@ -4510,12 +4519,12 @@ void CZ80::ImplementSRA_IYd_(void)
 	parity &= 0xF;
 	parity = ((0x6996 >> parity) << 2) & eF_PV;
 	m_F = (loc & (eF_S | eF_X | eF_Y)) | ((loc == 0) ? eF_Z : 0) | parity | carry;
-	m_tstate += 23;
+	return 23;
 }
 
 //=============================================================================
 
-void CZ80::ImplementSRLr(void)
+uint32 CZ80::ImplementSRLr(void)
 {
 	//
 	// Operation:	0 -> r 7->0 -> C
@@ -4539,12 +4548,12 @@ void CZ80::ImplementSRLr(void)
 	parity &= 0xF;
 	parity = ((0x6996 >> parity) << 2) & eF_PV;
 	m_F = (reg & (eF_S | eF_X | eF_Y)) | ((reg == 0) ? eF_Z : 0) | parity | carry;
-	m_tstate += 8;
+	return 8;
 }
 
 //=============================================================================
 
-void CZ80::ImplementSRL_HL_(void)
+uint32 CZ80::ImplementSRL_HL_(void)
 {
 	//
 	// Operation:	0 -> (HL) 7->0 -> C
@@ -4569,12 +4578,12 @@ void CZ80::ImplementSRL_HL_(void)
 	parity &= 0xF;
 	parity = ((0x6996 >> parity) << 2) & eF_PV;
 	m_F = (loc & (eF_S | eF_X | eF_Y)) | ((loc == 0) ? eF_Z : 0) | parity | carry;
-	m_tstate += 15;
+	return 15;
 }
 
 //=============================================================================
 
-void CZ80::ImplementSRL_IXd_(void)
+uint32 CZ80::ImplementSRL_IXd_(void)
 {
 	//
 	// Operation:	0 -> (IX+d) 7->0 -> C
@@ -4605,12 +4614,12 @@ void CZ80::ImplementSRL_IXd_(void)
 	parity &= 0xF;
 	parity = ((0x6996 >> parity) << 2) & eF_PV;
 	m_F = (loc & (eF_S | eF_X | eF_Y)) | ((loc == 0) ? eF_Z : 0) | parity | carry;
-	m_tstate += 23;
+	return 23;
 }
 
 //=============================================================================
 
-void CZ80::ImplementSRL_IYd_(void)
+uint32 CZ80::ImplementSRL_IYd_(void)
 {
 	//
 	// Operation:	0 -> (IY+d) 7->0 -> C
@@ -4640,12 +4649,12 @@ void CZ80::ImplementSRL_IYd_(void)
 	parity &= 0xF;
 	parity = ((0x6996 >> parity) << 2) & eF_PV;
 	m_F = (loc & (eF_S | eF_X | eF_Y)) | ((loc == 0) ? eF_Z : 0) | parity | carry;
-	m_tstate += 23;
+	return 23;
 }
 
 //=============================================================================
 
-void CZ80::ImplementRLD(void)
+uint32 CZ80::ImplementRLD(void)
 {
 	//
 	//										+----->-----+
@@ -4673,12 +4682,12 @@ void CZ80::ImplementRLD(void)
 	parity = ((0x6996 >> parity) << 2) & eF_PV;
 	m_F &= eF_C;
 	m_F |= (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | parity;
-	m_tstate += 18;
+	return 18;
 }
 
 //=============================================================================
 
-void CZ80::ImplementRRD(void)
+uint32 CZ80::ImplementRRD(void)
 {
 	//
 	//										+--->--+ +->+
@@ -4706,7 +4715,7 @@ void CZ80::ImplementRRD(void)
 	parity = ((0x6996 >> parity) << 2) & eF_PV;
 	m_F &= eF_C;
 	m_F |= (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | parity;
-	m_tstate += 18;
+	return 18;
 }
 
 //=============================================================================
@@ -4717,7 +4726,7 @@ void CZ80::ImplementRRD(void)
 
 //=============================================================================
 
-void CZ80::ImplementBITbr(void)
+uint32 CZ80::ImplementBITbr(void)
 {
 	//
 	// Operation:	Z <- rb
@@ -4747,12 +4756,12 @@ void CZ80::ImplementBITbr(void)
 	uint8& reg = REGISTER_8BIT(m_pMemory[m_PC]);
 	m_F &= ~eF_Z;
 	m_F |= (reg & mask) ? eF_Z : 0;
-	m_tstate += 8;
+	return 8;
 }
 
 //=============================================================================
 
-void CZ80::ImplementBITb_HL_(void)
+uint32 CZ80::ImplementBITb_HL_(void)
 {
 	//
 	// Operation:	Z <- (HL)b
@@ -4773,12 +4782,12 @@ void CZ80::ImplementBITb_HL_(void)
 	uint8& loc = m_pMemory[m_HL];
 	m_F &= ~eF_Z;
 	m_F |= (loc & mask) ? eF_Z : 0;
-	m_tstate += 12;
+	return 12;
 }
 
 //=============================================================================
 
-void CZ80::ImplementBITb_IXd_(void)
+uint32 CZ80::ImplementBITb_IXd_(void)
 {
 	//
 	// Operation:	Z <- (IX+d)b
@@ -4804,12 +4813,12 @@ void CZ80::ImplementBITb_IXd_(void)
 	++m_PC;
 	m_F &= ~eF_Z;
 	m_F |= (loc & mask) ? eF_Z : 0;
-	m_tstate += 20;
+	return 20;
 }
 
 //=============================================================================
 
-void CZ80::ImplementBITb_IYd_(void)
+uint32 CZ80::ImplementBITb_IYd_(void)
 {
 	//
 	// Operation:	Z <- (IX+d)b
@@ -4835,12 +4844,12 @@ void CZ80::ImplementBITb_IYd_(void)
 	++m_PC;
 	m_F &= ~eF_Z;
 	m_F |= (loc & mask) ? eF_Z : 0;
-	m_tstate += 20;
+	return 20;
 }
 
 //=============================================================================
 
-void CZ80::ImplementSETbr(void)
+uint32 CZ80::ImplementSETbr(void)
 {
 	//
 	// Operation:	rb <- 1
@@ -4869,12 +4878,12 @@ void CZ80::ImplementSETbr(void)
 	++m_PC;
 	uint8& reg = REGISTER_8BIT(m_pMemory[m_PC]);
 	reg |= mask;
-	m_tstate += 8;
+	return 8;
 }
 
 //=============================================================================
 
-void CZ80::ImplementSETb_HL_(void)
+uint32 CZ80::ImplementSETb_HL_(void)
 {
 	//
 	// Operation:	(HL) <- 1
@@ -4894,12 +4903,12 @@ void CZ80::ImplementSETb_HL_(void)
 	++m_PC;
 	uint8& loc = m_pMemory[m_HL];
 	loc |= mask;
-	m_tstate += 12;
+	return 12;
 }
 
 //=============================================================================
 
-void CZ80::ImplementSETb_IXd_(void)
+uint32 CZ80::ImplementSETb_IXd_(void)
 {
 	//
 	// Operation:	(IX+d)b <- 1
@@ -4924,12 +4933,12 @@ void CZ80::ImplementSETb_IXd_(void)
 	uint8 mask = 1 << ((m_pMemory[++m_PC] & 0x38) >> 3);
 	++m_PC;
 	loc |= mask;
-	m_tstate += 20;
+	return 20;
 }
 
 //=============================================================================
 
-void CZ80::ImplementSETb_IYd_(void)
+uint32 CZ80::ImplementSETb_IYd_(void)
 {
 	//
 	// Operation:	(IY+d)b <- 1
@@ -4954,12 +4963,12 @@ void CZ80::ImplementSETb_IYd_(void)
 	uint8 mask = 1 << ((m_pMemory[++m_PC] & 0x38) >> 3);
 	++m_PC;
 	loc |= mask;
-	m_tstate += 20;
+	return 20;
 }
 
 //=============================================================================
 
-void CZ80::ImplementRESbr(void)
+uint32 CZ80::ImplementRESbr(void)
 {
 	//
 	// Operation:	rb <- 1
@@ -4988,12 +4997,12 @@ void CZ80::ImplementRESbr(void)
 	++m_PC;
 	uint8& reg = REGISTER_8BIT(m_pMemory[m_PC]);
 	reg &= ~mask;
-	m_tstate += 8;
+	return 8;
 }
 
 //=============================================================================
 
-void CZ80::ImplementRESb_HL_(void)
+uint32 CZ80::ImplementRESb_HL_(void)
 {
 	//
 	// Operation:	(HL) <- 1
@@ -5013,12 +5022,12 @@ void CZ80::ImplementRESb_HL_(void)
 	++m_PC;
 	uint8& loc = m_pMemory[m_HL];
 	loc &= ~mask;
-	m_tstate += 12;
+	return 12;
 }
 
 //=============================================================================
 
-void CZ80::ImplementRESb_IXd_(void)
+uint32 CZ80::ImplementRESb_IXd_(void)
 {
 	//
 	// Operation:	(IX+d)b <- 1
@@ -5043,12 +5052,12 @@ void CZ80::ImplementRESb_IXd_(void)
 	uint8 mask = 1 << ((m_pMemory[++m_PC] & 0x38) >> 3);
 	++m_PC;
 	loc &= ~mask;
-	m_tstate += 20;
+	return 20;
 }
 
 //=============================================================================
 
-void CZ80::ImplementRESb_IYd_(void)
+uint32 CZ80::ImplementRESb_IYd_(void)
 {
 	//
 	// Operation:	(IY+d)b <- 1
@@ -5073,7 +5082,7 @@ void CZ80::ImplementRESb_IYd_(void)
 	uint8 mask = 1 << ((m_pMemory[++m_PC] & 0x38) >> 3);
 	++m_PC;
 	loc &= ~mask;
-	m_tstate += 20;
+	return 20;
 }
 
 //=============================================================================
@@ -5084,7 +5093,7 @@ void CZ80::ImplementRESb_IYd_(void)
 
 //=============================================================================
 
-void CZ80::ImplementJPnn(void)
+uint32 CZ80::ImplementJPnn(void)
 {
 	//
 	// Operation:	PC <- nn
@@ -5105,12 +5114,12 @@ void CZ80::ImplementJPnn(void)
 	++m_PC;
 	uint16 addr = m_pMemory[m_PC] + (static_cast<int16>(m_pMemory[m_PC + 1]) << 8);
 	m_PC = addr;
-	m_tstate += 10;
+	return 10;
 }
 
 //=============================================================================
 
-void CZ80::ImplementJPccnn(void)
+uint32 CZ80::ImplementJPccnn(void)
 {
 	//
 	// Operation:	If cc true, PC <- nn
@@ -5157,12 +5166,12 @@ void CZ80::ImplementJPccnn(void)
 			m_PC = (m_F & eF_S) ? addr : m_PC + 2;
 			break;
 	}
-	m_tstate += 10;
+	return 10;
 }
 
 //=============================================================================
 
-void CZ80::ImplementJRe(void)
+uint32 CZ80::ImplementJRe(void)
 {
 	//
 	// Operation:	PC <- PC + e
@@ -5179,12 +5188,12 @@ void CZ80::ImplementJRe(void)
 	//
 	IncrementR(1);
 	m_PC = (m_PC + 2) + static_cast<int16>(m_pMemory[m_PC + 1]);
-	m_tstate += 12;
+	return 12;
 }
 
 //=============================================================================
 
-void CZ80::ImplementJRCe(void)
+uint32 CZ80::ImplementJRCe(void)
 {
 	//
 	// Operation: if C == 0, continue
@@ -5202,22 +5211,24 @@ void CZ80::ImplementJRCe(void)
 	//								3						12 (4,3,5)				3.00		C == 1
 	//
 	IncrementR(1);
+	uint32 tstates = 0;
 	uint16 addr = (m_PC + 2) + static_cast<int16>(m_pMemory[m_PC + 1]);
 	if (m_F & eF_C)
 	{
 		m_PC = addr;
-		m_tstate += 12;
+		tstates += 12;
 	}
 	else
 	{
 		m_PC += 2;
-		m_tstate += 7;
+		tstates += 7;
 	}
+	return tstates;
 }
 
 //=============================================================================
 
-void CZ80::ImplementJRNCe(void)
+uint32 CZ80::ImplementJRNCe(void)
 {
 	//
 	// Operation: if C == 1, continue
@@ -5235,22 +5246,24 @@ void CZ80::ImplementJRNCe(void)
 	//								3						12 (4,3,5)				3.00		C == 0
 	//
 	IncrementR(1);
+	uint32 tstates = 0;
 	uint16 addr = (m_PC + 2) + static_cast<int16>(m_pMemory[m_PC + 1]);
 	if (m_F & eF_C)
 	{
 		m_PC += 2;
-		m_tstate += 7;
+		tstates += 7;
 	}
 	else
 	{
 		m_PC = addr;
-		m_tstate += 12;
+		tstates += 12;
 	}
+	return tstates;
 }
 
 //=============================================================================
 
-void CZ80::ImplementJRZe(void)
+uint32 CZ80::ImplementJRZe(void)
 {
 	//
 	// Operation: if Z == 0, continue
@@ -5268,22 +5281,24 @@ void CZ80::ImplementJRZe(void)
 	//								3						12 (4,3,5)				3.00		Z == 1
 	//
 	IncrementR(1);
+	uint32 tstates = 0;
 	uint16 addr = (m_PC + 2) + static_cast<int16>(m_pMemory[m_PC + 1]);
 	if (m_F & eF_Z)
 	{
 		m_PC = addr;
-		m_tstate += 12;
+		tstates += 12;
 	}
 	else
 	{
 		m_PC += 2;
-		m_tstate += 7;
+		tstates += 7;
 	}
+	return tstates;
 }
 
 //=============================================================================
 
-void CZ80::ImplementJRNZe(void)
+uint32 CZ80::ImplementJRNZe(void)
 {
 	//
 	// Operation: if Z == 1, continue
@@ -5301,22 +5316,24 @@ void CZ80::ImplementJRNZe(void)
 	//								3						12 (4,3,5)				3.00		Z == 0
 	//
 	IncrementR(1);
+	uint32 tstates = 0;
 	uint16 addr = (m_PC + 2) + static_cast<int16>(m_pMemory[m_PC + 1]);
 	if (m_F & eF_Z)
 	{
 		m_PC += 2;
-		m_tstate += 7;
+		tstates += 7;
 	}
 	else
 	{
 		m_PC = addr;
-		m_tstate += 12;
+		tstates += 12;
 	}
+	return tstates;
 }
 
 //=============================================================================
 
-void CZ80::ImplementJP_HL_(void)
+uint32 CZ80::ImplementJP_HL_(void)
 {
 	//
 	// Operation: PC <- HL
@@ -5331,12 +5348,12 @@ void CZ80::ImplementJP_HL_(void)
 	//
 	IncrementR(1);
 	m_PC = m_HL;
-	m_tstate += 4;
+	return 4;
 }
 
 //=============================================================================
 
-void CZ80::ImplementJP_IX_(void)
+uint32 CZ80::ImplementJP_IX_(void)
 {
 	// Operation: PC <- IX
 	// Op Code:		JP
@@ -5352,12 +5369,12 @@ void CZ80::ImplementJP_IX_(void)
 	//
 	IncrementR(2);
 	m_PC = m_IX;
-	m_tstate += 8;
+	return 8;
 }
 
 //=============================================================================
 
-void CZ80::ImplementJP_IY_(void)
+uint32 CZ80::ImplementJP_IY_(void)
 {
 	// Operation: PC <- IY
 	// Op Code:		JP
@@ -5373,12 +5390,12 @@ void CZ80::ImplementJP_IY_(void)
 	//
 	IncrementR(2);
 	m_PC = m_IY;
-	m_tstate += 8;
+	return 8;
 }
 
 //=============================================================================
 
-void CZ80::ImplementDJNZe(void)
+uint32 CZ80::ImplementDJNZe(void)
 {
 	//
 	// Operation: if (BC - 1) == 0, continue
@@ -5396,16 +5413,17 @@ void CZ80::ImplementDJNZe(void)
 	//								3						13 (5,3,5)				3.25		BC == 0
 	//
 	IncrementR(1);
+	uint32 tstates = 0;
 	uint16 addr = (m_PC + 2) + static_cast<int16>(m_pMemory[m_PC + 1]);
 	if (--m_BC == 0)
 	{
 		m_PC += 2;
-		m_tstate += 8;
+		tstates += 8;
 	}
 	else
 	{
 		m_PC = addr;
-		m_tstate += 13;
+		tstates += 13;
 	}
 }
 
@@ -5417,7 +5435,7 @@ void CZ80::ImplementDJNZe(void)
 
 //=============================================================================
 
-void CZ80::ImplementCALLnn(void)
+uint32 CZ80::ImplementCALLnn(void)
 {
 	//
 	// Operation: (SP - 1) <- PCH, (SP - 2) <- PCL, PC <- nn
@@ -5439,12 +5457,12 @@ void CZ80::ImplementCALLnn(void)
 	m_pMemory[--m_SP] = m_PCh;
 	m_pMemory[--m_SP] = m_PCl;
 	m_PC = addr;
-	m_tstate += 17;
+	return 17;
 }
 
 //=============================================================================
 
-void CZ80::ImplementCALLccnn(void)
+uint32 CZ80::ImplementCALLccnn(void)
 {
 	//
 	// Operation: If cc true, (SP - 1) <- PCH, (SP - 2) <- PCL, PC <- nn
@@ -5465,6 +5483,7 @@ void CZ80::ImplementCALLccnn(void)
 	IncrementR(1);
 	uint8 cc = (m_pMemory[m_PC++] & 0x38) >> 3;
 	uint16 addr = m_pMemory[m_PC] + (static_cast<int16>(m_pMemory[m_PC + 1]) << 8);
+	uint32 tstates = 0;
 	bool call = false;
 	switch (cc)
 	{
@@ -5499,18 +5518,19 @@ void CZ80::ImplementCALLccnn(void)
 		m_pMemory[--m_SP] = m_PCh;
 		m_pMemory[--m_SP] = m_PCl;
 		m_PC = addr;
-		m_tstate += 17;
+		tstates += 17;
 	}
 	else
 	{
 		m_PC += 2;
-		m_tstate += 10;
+		tstates += 10;
 	}
+	return tstates;
 }
 
 //=============================================================================
 
-void CZ80::ImplementRET(void)
+uint32 CZ80::ImplementRET(void)
 {
 	//
 	// Operation: PCl <- (SP), PCh <- (SP + 1)
@@ -5526,12 +5546,12 @@ void CZ80::ImplementRET(void)
 	IncrementR(1);
 	m_PCl = m_pMemory[m_SP++];
 	m_PCh = m_pMemory[m_SP++];
-	m_tstate += 10;
+	return 10;
 }
 
 //=============================================================================
 
-void CZ80::ImplementRETcc(void)
+uint32 CZ80::ImplementRETcc(void)
 {
 	//
 	// Operation: If cc true, PCl <- (SP), PCh <- (SP + 1)
@@ -5546,6 +5566,7 @@ void CZ80::ImplementRETcc(void)
 	//								1						5									1.25	cc is false
 	//
 	IncrementR(1);
+	uint32 tstates = 0;
 	uint8 cc = (m_pMemory[m_PC++] & 0x38) >> 3;
 	bool ret = false;
 	switch (cc)
@@ -5580,17 +5601,19 @@ void CZ80::ImplementRETcc(void)
 	{
 		m_PCl = m_pMemory[m_SP++];
 		m_PCh = m_pMemory[m_SP++];
-		m_tstate += 11;
+		tstates += 11;
 	}
 	else
 	{
-		m_tstate += 5;
+		tstates += 5;
 	}
+
+	return tstates;
 }
 
 //=============================================================================
 
-void CZ80::ImplementRETI(void)
+uint32 CZ80::ImplementRETI(void)
 {
 	//
 	// Operation:	Return from Interrupt
@@ -5608,12 +5631,12 @@ void CZ80::ImplementRETI(void)
 	IncrementR(2);
 	++++m_PC;
 	// TODO: fix me
-	m_tstate += 14;
+	return 14;
 }
 
 //=============================================================================
 
-void CZ80::ImplementRETN(void)
+uint32 CZ80::ImplementRETN(void)
 {
 	//
 	// Operation:	Return from Interrupt
@@ -5631,12 +5654,12 @@ void CZ80::ImplementRETN(void)
 	IncrementR(2);
 	m_PCl = m_pMemory[m_SP++];
 	m_PCh = m_pMemory[m_SP++];
-	m_tstate += 14;
+	return 14;
 }
 
 //=============================================================================
 
-void CZ80::ImplementRSTp(void)
+uint32 CZ80::ImplementRSTp(void)
 {
 	//
 	// Operation:	(SP - 1) <- PCH, (SP - 2) <- PCL, PCH <- 0, PCL <- p
@@ -5665,7 +5688,7 @@ void CZ80::ImplementRSTp(void)
 	m_pMemory[--m_SP] = m_PCl;
 	m_PCh = 0;
 	m_PCl = 8 * t;
-	m_tstate += 11;
+	return 11;
 }
 
 //=============================================================================
@@ -5676,7 +5699,7 @@ void CZ80::ImplementRSTp(void)
 
 //=============================================================================
 
-void CZ80::ImplementINA_n_(void)
+uint32 CZ80::ImplementINA_n_(void)
 {
 	//
 	// Operation:	A <- (n)
@@ -5694,12 +5717,12 @@ void CZ80::ImplementINA_n_(void)
 	IncrementR(2);
 	++++m_PC;
 	// TODO: fix me
-	m_tstate += 11;
+	return 11;
 }
 
 //=============================================================================
 
-void CZ80::ImplementINr_C_(void)
+uint32 CZ80::ImplementINr_C_(void)
 {
 	//
 	// Operation:	r <- (C)
@@ -5727,12 +5750,12 @@ void CZ80::ImplementINr_C_(void)
 	IncrementR(2);
 	++++m_PC;
 	// TODO: fix me
-	m_tstate += 12;
+	return 12;
 }
 
 //=============================================================================
 
-void CZ80::ImplementINI(void)
+uint32 CZ80::ImplementINI(void)
 {
 	//
 	// Operation:	(HL) <- (C), B <- B - 1, HL <- HL + 1
@@ -5750,12 +5773,12 @@ void CZ80::ImplementINI(void)
 	IncrementR(2);
 	++++m_PC;
 	// TODO: fix me
-	m_tstate += 16;
+	return 16;
 }
 
 //=============================================================================
 
-void CZ80::ImplementINIR(void)
+uint32 CZ80::ImplementINIR(void)
 {
 	//
 	// Operation:	(HL) <- (C), B <- B - 1, HL <- HL + 1
@@ -5774,12 +5797,12 @@ void CZ80::ImplementINIR(void)
 	IncrementR(2);
 	++++m_PC;
 	// TODO: fix me
-	m_tstate += 16;
+	return 16;
 }
 
 //=============================================================================
 
-void CZ80::ImplementIND(void)
+uint32 CZ80::ImplementIND(void)
 {
 	//
 	// Operation:	(HL) <- (C), B <- B - 1, HL <- HL - 1
@@ -5797,12 +5820,12 @@ void CZ80::ImplementIND(void)
 	IncrementR(2);
 	++++m_PC;
 	// TODO: fix me
-	m_tstate += 16;
+	return 16;
 }
 
 //=============================================================================
 
-void CZ80::ImplementINDR(void)
+uint32 CZ80::ImplementINDR(void)
 {
 	//
 	// Operation:	(HL) <- (C), B <- B - 1, HL <- HL 1 1
@@ -5821,12 +5844,12 @@ void CZ80::ImplementINDR(void)
 	IncrementR(2);
 	++++m_PC;
 	// TODO: fix me
-	m_tstate += 16;
+	return 16;
 }
 
 //=============================================================================
 
-void CZ80::ImplementOUT_n_A(void)
+uint32 CZ80::ImplementOUT_n_A(void)
 {
 	//
 	// Operation:	(n) <- A
@@ -5844,12 +5867,12 @@ void CZ80::ImplementOUT_n_A(void)
 	IncrementR(2);
 	++++m_PC;
 	// TODO: fix me
-	m_tstate += 11;
+	return 11;
 }
 
 //=============================================================================
 
-void CZ80::ImplementOUT_C_r(void)
+uint32 CZ80::ImplementOUT_C_r(void)
 {
 	//
 	// Operation:	(C) <- r
@@ -5877,12 +5900,12 @@ void CZ80::ImplementOUT_C_r(void)
 	IncrementR(2);
 	++++m_PC;
 	// TODO: fix me
-	m_tstate += 12;
+	return 12;
 }
 
 //=============================================================================
 
-void CZ80::ImplementOUTI(void)
+uint32 CZ80::ImplementOUTI(void)
 {
 	//
 	// Operation:	(C) <- (HL), B <- B - 1, HL <- HL + 1
@@ -5900,12 +5923,12 @@ void CZ80::ImplementOUTI(void)
 	IncrementR(2);
 	++++m_PC;
 	// TODO: fix me
-	m_tstate += 16;
+	return 16;
 }
 
 //=============================================================================
 
-void CZ80::ImplementOTIR(void)
+uint32 CZ80::ImplementOTIR(void)
 {
 	//
 	// Operation:	(C) <- (HL), B <- B - 1, HL <- HL + 1
@@ -5924,12 +5947,12 @@ void CZ80::ImplementOTIR(void)
 	IncrementR(2);
 	++++m_PC;
 	// TODO: fix me
-	m_tstate += 16;
+	return 16;
 }
 
 //=============================================================================
 
-void CZ80::ImplementOUTD(void)
+uint32 CZ80::ImplementOUTD(void)
 {
 	//
 	// Operation:	(C) <- (HL), B <- B - 1, HL <- HL - 1
@@ -5947,12 +5970,12 @@ void CZ80::ImplementOUTD(void)
 	IncrementR(2);
 	++++m_PC;
 	// TODO: fix me
-	m_tstate += 16;
+	return 16;
 }
 
 //=============================================================================
 
-void CZ80::ImplementOTDR(void)
+uint32 CZ80::ImplementOTDR(void)
 {
 	//
 	// Operation:	(C) <- (HL), B <- B - 1, HL <- HL - 1
@@ -5971,7 +5994,7 @@ void CZ80::ImplementOTDR(void)
 	IncrementR(2);
 	++++m_PC;
 	// TODO: fix me
-	m_tstate += 16;
+	return 16;
 }
 
 //=============================================================================

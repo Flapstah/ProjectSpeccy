@@ -21,257 +21,257 @@ class CZ80
 		//	8-Bit Load Group
 		//-----------------------------------------------------------------------------
 
-		void ImplementLDrr(void);
-		void ImplementLDrn(void);
-		void ImplementLDr_HL_(void);
-		void ImplementLDr_IXd_(void);
-		void ImplementLDr_IYd_(void);
-		void ImplementLD_HL_r(void);
-		void ImplementLD_IXd_r(void);
-		void ImplementLD_IYd_r(void);
-		void ImplementLD_HL_n(void);
-		void ImplementLD_IXd_n(void);
-		void ImplementLD_IYd_n(void);
-		void ImplementLDA_BC_(void);
-		void ImplementLDA_DE_(void);
-		void ImplementLDA_nn_(void);
-		void ImplementLDBCA(void);
-		void ImplementLDDEA(void);
-		void ImplementLD_nn_A(void);
-		void ImplementLDAI(void);
-		void ImplementLDAR(void);
-		void ImplementLDIA(void);
-		void ImplementLDRA(void);
+		uint32 ImplementLDrr(void);
+		uint32 ImplementLDrn(void);
+		uint32 ImplementLDr_HL_(void);
+		uint32 ImplementLDr_IXd_(void);
+		uint32 ImplementLDr_IYd_(void);
+		uint32 ImplementLD_HL_r(void);
+		uint32 ImplementLD_IXd_r(void);
+		uint32 ImplementLD_IYd_r(void);
+		uint32 ImplementLD_HL_n(void);
+		uint32 ImplementLD_IXd_n(void);
+		uint32 ImplementLD_IYd_n(void);
+		uint32 ImplementLDA_BC_(void);
+		uint32 ImplementLDA_DE_(void);
+		uint32 ImplementLDA_nn_(void);
+		uint32 ImplementLDBCA(void);
+		uint32 ImplementLDDEA(void);
+		uint32 ImplementLD_nn_A(void);
+		uint32 ImplementLDAI(void);
+		uint32 ImplementLDAR(void);
+		uint32 ImplementLDIA(void);
+		uint32 ImplementLDRA(void);
 
 		//-----------------------------------------------------------------------------
 		//	16-Bit Load Group
 		//-----------------------------------------------------------------------------
 
-		void ImplementLDddnn(void);
-		void ImplementLDIXnn(void);
-		void ImplementLDIYnn(void);
-		void ImplementLDHL_nn_(void);
-		void ImplementLDdd_nn_(void);
-		void ImplementLDIX_nn_(void);
-		void ImplementLDIY_nn_(void);
-		void ImplementLD_nn_HL(void);
-		void ImplementLD_nn_dd(void);
-		void ImplementLD_nn_IX(void);
-		void ImplementLD_nn_IY(void);
-		void ImplementLDSPHL(void);
-		void ImplementLDSPIX(void);
-		void ImplementLDSPIY(void);
-		void ImplementPUSHqq(void);
-		void ImplementPUSHIX(void);
-		void ImplementPUSHIY(void);
-		void ImplementPOPqq(void);
-		void ImplementPOPIX(void);
-		void ImplementPOPIY(void);
+		uint32 ImplementLDddnn(void);
+		uint32 ImplementLDIXnn(void);
+		uint32 ImplementLDIYnn(void);
+		uint32 ImplementLDHL_nn_(void);
+		uint32 ImplementLDdd_nn_(void);
+		uint32 ImplementLDIX_nn_(void);
+		uint32 ImplementLDIY_nn_(void);
+		uint32 ImplementLD_nn_HL(void);
+		uint32 ImplementLD_nn_dd(void);
+		uint32 ImplementLD_nn_IX(void);
+		uint32 ImplementLD_nn_IY(void);
+		uint32 ImplementLDSPHL(void);
+		uint32 ImplementLDSPIX(void);
+		uint32 ImplementLDSPIY(void);
+		uint32 ImplementPUSHqq(void);
+		uint32 ImplementPUSHIX(void);
+		uint32 ImplementPUSHIY(void);
+		uint32 ImplementPOPqq(void);
+		uint32 ImplementPOPIX(void);
+		uint32 ImplementPOPIY(void);
 
 		//-----------------------------------------------------------------------------
 		//	Exchange, Block Transfer and Search Group
 		//-----------------------------------------------------------------------------
 
-		void ImplementEXDEHL(void);
-		void ImplementEXAFAF(void);
-		void ImplementEXX(void);
-		void ImplementEX_SP_HL(void);
-		void ImplementEX_SP_IX(void);
-		void ImplementEX_SP_IY(void);
-		void ImplementLDI(void);
-		void ImplementLDIR(void);
-		void ImplementLDD(void);
-		void ImplementLDDR(void);
-		void ImplementCPI(void);
-		void ImplementCPIR(void);
-		void ImplementCPD(void);
-		void ImplementCPDR(void);
+		uint32 ImplementEXDEHL(void);
+		uint32 ImplementEXAFAF(void);
+		uint32 ImplementEXX(void);
+		uint32 ImplementEX_SP_HL(void);
+		uint32 ImplementEX_SP_IX(void);
+		uint32 ImplementEX_SP_IY(void);
+		uint32 ImplementLDI(void);
+		uint32 ImplementLDIR(void);
+		uint32 ImplementLDD(void);
+		uint32 ImplementLDDR(void);
+		uint32 ImplementCPI(void);
+		uint32 ImplementCPIR(void);
+		uint32 ImplementCPD(void);
+		uint32 ImplementCPDR(void);
 
 		//-----------------------------------------------------------------------------
 		//	8-Bit Arithmetic Group
 		//-----------------------------------------------------------------------------
-		void ImplementADDAr(void);
-		void ImplementADDAn(void);
-		void ImplementADDA_HL_(void);
-		void ImplementADDA_IXd_(void);
-		void ImplementADDA_IYd_(void);
-		void ImplementADCAr(void);
-		void ImplementADCAn(void);
-		void ImplementADCA_HL_(void);
-		void ImplementADCA_IXd_(void);
-		void ImplementADCA_IYd_(void);
-		void ImplementSUBr(void);
-		void ImplementSUBn(void);
-		void ImplementSUB_HL_(void);
-		void ImplementSUB_IXd_(void);
-		void ImplementSUB_IYd_(void);
-		void ImplementSBCAr(void);
-		void ImplementSBCAn(void);
-		void ImplementSBCA_HL_(void);
-		void ImplementSBCA_IXd_(void);
-		void ImplementSBCA_IYd_(void);
-		void ImplementANDr(void);
-		void ImplementANDn(void);
-		void ImplementAND_HL_(void);
-		void ImplementAND_IXd_(void);
-		void ImplementAND_IYd_(void);
-		void ImplementORr(void);
-		void ImplementORn(void);
-		void ImplementOR_HL_(void);
-		void ImplementOR_IXd_(void);
-		void ImplementOR_IYd_(void);
-		void ImplementXORr(void);
-		void ImplementXORn(void);
-		void ImplementXOR_HL_(void);
-		void ImplementXOR_IXd_(void);
-		void ImplementXOR_IYd_(void);
-		void ImplementCPr(void);
-		void ImplementCPn(void);
-		void ImplementCP_HL_(void);
-		void ImplementCP_IXd_(void);
-		void ImplementCP_IYd_(void);
-		void ImplementINCr(void);
-		void ImplementINC_HL_(void);
-		void ImplementINC_IXd_(void);
-		void ImplementINC_IYd_(void);
-		void ImplementDECr(void);
-		void ImplementDEC_HL_(void);
-		void ImplementDEC_IXd_(void);
-		void ImplementDEC_IYd_(void);
+		uint32 ImplementADDAr(void);
+		uint32 ImplementADDAn(void);
+		uint32 ImplementADDA_HL_(void);
+		uint32 ImplementADDA_IXd_(void);
+		uint32 ImplementADDA_IYd_(void);
+		uint32 ImplementADCAr(void);
+		uint32 ImplementADCAn(void);
+		uint32 ImplementADCA_HL_(void);
+		uint32 ImplementADCA_IXd_(void);
+		uint32 ImplementADCA_IYd_(void);
+		uint32 ImplementSUBr(void);
+		uint32 ImplementSUBn(void);
+		uint32 ImplementSUB_HL_(void);
+		uint32 ImplementSUB_IXd_(void);
+		uint32 ImplementSUB_IYd_(void);
+		uint32 ImplementSBCAr(void);
+		uint32 ImplementSBCAn(void);
+		uint32 ImplementSBCA_HL_(void);
+		uint32 ImplementSBCA_IXd_(void);
+		uint32 ImplementSBCA_IYd_(void);
+		uint32 ImplementANDr(void);
+		uint32 ImplementANDn(void);
+		uint32 ImplementAND_HL_(void);
+		uint32 ImplementAND_IXd_(void);
+		uint32 ImplementAND_IYd_(void);
+		uint32 ImplementORr(void);
+		uint32 ImplementORn(void);
+		uint32 ImplementOR_HL_(void);
+		uint32 ImplementOR_IXd_(void);
+		uint32 ImplementOR_IYd_(void);
+		uint32 ImplementXORr(void);
+		uint32 ImplementXORn(void);
+		uint32 ImplementXOR_HL_(void);
+		uint32 ImplementXOR_IXd_(void);
+		uint32 ImplementXOR_IYd_(void);
+		uint32 ImplementCPr(void);
+		uint32 ImplementCPn(void);
+		uint32 ImplementCP_HL_(void);
+		uint32 ImplementCP_IXd_(void);
+		uint32 ImplementCP_IYd_(void);
+		uint32 ImplementINCr(void);
+		uint32 ImplementINC_HL_(void);
+		uint32 ImplementINC_IXd_(void);
+		uint32 ImplementINC_IYd_(void);
+		uint32 ImplementDECr(void);
+		uint32 ImplementDEC_HL_(void);
+		uint32 ImplementDEC_IXd_(void);
+		uint32 ImplementDEC_IYd_(void);
 
 		//-----------------------------------------------------------------------------
 		//	General-Purpose Arithmetic and CPU Control Groups
 		//-----------------------------------------------------------------------------
 
-		void ImplementDAA(void);
-		void ImplementCPL(void);
-		void ImplementNEG(void);
-		void ImplementCCF(void);
-		void ImplementSCF(void);
-		void ImplementNOP(void);
-		void ImplementHALT(void);
-		void ImplementDI(void);
-		void ImplementEI(void);
-		void ImplementIM0(void);
-		void ImplementIM1(void);
-		void ImplementIM2(void);
+		uint32 ImplementDAA(void);
+		uint32 ImplementCPL(void);
+		uint32 ImplementNEG(void);
+		uint32 ImplementCCF(void);
+		uint32 ImplementSCF(void);
+		uint32 ImplementNOP(void);
+		uint32 ImplementHALT(void);
+		uint32 ImplementDI(void);
+		uint32 ImplementEI(void);
+		uint32 ImplementIM0(void);
+		uint32 ImplementIM1(void);
+		uint32 ImplementIM2(void);
 
 		//-----------------------------------------------------------------------------
 		//	16-Bit Arithmetic Group
 		//-----------------------------------------------------------------------------
 
-		void ImplementADDHLdd(void);
-		void ImplementADCHLdd(void);
-		void ImplementSBCHLdd(void);
-		void ImplementADDIXdd(void);
-		void ImplementADDIYdd(void);
-		void ImplementINCdd(void);
-		void ImplementINCIXdd(void);
-		void ImplementINCIYdd(void);
-		void ImplementDECdd(void);
-		void ImplementDECIXdd(void);
-		void ImplementDECIYdd(void);
+		uint32 ImplementADDHLdd(void);
+		uint32 ImplementADCHLdd(void);
+		uint32 ImplementSBCHLdd(void);
+		uint32 ImplementADDIXdd(void);
+		uint32 ImplementADDIYdd(void);
+		uint32 ImplementINCdd(void);
+		uint32 ImplementINCIXdd(void);
+		uint32 ImplementINCIYdd(void);
+		uint32 ImplementDECdd(void);
+		uint32 ImplementDECIXdd(void);
+		uint32 ImplementDECIYdd(void);
 
 		//-----------------------------------------------------------------------------
 		//	Rotate and Shift Group
 		//-----------------------------------------------------------------------------
 
-		void ImplementRLCA(void);
-		void ImplementRLA(void);
-		void ImplementRRCA(void);
-		void ImplementRRA(void);
-		void ImplementRLCr(void);
-		void ImplementRLC_HL_(void);
-		void ImplementRLC_IXd_(void);
-		void ImplementRLC_IYd_(void);
-		void ImplementRLr(void);
-		void ImplementRL_HL_(void);
-		void ImplementRL_IXd_(void);
-		void ImplementRL_IYd_(void);
-		void ImplementRRCr(void);
-		void ImplementRRC_HL_(void);
-		void ImplementRRC_IXd_(void);
-		void ImplementRRC_IYd_(void);
-		void ImplementRRr(void);
-		void ImplementRR_HL_(void);
-		void ImplementRR_IXd_(void);
-		void ImplementRR_IYd_(void);
-		void ImplementSLAr(void);
-		void ImplementSLA_HL_(void);
-		void ImplementSLA_IXd_(void);
-		void ImplementSLA_IYd_(void);
-		void ImplementSRAr(void);
-		void ImplementSRA_HL_(void);
-		void ImplementSRA_IXd_(void);
-		void ImplementSRA_IYd_(void);
-		void ImplementSRLr(void);
-		void ImplementSRL_HL_(void);
-		void ImplementSRL_IXd_(void);
-		void ImplementSRL_IYd_(void);
-		void ImplementRLD(void);
-		void ImplementRRD(void);
+		uint32 ImplementRLCA(void);
+		uint32 ImplementRLA(void);
+		uint32 ImplementRRCA(void);
+		uint32 ImplementRRA(void);
+		uint32 ImplementRLCr(void);
+		uint32 ImplementRLC_HL_(void);
+		uint32 ImplementRLC_IXd_(void);
+		uint32 ImplementRLC_IYd_(void);
+		uint32 ImplementRLr(void);
+		uint32 ImplementRL_HL_(void);
+		uint32 ImplementRL_IXd_(void);
+		uint32 ImplementRL_IYd_(void);
+		uint32 ImplementRRCr(void);
+		uint32 ImplementRRC_HL_(void);
+		uint32 ImplementRRC_IXd_(void);
+		uint32 ImplementRRC_IYd_(void);
+		uint32 ImplementRRr(void);
+		uint32 ImplementRR_HL_(void);
+		uint32 ImplementRR_IXd_(void);
+		uint32 ImplementRR_IYd_(void);
+		uint32 ImplementSLAr(void);
+		uint32 ImplementSLA_HL_(void);
+		uint32 ImplementSLA_IXd_(void);
+		uint32 ImplementSLA_IYd_(void);
+		uint32 ImplementSRAr(void);
+		uint32 ImplementSRA_HL_(void);
+		uint32 ImplementSRA_IXd_(void);
+		uint32 ImplementSRA_IYd_(void);
+		uint32 ImplementSRLr(void);
+		uint32 ImplementSRL_HL_(void);
+		uint32 ImplementSRL_IXd_(void);
+		uint32 ImplementSRL_IYd_(void);
+		uint32 ImplementRLD(void);
+		uint32 ImplementRRD(void);
 
 		//-----------------------------------------------------------------------------
 		//	Bit Set, Reset and Test Group
 		//-----------------------------------------------------------------------------
 
-		void ImplementBITbr(void);
-		void ImplementBITb_HL_(void);
-		void ImplementBITb_IXd_(void);
-		void ImplementBITb_IYd_(void);
-		void ImplementSETbr(void);
-		void ImplementSETb_HL_(void);
-		void ImplementSETb_IXd_(void);
-		void ImplementSETb_IYd_(void);
-		void ImplementRESbr(void);
-		void ImplementRESb_HL_(void);
-		void ImplementRESb_IXd_(void);
-		void ImplementRESb_IYd_(void);
+		uint32 ImplementBITbr(void);
+		uint32 ImplementBITb_HL_(void);
+		uint32 ImplementBITb_IXd_(void);
+		uint32 ImplementBITb_IYd_(void);
+		uint32 ImplementSETbr(void);
+		uint32 ImplementSETb_HL_(void);
+		uint32 ImplementSETb_IXd_(void);
+		uint32 ImplementSETb_IYd_(void);
+		uint32 ImplementRESbr(void);
+		uint32 ImplementRESb_HL_(void);
+		uint32 ImplementRESb_IXd_(void);
+		uint32 ImplementRESb_IYd_(void);
 
 		//-----------------------------------------------------------------------------
 		//	Jump Group
 		//-----------------------------------------------------------------------------
 
-		void ImplementJPnn(void);
-		void ImplementJPccnn(void);
-		void ImplementJRe(void);
-		void ImplementJRCe(void);
-		void ImplementJRNCe(void);
-		void ImplementJRZe(void);
-		void ImplementJRNZe(void);
-		void ImplementJP_HL_(void);
-		void ImplementJP_IX_(void);
-		void ImplementJP_IY_(void);
-		void ImplementDJNZe(void);
+		uint32 ImplementJPnn(void);
+		uint32 ImplementJPccnn(void);
+		uint32 ImplementJRe(void);
+		uint32 ImplementJRCe(void);
+		uint32 ImplementJRNCe(void);
+		uint32 ImplementJRZe(void);
+		uint32 ImplementJRNZe(void);
+		uint32 ImplementJP_HL_(void);
+		uint32 ImplementJP_IX_(void);
+		uint32 ImplementJP_IY_(void);
+		uint32 ImplementDJNZe(void);
 
 		//-----------------------------------------------------------------------------
 		//	Call and Return Group
 		//-----------------------------------------------------------------------------
 
-		void ImplementCALLnn(void);
-		void ImplementCALLccnn(void);
-		void ImplementRET(void);
-		void ImplementRETcc(void);
-		void ImplementRETI(void);
-		void ImplementRETN(void);
-		void ImplementRSTp(void);
+		uint32 ImplementCALLnn(void);
+		uint32 ImplementCALLccnn(void);
+		uint32 ImplementRET(void);
+		uint32 ImplementRETcc(void);
+		uint32 ImplementRETI(void);
+		uint32 ImplementRETN(void);
+		uint32 ImplementRSTp(void);
 
 		//-----------------------------------------------------------------------------
 		//	Input and Output Group
 		//-----------------------------------------------------------------------------
 
-		void ImplementINA_n_(void);
-		void ImplementINr_C_(void);
-		void ImplementINI(void);
-		void ImplementINIR(void);
-		void ImplementIND(void);
-		void ImplementINDR(void);
-		void ImplementOUT_n_A(void);
-		void ImplementOUT_C_r(void);
-		void ImplementOUTI(void);
-		void ImplementOTIR(void);
-		void ImplementOUTD(void);
-		void ImplementOTDR(void);
+		uint32 ImplementINA_n_(void);
+		uint32 ImplementINr_C_(void);
+		uint32 ImplementINI(void);
+		uint32 ImplementINIR(void);
+		uint32 ImplementIND(void);
+		uint32 ImplementINDR(void);
+		uint32 ImplementOUT_n_A(void);
+		uint32 ImplementOUT_C_r(void);
+		uint32 ImplementOUTI(void);
+		uint32 ImplementOTIR(void);
+		uint32 ImplementOUTD(void);
+		uint32 ImplementOTDR(void);
 
 		//-----------------------------------------------------------------------------
 		//	8-Bit Load Group
@@ -632,7 +632,6 @@ class CZ80
 		uint8		m_16BitRegisterOffset[4];
 		uint8		m_8BitRegisterOffset[8];
 
-		uint32	m_tstate;
 		uint8*	m_pMemory;
 		float		m_clockSpeedMHz;
 
