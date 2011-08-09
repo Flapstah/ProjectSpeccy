@@ -18,7 +18,7 @@
 //	Manual".
 //
 //	Minor timing corrections have been made for instruction execution time where
-//	each T State is assumed to be 0.25 nanoseconds (based on the vast majority
+//	each T State is assumed to be 0.25 microseconds (based on the vast majority
 //	of the instructions) based on a 4MHz clock.
 //=============================================================================
 
@@ -74,6 +74,41 @@ CZ80::CZ80(uint8* pMemory, float clockSpeedMHz)
 	m_8BitRegisterOffset[H] = eR_H;
 	m_8BitRegisterOffset[L] = eR_L;
 	m_8BitRegisterOffset[A] = eR_A;
+
+	Reset();
+}
+
+//=============================================================================
+
+void CZ80::Reset(void)
+{
+	memset(m_RegisterMemory, 0, sizeof(m_RegisterMemory));
+}
+
+//=============================================================================
+
+float CZ80::Update(float milliseconds)
+{
+	float microseconds = milliseconds * 1000.0f;
+	float tstates_available = microseconds / (1.0f / m_clockSpeedMHz);
+
+	while (tstates_available > 0.0f)
+	{
+		switch (m_pMemory[m_PC])
+		{
+			case 0:
+				ImplementNOP();
+				break;
+
+			default:
+				ImplementNOP();
+				break;
+		}
+	}
+
+	microseconds = tstates_available * (1.0f / m_clockSpeedMHz); 
+	milliseconds = microseconds * 1000;
+	return microseconds;
 }
 
 //=============================================================================

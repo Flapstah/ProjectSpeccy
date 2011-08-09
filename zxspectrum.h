@@ -18,6 +18,7 @@ class CZXSpectrum : public IScreenMemory
 		// ~IScreenMemory
 
 						bool				OpenSCR(const char* fileName);
+						bool				LoadROM(const char* fileName);
 
 	protected:
 		enum SpectrumConstants
@@ -29,7 +30,10 @@ class CZXSpectrum : public IScreenMemory
 			SC_PIXEL_SCREEN_BYTES = (SC_PIXEL_SCREEN_WIDTH * SC_PIXEL_SCREEN_HEIGHT) >> 3,
 			SC_ATTRIBUTES_SCREEN_BYTES = SC_ATTRIBUTE_SCREEN_WIDTH * SC_ATTRIBUTE_SCREEN_HEIGHT,
 			SC_SCREEN_START_ADDRESS = 16384,
-			SC_ATTRIBUTES_START_ADDRESS = SC_SCREEN_START_ADDRESS + SC_PIXEL_SCREEN_BYTES
+			SC_ATTRIBUTES_START_ADDRESS = SC_SCREEN_START_ADDRESS + SC_PIXEL_SCREEN_BYTES,
+
+			SC_16K_SPECTRUM = 32768,
+			SC_48K_SPECTRUM = 65536
 		};
 
 		// The ZX Spectrum screen starts at memory address 16384 and is 256*192
@@ -75,6 +79,10 @@ class CZXSpectrum : public IScreenMemory
 						void		UpdateScreen(const uint8* pScreenMemory);
 		
 		uint32 m_videoMemory[SC_PIXEL_SCREEN_WIDTH * SC_PIXEL_SCREEN_HEIGHT];
+
+	protected:
+		uint8 m_memory[SC_48K_SPECTRUM];
+
 	private:
 };
 

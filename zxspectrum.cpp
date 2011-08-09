@@ -3,28 +3,40 @@
 
 #include "zxspectrum.h"
 
+//=============================================================================
+
 CZXSpectrum::CZXSpectrum(void)
 {
 }
 
+//=============================================================================
+
 CZXSpectrum::~CZXSpectrum(void)
 {
 }
+
+//=============================================================================
 
 const void* CZXSpectrum::GetScreenMemory(void) const
 {
 	return m_videoMemory;
 }
 
+//=============================================================================
+
 uint32 CZXSpectrum::GetScreenWidth(void) const
 {
 	return SC_PIXEL_SCREEN_WIDTH;
 }
 
+//=============================================================================
+
 uint32 CZXSpectrum::GetScreenHeight(void) const
 {
 	return SC_PIXEL_SCREEN_HEIGHT;
 }
+
+//=============================================================================
 
 bool CZXSpectrum::OpenSCR(const char* fileName)
 {
@@ -45,6 +57,26 @@ bool CZXSpectrum::OpenSCR(const char* fileName)
 
 	return success;
 }
+
+//=============================================================================
+
+bool CZXSpectrum::LoadROM(const char* fileName)
+{
+	FILE* pFile = fopen(fileName, "rb");
+	bool success = false;
+
+	if (pFile != NULL)
+	{
+		fread(m_memory, sizeof(m_memory), 1, pFile);
+		fclose(pFile);
+
+		success = true;
+	}
+
+	return success;
+}
+
+//=============================================================================
 
 void CZXSpectrum::UpdateScreen(const uint8* pScreenMemory)
 {
@@ -75,3 +107,6 @@ void CZXSpectrum::UpdateScreen(const uint8* pScreenMemory)
 		}
 	}
 }
+
+//=============================================================================
+

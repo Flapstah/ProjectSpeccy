@@ -10,6 +10,9 @@ class CZ80
 	public:
 		CZ80(uint8* pMemory, float clockSpeedMHz);
 
+		void Reset(void);
+		float Update(float milliseconds);
+
 	protected:
 		const char* Get8BitRegisterString(uint8 threeBits);
 		const char* Get16BitRegisterString(uint8 twoBits);
@@ -506,6 +509,8 @@ class CZ80
 		void DecodeOUTD(uint16& address, char* pMnemonic);
 		void DecodeOTDR(uint16& address, char* pMnemonic);
 
+		//=============================================================================
+
 		struct SProcessorState
 		{
 			uint16 m_InterruptMode : 2;
@@ -587,6 +592,8 @@ class CZ80
 			eR_State = eR_HLalt + sizeof(uint16),
 		};
 
+		//=============================================================================
+
 		// Register memory is mapped by reference to the actual registers so that
 		// they can be accessed in a 'natural' way.
 		uint8		m_RegisterMemory[32];
@@ -629,7 +636,11 @@ class CZ80
 		uint8*	m_pMemory;
 		float		m_clockSpeedMHz;
 
+		//=============================================================================
+
 		void	IncrementR(uint8 value)		{ m_R |= ((m_R + value) & 0x7F); }
+
+		//=============================================================================
 
 	private:
 };
