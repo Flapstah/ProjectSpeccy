@@ -89,60 +89,73 @@ void CZ80::Reset(void)
 
 float CZ80::Update(float milliseconds)
 {
+	// TODO: not happy with this - need a rethink of how to consume/time tstates
 	float microseconds = milliseconds * 1000.0f;
 	float estimated_tstates_available = microseconds / (1.0f / m_clockSpeedMHz);
-	uint32 tstates_available = static_cast<uint32>(estimated_tstates_available);
-	microseconds = (estimated_tstates_available - tstates_available) * (1.0f / m_clockSpeedMHz);
-	float remaining_milliseconds = microseconds * 1000.0f;
+	int32 tstates_available = static_cast<int32>(estimated_tstates_available);
+	int32 tstates_used = tstates_available;
 
 	while (tstates_available > 0)
 	{
+		tstates_available -= Step();
+	}
+
+	tstates_used -= tstates_available;
+	microseconds = (estimated_tstates_available - static_cast<float>(tstates_used)) * (1.0f / m_clockSpeedMHz);
+	float remaining_milliseconds = microseconds * 1000.0f;
+	return remaining_milliseconds;
+}
+
+//=============================================================================
+
+uint32 CZ80::Step(void)
+{
 		switch (m_pMemory[m_PC])
 		{
 			case 0x00:
-				tstates_available -= ImplementNOP();
+				return ImplementNOP();
 				break;
 
 			case 0x10:
-				tstates_available -= ImplementDJNZe();
+				return ImplementDJNZe();
 				break;
 
 			case 0x20:
-				tstates_available -= ImplementJRNZe();
+				return ImplementJRNZe();
 				break;
 
 			case 0x30:
-				tstates_available -= ImplementJRNCe();
+				return ImplementJRNCe();
 				break;
 
 			case 0x01: // LD BC,nn
 			case 0x11: // LD DE,nn
 			case 0x21: // LD HL,nn
 			case 0x31: // LD SP,nn
-				tstates_available -= ImplementLDddnn();
+				return ImplementLDddnn();
 				break;
 
 			case 0x02:
-				tstates_available -= ImplementLD_BC_A();
+				return ImplementLD_BC_A();
 				break;
 
 			case 0x12:
-				tstates_available -= ImplementLD_DE_A();
+				return ImplementLD_DE_A();
 				break;
 
 			case 0x22:
-				tstates_available -= ImplementLD_nn_HL();
+				return ImplementLD_nn_HL();
 				break;
 
 			case 0x32:
-				tstates_available -= ImplementLD_nn_A();
+				return ImplementLD_nn_A();
 				break;
 
 			case 0x03: // INC BC
 			case 0x13: // INC DE
 			case 0x23: // INC HL
 			case 0x33: // INC SP
-				tstates_available -= ImplementINCdd();
+				return ImplementINCdd();
 				break;
 
 			case 0x04: // INC B
@@ -152,11 +165,11 @@ float CZ80::Update(float milliseconds)
 			case 0x1C: // INC E
 			case 0x2C: // INC L
 			case 0x3C: // INC A
-				tstates_available -= ImplementINCr();
+				return ImplementINCr();
 				break;
 
 			case 0x34:
-				tstates_available -= ImplementINC_HL_();
+				return ImplementINC_HL_();
 				break;
 
 			case 0x05: // DEC B
@@ -166,11 +179,11 @@ float CZ80::Update(float milliseconds)
 			case 0x1D: // DEC E
 			case 0x2D: // DEC L
 			case 0x3D: // DEC A
-				tstates_available -= ImplementDECr();
+				return ImplementDECr();
 				break;
 
 			case 0x35:
-				tstates_available -= ImplementDEC_HL_();
+				return ImplementDEC_HL_();
 				break;
 
 			case 0x06: // LD B,n
@@ -180,89 +193,89 @@ float CZ80::Update(float milliseconds)
 			case 0x1E: // LD E,n
 			case 0x2E: // LD L,n
 			case 0x3E: // LD A,n
-				tstates_available -= ImplementLDrn();
+				return ImplementLDrn();
 				break;
 
 			case 0x36:
-				tstates_available -= ImplementLD_HL_n();
+				return ImplementLD_HL_n();
 				break;
 
 			case 0x07:
-				tstates_available -= ImplementRLCA();
+				return ImplementRLCA();
 				break;
 
 			case 0x17:
-				tstates_available -= ImplementRLA();
+				return ImplementRLA();
 				break;
 
 			case 0x27:
-				tstates_available -= ImplementDAA();
+				return ImplementDAA();
 				break;
 
 			case 0x37:
-				tstates_available -= ImplementSCF();
+				return ImplementSCF();
 				break;
 
 			case 0x08:
-				tstates_available -= ImplementEXAFAF();
+				return ImplementEXAFAF();
 				break;
 
 			case 0x18:
-				tstates_available -= ImplementJRe();
+				return ImplementJRe();
 				break;
 
 			case 0x28:
-				tstates_available -= ImplementJRZe();
+				return ImplementJRZe();
 				break;
 
 			case 0x38:
-				tstates_available -= ImplementJRCe();
+				return ImplementJRCe();
 				break;
 
 			case 0x09: // ADD HL,BC
 			case 0x19: // ADD HL,DE
 			case 0x29: // ADD HL,HL
 			case 0x39: // ADD HL,SP
-				tstates_available -= ImplementADDHLdd();
+				return ImplementADDHLdd();
 				break;
 
 			case 0x0A:
-				tstates_available -= ImplementLDA_BC_();
+				return ImplementLDA_BC_();
 				break;
 
 			case 0x1A:
-				tstates_available -= ImplementLDA_DE_();
+				return ImplementLDA_DE_();
 				break;
 
 			case 0x2A:
-				tstates_available -= ImplementLDHL_nn_();
+				return ImplementLDHL_nn_();
 				break;
 
 			case 0x3A:
-				tstates_available -= ImplementLDA_nn_();
+				return ImplementLDA_nn_();
 				break;
 
 			case 0x0B: // DEC BC
 			case 0x1B: // DEC DE
 			case 0x2B: // DEC HL
 			case 0x3B: // DEC SP
-				tstates_available -= ImplementDECdd();
+				return ImplementDECdd();
 				break;
 
 			case 0x0F:
-				tstates_available -= ImplementRRCA();
+				return ImplementRRCA();
 				break;
 
 			case 0x1F:
-				tstates_available -= ImplementRRA();
+				return ImplementRRA();
 				break;
 
 			case 0x2F:
-				tstates_available -= ImplementCPL();
+				return ImplementCPL();
 				break;
 
 			case 0x3F:
-				tstates_available -= ImplementCCF();
+				return ImplementCCF();
 				break;
 
 			case 0x40: // LD B,B
@@ -314,7 +327,7 @@ float CZ80::Update(float milliseconds)
 			case 0x7C: // LD A,H
 			case 0x7D: // LD A,L
 			case 0x7F: // LD A,A
-				tstates_available -= ImplementLDrr();
+				return ImplementLDrr();
 				break;
 
 			case 0x46: // LD B,(HL)
@@ -324,7 +337,7 @@ float CZ80::Update(float milliseconds)
 			case 0x5E: // LD E,(HL)
 			case 0x6E: // LD L,(HL)
 			case 0x7E: // LD A,(HL)
-				tstates_available -= ImplementLDr_HL_();
+				return ImplementLDr_HL_();
 				break;
 
 			case 0x70: // LD (HL),B
@@ -334,12 +347,153 @@ float CZ80::Update(float milliseconds)
 			case 0x74: // LD (HL),H
 			case 0x75: // LD (HL),L
 			case 0x77: // LD (HL),A
-				tstates_available -= ImplementLD_HL_r();
+				return ImplementLD_HL_r();
 				break;
 
 			case 0x76:
-				tstates_available -= ImplementHALT();
+				return ImplementHALT();
 				break;
+
+			case 0x80: // ADD A,B
+			case 0x81: // ADD A,C
+			case 0x82: // ADD A,D
+			case 0x83: // ADD A,E
+			case 0x84: // ADD A,H
+			case 0x85: // ADD A,L
+			case 0x87: // ADD A,A
+				return ImplementADDAr();
+				break;
+
+			case 0x86:
+				return ImplementADDA_HL_();
+				break;
+
+			case 0x90: // SUB A,B
+			case 0x91: // SUB A,C
+			case 0x92: // SUB A,D
+			case 0x93: // SUB A,E
+			case 0x94: // SUB A,H
+			case 0x95: // SUB A,L
+			case 0x97: // SUB A,A
+				return ImplementSUBAr();
+				break;
+
+			case 0x96:
+				return ImplementSUBA_HL_();
+				break;
+
+			case 0xA0: // AND A,B
+			case 0xA1: // AND A,C
+			case 0xA2: // AND A,D
+			case 0xA3: // AND A,E
+			case 0xA4: // AND A,H
+			case 0xA5: // AND A,L
+			case 0xA7: // AND A,A
+				return ImplementANDAr();
+				break;
+
+			case 0xA6:
+				return ImplementANDA_HL_();
+				break;
+
+			case 0xB0: // OR A,B
+			case 0xB1: // OR A,C
+			case 0xB2: // OR A,D
+			case 0xB3: // OR A,E
+			case 0xB4: // OR A,H
+			case 0xB5: // OR A,L
+			case 0xB7: // OR A,A
+				return ImplementORAr();
+				break;
+
+			case 0xB6:
+				return ImplementORA_HL_();
+				break;
+
+			case 0x88: // ADC A,B
+			case 0x89: // ADC A,C
+			case 0x8A: // ADC A,D
+			case 0x8B: // ADC A,E
+			case 0x8C: // ADC A,H
+			case 0x8D: // ADC A,L
+			case 0x8F: // ADC A,A
+				return ImplementADCAr();
+				break;
+
+			case 0x8E:
+				return ImplementADCA_HL_();
+				break;
+
+			case 0x98: // SBC A,B
+			case 0x99: // SBC A,C
+			case 0x9A: // SBC A,D
+			case 0x9B: // SBC A,E
+			case 0x9C: // SBC A,H
+			case 0x9D: // SBC A,L
+			case 0x9F: // SBC A,A
+				return ImplementSBCAr();
+				break;
+
+			case 0x9E:
+				return ImplementSBCA_HL_();
+				break;
+
+			case 0xA8: // XOR A,B
+			case 0xA9: // XOR A,C
+			case 0xAA: // XOR A,D
+			case 0xAB: // XOR A,E
+			case 0xAC: // XOR A,H
+			case 0xAD: // XOR A,L
+			case 0xAF: // XOR A,A
+				return ImplementXORAr();
+				break;
+
+			case 0xAE:
+				return ImplementXORA_HL_();
+				break;
+
+			case 0xB8: // CP A,B
+			case 0xB9: // CP A,C
+			case 0xBA: // CP A,D
+			case 0xBB: // CP A,E
+			case 0xBC: // CP A,H
+			case 0xBD: // CP A,L
+			case 0xBF: // CP A,A
+				return ImplementCPAr();
+				break;
+
+			case 0xBE:
+				return ImplementCPA_HL_();
+				break;
+
+			case 0xC0: // RET NZ
+			case 0xD0: // RET NC
+			case 0xE0: // RET PO
+			case 0xF0: // RET P
+			case 0xC8: // RET Z
+			case 0xD8: // RET C
+			case 0xE8: // RET PE
+			case 0xF8: // RET M
+				return ImplementRETcc();
+				break;
+
+			case 0xC1: // POP BC
+			case 0xD1: // POP DE
+			case 0xE1: // POP HL
+			case 0xF1: // POP AF
+				return ImplementPOPqq();
+				break;
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -354,12 +508,9 @@ float CZ80::Update(float milliseconds)
 
 			default:
 				fprintf(cerr, "Unhandled opcode %02X", m_pMemory[PC]);
-				tstates_available -= ImplementNOP();
+				return ImplementNOP();
 				break;
 		}
-	}
-
-	return remaining_milliseconds;
 }
 
 //=============================================================================
@@ -7660,16 +7811,16 @@ void CZ80::DecodeCALLccnn(uint16& address, char* pMnemonic)
 			condition = "C";
 			break;
 		case 4: // NP (odd)
-			condition = "NP";
+			condition = "PO";
 			break;
 		case 5: // P (even)
-			condition = "P";
+			condition = "PE";
 			break;
 		case 6: // NS (positive)
-			condition = "NS";
+			condition = "P";
 			break;
 		case 7: // S (negative)
-			condition = "S";
+			condition = "M";
 			break;
 	}
 	sprintf(pMnemonic, "CALL %s,%04x", condition, addr);
@@ -7705,16 +7856,16 @@ void CZ80::DecodeRETcc(uint16& address, char* pMnemonic)
 			condition = "C";
 			break;
 		case 4: // NP (odd)
-			condition = "NP";
+			condition = "PO";
 			break;
 		case 5: // P (even)
-			condition = "P";
+			condition = "PE";
 			break;
 		case 6: // NS (positive)
-			condition = "NS";
+			condition = "P";
 			break;
 		case 7: // S (negative)
-			condition = "S";
+			condition = "M";
 			break;
 	}
 	sprintf(pMnemonic, "RET %s", condition);

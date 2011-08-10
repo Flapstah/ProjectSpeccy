@@ -14,6 +14,8 @@ class CZ80
 		float Update(float milliseconds);
 
 	protected:
+		uint32 Step(void);
+
 		const char* Get8BitRegisterString(uint8 threeBits);
 		const char* Get16BitRegisterString(uint8 twoBits);
 
