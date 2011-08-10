@@ -35,8 +35,8 @@ class CZ80
 		uint32 ImplementLDA_BC_(void);
 		uint32 ImplementLDA_DE_(void);
 		uint32 ImplementLDA_nn_(void);
-		uint32 ImplementLDBCA(void);
-		uint32 ImplementLDDEA(void);
+		uint32 ImplementLD_BC_A(void);
+		uint32 ImplementLD_DE_A(void);
 		uint32 ImplementLD_nn_A(void);
 		uint32 ImplementLDAI(void);
 		uint32 ImplementLDAR(void);

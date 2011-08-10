@@ -99,11 +99,261 @@ float CZ80::Update(float milliseconds)
 	{
 		switch (m_pMemory[m_PC])
 		{
-			case 0:
+			case 0x00:
 				tstates_available -= ImplementNOP();
 				break;
 
+			case 0x10:
+				tstates_available -= ImplementDJNZe();
+				break;
+
+			case 0x20:
+				tstates_available -= ImplementJRNZe();
+				break;
+
+			case 0x30:
+				tstates_available -= ImplementJRNCe();
+				break;
+
+			case 0x01: // LD BC,nn
+			case 0x11: // LD DE,nn
+			case 0x21: // LD HL,nn
+			case 0x31: // LD SP,nn
+				tstates_available -= ImplementLDddnn();
+				break;
+
+			case 0x02:
+				tstates_available -= ImplementLD_BC_A();
+				break;
+
+			case 0x12:
+				tstates_available -= ImplementLD_DE_A();
+				break;
+
+			case 0x22:
+				tstates_available -= ImplementLD_nn_HL();
+				break;
+
+			case 0x32:
+				tstates_available -= ImplementLD_nn_A();
+				break;
+
+			case 0x03: // INC BC
+			case 0x13: // INC DE
+			case 0x23: // INC HL
+			case 0x33: // INC SP
+				tstates_available -= ImplementINCdd();
+				break;
+
+			case 0x04: // INC B
+			case 0x14: // INC D
+			case 0x24: // INC H
+			case 0x0C: // INC C
+			case 0x1C: // INC E
+			case 0x2C: // INC L
+			case 0x3C: // INC A
+				tstates_available -= ImplementINCr();
+				break;
+
+			case 0x34:
+				tstates_available -= ImplementINC_HL_();
+				break;
+
+			case 0x05: // DEC B
+			case 0x15: // DEC D
+			case 0x25: // DEC H
+			case 0x0D: // DEC C
+			case 0x1D: // DEC E
+			case 0x2D: // DEC L
+			case 0x3D: // DEC A
+				tstates_available -= ImplementDECr();
+				break;
+
+			case 0x35:
+				tstates_available -= ImplementDEC_HL_();
+				break;
+
+			case 0x06: // LD B,n
+			case 0x16: // LD D,n
+			case 0x26: // LD H,n
+			case 0x0E: // LD C,n
+			case 0x1E: // LD E,n
+			case 0x2E: // LD L,n
+			case 0x3E: // LD A,n
+				tstates_available -= ImplementLDrn();
+				break;
+
+			case 0x36:
+				tstates_available -= ImplementLD_HL_n();
+				break;
+
+			case 0x07:
+				tstates_available -= ImplementRLCA();
+				break;
+
+			case 0x17:
+				tstates_available -= ImplementRLA();
+				break;
+
+			case 0x27:
+				tstates_available -= ImplementDAA();
+				break;
+
+			case 0x37:
+				tstates_available -= ImplementSCF();
+				break;
+
+			case 0x08:
+				tstates_available -= ImplementEXAFAF();
+				break;
+
+			case 0x18:
+				tstates_available -= ImplementJRe();
+				break;
+
+			case 0x28:
+				tstates_available -= ImplementJRZe();
+				break;
+
+			case 0x38:
+				tstates_available -= ImplementJRCe();
+				break;
+
+			case 0x09: // ADD HL,BC
+			case 0x19: // ADD HL,DE
+			case 0x29: // ADD HL,HL
+			case 0x39: // ADD HL,SP
+				tstates_available -= ImplementADDHLdd();
+				break;
+
+			case 0x0A:
+				tstates_available -= ImplementLDA_BC_();
+				break;
+
+			case 0x1A:
+				tstates_available -= ImplementLDA_DE_();
+				break;
+
+			case 0x2A:
+				tstates_available -= ImplementLDHL_nn_();
+				break;
+
+			case 0x3A:
+				tstates_available -= ImplementLDA_nn_();
+				break;
+
+			case 0x0B: // DEC BC
+			case 0x1B: // DEC DE
+			case 0x2B: // DEC HL
+			case 0x3B: // DEC SP
+				tstates_available -= ImplementDECdd();
+				break;
+
+			case 0x0F:
+				tstates_available -= ImplementRRCA();
+				break;
+
+			case 0x1F:
+				tstates_available -= ImplementRRA();
+				break;
+
+			case 0x2F:
+				tstates_available -= ImplementCPL();
+				break;
+
+			case 0x3F:
+				tstates_available -= ImplementCCF();
+				break;
+
+			case 0x40: // LD B,B
+			case 0x41: // LD B,C
+			case 0x42: // LD B,D
+			case 0x43: // LD B,E
+			case 0x44: // LD B,H
+			case 0x45: // LD B,L
+			case 0x47: // LD B,A
+			case 0x50: // LD D,B
+			case 0x51: // LD D,C
+			case 0x52: // LD D,D
+			case 0x53: // LD D,E
+			case 0x54: // LD D,H
+			case 0x55: // LD D,L
+			case 0x57: // LD D,A
+			case 0x60: // LD H,B
+			case 0x61: // LD H,C
+			case 0x62: // LD H,D
+			case 0x63: // LD H,E
+			case 0x64: // LD H,H
+			case 0x65: // LD H,L
+			case 0x67: // LD H,A
+			case 0x48: // LD C,B
+			case 0x49: // LD C,C
+			case 0x4A: // LD C,D
+			case 0x4B: // LD C,E
+			case 0x4C: // LD C,H
+			case 0x4D: // LD C,L
+			case 0x4F: // LD C,A
+			case 0x58: // LD E,B
+			case 0x59: // LD E,C
+			case 0x5A: // LD E,D
+			case 0x5B: // LD E,E
+			case 0x5C: // LD E,H
+			case 0x5D: // LD E,L
+			case 0x5F: // LD E,A
+			case 0x68: // LD L,B
+			case 0x69: // LD L,C
+			case 0x6A: // LD L,D
+			case 0x6B: // LD L,E
+			case 0x6C: // LD L,H
+			case 0x6D: // LD L,L
+			case 0x6F: // LD L,A
+			case 0x78: // LD A,B
+			case 0x79: // LD A,C
+			case 0x7A: // LD A,D
+			case 0x7B: // LD A,E
+			case 0x7C: // LD A,H
+			case 0x7D: // LD A,L
+			case 0x7F: // LD A,A
+				tstates_available -= ImplementLDrr();
+				break;
+
+			case 0x46: // LD B,(HL)
+			case 0x56: // LD D,(HL)
+			case 0x66: // LD H,(HL)
+			case 0x4E: // LD C,(HL)
+			case 0x5E: // LD E,(HL)
+			case 0x6E: // LD L,(HL)
+			case 0x7E: // LD A,(HL)
+				tstates_available -= ImplementLDr_HL_();
+				break;
+
+			case 0x70: // LD (HL),B
+			case 0x71: // LD (HL),C
+			case 0x72: // LD (HL),D
+			case 0x73: // LD (HL),E
+			case 0x74: // LD (HL),H
+			case 0x75: // LD (HL),L
+			case 0x77: // LD (HL),A
+				tstates_available -= ImplementLD_HL_r();
+				break;
+
+			case 0x76:
+				tstates_available -= ImplementHALT();
+				break;
+
+
+
+
+
+
+
+
+
+
+
+
 			default:
+				fprintf(cerr, "Unhandled opcode %02X", m_pMemory[PC]);
 				tstates_available -= ImplementNOP();
 				break;
 		}
@@ -553,7 +803,7 @@ uint32 CZ80::ImplementLDA_nn_(void)
 
 //=============================================================================
 
-uint32 CZ80::ImplementLDBCA(void)
+uint32 CZ80::ImplementLD_BC_A(void)
 {
 	//
 	// Operation:	(BC) <- A
@@ -574,7 +824,7 @@ uint32 CZ80::ImplementLDBCA(void)
 
 //=============================================================================
 
-uint32 CZ80::ImplementLDDEA(void)
+uint32 CZ80::ImplementLD_DE_A(void)
 {
 	//
 	// Operation:	(DE) <- A
@@ -3496,6 +3746,12 @@ uint32 CZ80::ImplementINCdd(void)
 	//						+-+-+-+-+-+-+-+-+
 	//						|0|0|d|d|0|0|1|1|
 	//						+-+-+-+-+-+-+-+-+
+	//
+	//						where dd is any of:
+	//								BC					00
+	//								DE					01
+	//								HL					10
+	//								SP					11
 	//
 	//							M Cycles		T States					MHz E.T.
 	//								1						6									1.50
