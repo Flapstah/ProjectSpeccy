@@ -3,7 +3,9 @@
 
 #include "common/platform_types.h"
 
+#if !defined(LITTLE_ENDIAN)
 #define LITTLE_ENDIAN
+#endif
 
 class CZ80
 {

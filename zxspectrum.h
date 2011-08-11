@@ -5,6 +5,9 @@
 
 #include "iscreenmemory.h"
 
+class CDisplay;
+class CZ80;
+
 class CZXSpectrum : public IScreenMemory
 {
 	public:
@@ -17,8 +20,10 @@ class CZXSpectrum : public IScreenMemory
 		virtual	uint32			GetScreenHeight(void) const;
 		// ~IScreenMemory
 
+						bool				Initialise(void);
 						bool				OpenSCR(const char* fileName);
 						bool				LoadROM(const char* fileName);
+						bool				Update(void);
 
 	protected:
 		enum SpectrumConstants
@@ -82,6 +87,8 @@ class CZXSpectrum : public IScreenMemory
 
 	protected:
 		uint8 m_memory[SC_48K_SPECTRUM];
+		CDisplay* m_pDisplay;
+		CZ80* m_pZ80;
 
 	private:
 };

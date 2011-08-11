@@ -1,11 +1,16 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "zxspectrum.h"
+#include "display.h"
+#include "z80.h"
 
 //=============================================================================
 
 CZXSpectrum::CZXSpectrum(void)
+	: m_pDisplay(NULL)
+	, m_pZ80(NULL)
 {
 }
 
@@ -13,8 +18,38 @@ CZXSpectrum::CZXSpectrum(void)
 
 CZXSpectrum::~CZXSpectrum(void)
 {
+	fprintf(stdout, "ZX Spectrum shutting down\n");
+
+	if (m_pDisplay != NULL)
+	{
+		delete m_pDisplay;
+	}
+
+	if (m_pZ80 != NULL)
+	{
+		delete m_pZ80;
+	}
 }
 
+//=============================================================================
+
+bool CZXSpectrum::Initialise(void)
+{
+	bool initialised = false;
+
+	m_pDisplay = new CDisplay(640, 480, "ZX Spectrum");
+	if (m_pDisplay != NULL)
+	{
+		if (m_pZ80 = new CZ80(m_memory, 4.0f))
+		{
+			m_pZ80->Reset();
+			fprintf(stdout, "ZX Spectrum initialised\n");
+			initialised = true;
+		}
+	}
+	
+	return initialised;
+}
 //=============================================================================
 
 const void* CZXSpectrum::GetScreenMemory(void) const
@@ -52,7 +87,12 @@ bool CZXSpectrum::OpenSCR(const char* fileName)
 
 		UpdateScreen(screenData);
 
+		fprintf(stdout, "[ZX Spectrum]: loaded screen [%s] successfully\n", fileName);
 		success = true;
+	}
+	else
+	{
+		fprintf(stdout, "[ZX Spectrum]: failed to load screen [%s]\n", fileName);
 	}
 
 	return success;
@@ -62,6 +102,8 @@ bool CZXSpectrum::OpenSCR(const char* fileName)
 
 bool CZXSpectrum::LoadROM(const char* fileName)
 {
+	memset(m_memory, 0, sizeof(m_memory));
+
 	FILE* pFile = fopen(fileName, "rb");
 	bool success = false;
 
@@ -70,10 +112,35 @@ bool CZXSpectrum::LoadROM(const char* fileName)
 		fread(m_memory, sizeof(m_memory), 1, pFile);
 		fclose(pFile);
 
+		fprintf(stdout, "[ZX Spectrum]: loaded rom [%s] successfully\n", fileName);
 		success = true;
+	}
+	else
+	{
+		fprintf(stdout, "[ZX Spectrum]: failed to load rom [%s]\n", fileName);
 	}
 
 	return success;
+}
+
+//=============================================================================
+
+bool CZXSpectrum::Update(void)
+{
+	bool ret = false;
+
+	if (m_pZ80 != NULL)
+	{
+		m_pZ80->Update(1.0f);
+		UpdateScreen(&m_memory[SC_SCREEN_START_ADDRESS]);
+
+		if (m_pDisplay != NULL)
+		{
+			ret = m_pDisplay->Update(this);
+		}
+	}
+
+	return ret;
 }
 
 //=============================================================================

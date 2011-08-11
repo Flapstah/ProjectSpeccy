@@ -88,19 +88,20 @@ void CZ80::Reset(void)
 
 float CZ80::Update(float milliseconds)
 {
-	// TODO: not happy with this - need a rethink of how to consume/time tstates
 	float microseconds = milliseconds * 1000.0f;
-	float estimated_tstates_available = microseconds / (1.0f / m_clockSpeedMHz);
-	int32 tstates_available = static_cast<int32>(estimated_tstates_available);
-	int32 tstates_used = tstates_available;
+	int32 tstates_available = static_cast<int32>(microseconds / (1.0f / m_clockSpeedMHz));
 
 	uint32 tstates = 0;
-	while (tstates_available > 0)
+	uint32 tstates_used = 0;
+	while (tstates_available >= tstates_used)
 	{
+		// TODO: Interrupts need servicing here, I think
 		tstates = Step();
 		if (tstates)
 		{
-			tstates_available -= tstates;
+			tstates_used += tstates;
+
+			fprintf(stdout, "[Z80]: PC = %04X\n", m_PC);
 		}
 		else
 		{
@@ -108,9 +109,8 @@ float CZ80::Update(float milliseconds)
 		}
 	}
 
-	tstates_used -= tstates_available;
-	microseconds = (estimated_tstates_available - static_cast<float>(tstates_used)) * (1.0f / m_clockSpeedMHz);
-	float remaining_milliseconds = microseconds * 1000.0f;
+	float remaining_microseconds = (tstates_available - static_cast<float>(tstates_used)) * (1.0f / m_clockSpeedMHz);
+	float remaining_milliseconds = remaining_microseconds * 1000.0f;
 	return remaining_milliseconds;
 }
 

@@ -3,7 +3,6 @@
 
 #include "common/platform_types.h"
 #include "common/macros.h"
-#include "display.h"
 #include "zxspectrum.h"
 
 int main(int argc, char* argv[])
@@ -12,16 +11,15 @@ int main(int argc, char* argv[])
 	IGNORE_PARAMETER(argv);
 
 	CZXSpectrum speccy;
-	CDisplay display(640, 480, "Test");
+	speccy.Initialise();
 /*
 	speccy.OpenSCR("roms/Fairlight.scr");
 	speccy.OpenSCR("roms/KnightLore.scr");
 	speccy.OpenSCR("roms/LordsOfMidnightThe.scr");
 	speccy.OpenSCR("roms/SabreWulf.scr");
 */
-	speccy.OpenSCR("roms/LordsOfMidnightThe.scr");
-
-	while (display.Update(&speccy));
+	speccy.LoadROM("roms/48.rom");
+	while (speccy.Update());
 
 	return EXIT_SUCCESS;
 }
