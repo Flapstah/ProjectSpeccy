@@ -18,6 +18,8 @@ class CZ80
 
 		const char* Get8BitRegisterString(uint8 threeBits);
 		const char* Get16BitRegisterString(uint8 twoBits);
+		const char* GetConditionString(uint8 threeBits);
+		bool IsConditionTrue(uint8 threeBits);
 
 		//-----------------------------------------------------------------------------
 		//	8-Bit Load Group
@@ -168,11 +170,11 @@ class CZ80
 		uint32 ImplementADDIXdd(void);
 		uint32 ImplementADDIYdd(void);
 		uint32 ImplementINCdd(void);
-		uint32 ImplementINCIXdd(void);
-		uint32 ImplementINCIYdd(void);
+		uint32 ImplementINCIX(void);
+		uint32 ImplementINCIY(void);
 		uint32 ImplementDECdd(void);
-		uint32 ImplementDECIXdd(void);
-		uint32 ImplementDECIYdd(void);
+		uint32 ImplementDECIX(void);
+		uint32 ImplementDECIY(void);
 
 		//-----------------------------------------------------------------------------
 		//	Rotate and Shift Group

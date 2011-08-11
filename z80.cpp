@@ -18,8 +18,7 @@
 //	Manual".
 //
 //	Minor timing corrections have been made for instruction execution time where
-//	each T State is assumed to be 0.25 microseconds (based on the vast majority
-//	of the instructions) based on a 4MHz clock.
+//	each T State is assumed to be 0.25 microseconds, based on a 4MHz clock.
 //=============================================================================
 
 //=============================================================================
@@ -95,9 +94,18 @@ float CZ80::Update(float milliseconds)
 	int32 tstates_available = static_cast<int32>(estimated_tstates_available);
 	int32 tstates_used = tstates_available;
 
+	uint32 tstates = 0;
 	while (tstates_available > 0)
 	{
-		tstates_available -= Step();
+		tstates = Step();
+		if (tstates)
+		{
+			tstates_available -= tstates;
+		}
+		else
+		{
+			break;
+		}
 	}
 
 	tstates_used -= tstates_available;
@@ -375,11 +383,11 @@ uint32 CZ80::Step(void)
 			case 0x94: // SUB A,H
 			case 0x95: // SUB A,L
 			case 0x97: // SUB A,A
-				return ImplementSUBAr();
+				return ImplementSUBr();
 				break;
 
 			case 0x96:
-				return ImplementSUBA_HL_();
+				return ImplementSUB_HL_();
 				break;
 
 			case 0xA0: // AND A,B
@@ -389,11 +397,11 @@ uint32 CZ80::Step(void)
 			case 0xA4: // AND A,H
 			case 0xA5: // AND A,L
 			case 0xA7: // AND A,A
-				return ImplementANDAr();
+				return ImplementANDr();
 				break;
 
 			case 0xA6:
-				return ImplementANDA_HL_();
+				return ImplementAND_HL_();
 				break;
 
 			case 0xB0: // OR A,B
@@ -403,11 +411,11 @@ uint32 CZ80::Step(void)
 			case 0xB4: // OR A,H
 			case 0xB5: // OR A,L
 			case 0xB7: // OR A,A
-				return ImplementORAr();
+				return ImplementORr();
 				break;
 
 			case 0xB6:
-				return ImplementORA_HL_();
+				return ImplementOR_HL_();
 				break;
 
 			case 0x88: // ADC A,B
@@ -445,11 +453,11 @@ uint32 CZ80::Step(void)
 			case 0xAC: // XOR A,H
 			case 0xAD: // XOR A,L
 			case 0xAF: // XOR A,A
-				return ImplementXORAr();
+				return ImplementXORr();
 				break;
 
 			case 0xAE:
-				return ImplementXORA_HL_();
+				return ImplementXOR_HL_();
 				break;
 
 			case 0xB8: // CP A,B
@@ -459,11 +467,11 @@ uint32 CZ80::Step(void)
 			case 0xBC: // CP A,H
 			case 0xBD: // CP A,L
 			case 0xBF: // CP A,A
-				return ImplementCPAr();
+				return ImplementCPr();
 				break;
 
 			case 0xBE:
-				return ImplementCPA_HL_();
+				return ImplementCP_HL_();
 				break;
 
 			case 0xC0: // RET NZ
@@ -484,31 +492,969 @@ uint32 CZ80::Step(void)
 				return ImplementPOPqq();
 				break;
 
+			case 0xC2: // JP NZ,nn
+			case 0xD2: // JP NC,nn
+			case 0xE2: // JP PO,nn
+			case 0xF2: // JP P,nn
+			case 0xCA: // JP Z,nn
+			case 0xDA: // JP C,nn
+			case 0xEA: // JP PE,nn
+			case 0xFA: // JP M,nn
+				return ImplementJPccnn();
+				break;
 
+			case 0xC3:
+				return ImplementJPnn();
+				break;
 
+			case 0xD3:
+				return ImplementOUT_n_A();
+				break;
 
+			case 0xE3:
+				return ImplementEX_SP_HL();
+				break;
 
+			case 0xF3:
+				return ImplementDI();
+				break;
 
+			case 0xC4: // CALL NZ,nn
+			case 0xD4: // CALL NC,nn
+			case 0xE4: // CALL PO,nn
+			case 0xF4: // CALL P,nn
+			case 0xCC: // CALL Z,nn
+			case 0xDC: // CALL C,nn
+			case 0xEC: // CALL PE,nn
+			case 0xFC: // CALL M,nn
+				return ImplementCALLccnn();
+				break;
 
+			case 0xC5: // PUSH BC
+			case 0xD5: // PUSH DE
+			case 0xE5: // PUSH HL
+			case 0xF5: // PUSH AF
+				return ImplementPUSHqq();
+				break;
 
+			case 0xC6:
+				return ImplementADDAn();
+				break;
 
+			case 0xD6:
+				return ImplementSUBn();
+				break;
 
+			case 0xE6:
+				return ImplementANDn();
+				break;
 
+			case 0xF6:
+				return ImplementORn();
+				break;
 
+			case 0xC7: // RST 0
+			case 0xD7: // RST 16
+			case 0xE7: // RST 32
+			case 0xF7: // RST 48
+			case 0xCF: // RST 8
+			case 0xDF: // RST 24
+			case 0xEF: // RST 40
+			case 0xFF: // RST 56
+				return ImplementRSTp();
+				break;
 
+			case 0xC9:
+				return ImplementRET();
+				break;
 
+			case 0xD9:
+				return ImplementEXX();
 
+			case 0xE9:
+				return ImplementJP_HL_();
+				break;
 
+			case 0xF9:
+				return ImplementLDSPHL();
+				break;
 
+			case 0xCB: // Prefix CB
+				switch (m_pMemory[m_PC + 1])
+				{
+					case 0x00: // RLC B
+					case 0x01: // RLC C
+					case 0x02: // RLC D
+					case 0x03: // RLC E
+					case 0x04: // RLC H
+					case 0x05: // RLC L
+					case 0x07: // RLC A
+						return ImplementRLCr();
+						break;
 
+					case 0x06:
+						return ImplementRLC_HL_();
+						break;
 
+					case 0x08: // RRC B
+					case 0x09: // RRC C
+					case 0x0A: // RRC D
+					case 0x0B: // RRC E
+					case 0x0C: // RRC H
+					case 0x0D: // RRC L
+					case 0x0F: // RRC A
+						return ImplementRRCr();
+						break;
 
+					case 0x0E:
+						return ImplementRRC_HL_();
+						break;
 
+					case 0x10: // RL B
+					case 0x11: // RL C
+					case 0x12: // RL D
+					case 0x13: // RL E
+					case 0x14: // RL H
+					case 0x15: // RL L
+					case 0x17: // RL A
+						return ImplementRLr();
+						break;
 
+					case 0x16:
+						return ImplementRL_HL_();
+						break;
+
+					case 0x18: // RR B
+					case 0x19: // RR C
+					case 0x1A: // RR D
+					case 0x1B: // RR E
+					case 0x1C: // RR H
+					case 0x1D: // RR L
+					case 0x1F: // RR A
+						return ImplementRRr();
+						break;
+
+					case 0x1E:
+						return ImplementRR_HL_();
+						break;
+
+					case 0x20: // SLA B
+					case 0x21: // SLA C
+					case 0x22: // SLA D
+					case 0x23: // SLA E
+					case 0x24: // SLA H
+					case 0x25: // SLA L
+					case 0x27: // SLA A
+						return ImplementSLAr();
+						break;
+
+					case 0x26:
+						return ImplementSLA_HL_();
+						break;
+
+					case 0x28: // SRA B
+					case 0x29: // SRA C
+					case 0x2A: // SRA D
+					case 0x2B: // SRA E
+					case 0x2C: // SRA H
+					case 0x2D: // SRA L
+					case 0x2F: // SRA A
+						return ImplementSRAr();
+						break;
+
+					case 0x2E:
+						return ImplementSRA_HL_();
+						break;
+
+					case 0x38: // SRL B
+					case 0x39: // SRL C
+					case 0x3A: // SRL D
+					case 0x3B: // SRL E
+					case 0x3C: // SRL H
+					case 0x3D: // SRL L
+					case 0x3F: // SRL A
+						return ImplementSRLr();
+						break;
+
+					case 0x3E:
+						return ImplementSRL_HL_();
+						break;
+
+					case 0x40: // BIT 0,B
+					case 0x41: // BIT 0,C
+					case 0x42: // BIT 0,D
+					case 0x43: // BIT 0,E
+					case 0x44: // BIT 0,H
+					case 0x45: // BIT 0,L
+					case 0x47: // BIT 0,A
+					case 0x48: // BIT 1,B
+					case 0x49: // BIT 1,C
+					case 0x4A: // BIT 1,D
+					case 0x4B: // BIT 1,E
+					case 0x4C: // BIT 1,H
+					case 0x4D: // BIT 1,L
+					case 0x4F: // BIT 1,A
+					case 0x50: // BIT 2,B
+					case 0x51: // BIT 2,C
+					case 0x52: // BIT 2,D
+					case 0x53: // BIT 2,E
+					case 0x54: // BIT 2,H
+					case 0x55: // BIT 2,L
+					case 0x57: // BIT 2,A
+					case 0x58: // BIT 3,B
+					case 0x59: // BIT 3,C
+					case 0x5A: // BIT 3,D
+					case 0x5B: // BIT 3,E
+					case 0x5C: // BIT 3,H
+					case 0x5D: // BIT 3,L
+					case 0x5F: // BIT 3,A
+					case 0x60: // BIT 4,B
+					case 0x61: // BIT 4,C
+					case 0x62: // BIT 4,D
+					case 0x63: // BIT 4,E
+					case 0x64: // BIT 4,H
+					case 0x65: // BIT 4,L
+					case 0x67: // BIT 4,A
+					case 0x68: // BIT 5,B
+					case 0x69: // BIT 5,C
+					case 0x6A: // BIT 5,D
+					case 0x6B: // BIT 5,E
+					case 0x6C: // BIT 5,H
+					case 0x6D: // BIT 5,L
+					case 0x6F: // BIT 5,A
+					case 0x70: // BIT 6,B
+					case 0x71: // BIT 6,C
+					case 0x72: // BIT 6,D
+					case 0x73: // BIT 6,E
+					case 0x74: // BIT 6,H
+					case 0x75: // BIT 6,L
+					case 0x77: // BIT 6,A
+					case 0x78: // BIT 7,B
+					case 0x79: // BIT 7,C
+					case 0x7A: // BIT 7,D
+					case 0x7B: // BIT 7,E
+					case 0x7C: // BIT 7,H
+					case 0x7D: // BIT 7,L
+					case 0x7F: // BIT 7,A
+						return ImplementBITbr();
+						break;
+
+					case 0x46: // BIT 0,(HL)
+					case 0x4E: // BIT 1,(HL)
+					case 0x56: // BIT 2,(HL)
+					case 0x5E: // BIT 3,(HL)
+					case 0x66: // BIT 4,(HL)
+					case 0x6E: // BIT 5,(HL)
+					case 0x76: // BIT 6,(HL)
+					case 0x7E: // BIT 7,(HL)
+						return ImplementBITb_HL_();
+						break;
+
+					case 0x80: // RES 0,B
+					case 0x81: // RES 0,C
+					case 0x82: // RES 0,D
+					case 0x83: // RES 0,E
+					case 0x84: // RES 0,H
+					case 0x85: // RES 0,L
+					case 0x87: // RES 0,A
+					case 0x88: // RES 1,B
+					case 0x89: // RES 1,C
+					case 0x8A: // RES 1,D
+					case 0x8B: // RES 1,E
+					case 0x8C: // RES 1,H
+					case 0x8D: // RES 1,L
+					case 0x8F: // RES 1,A
+					case 0x90: // RES 2,B
+					case 0x91: // RES 2,C
+					case 0x92: // RES 2,D
+					case 0x93: // RES 2,E
+					case 0x94: // RES 2,H
+					case 0x95: // RES 2,L
+					case 0x97: // RES 2,A
+					case 0x98: // RES 3,B
+					case 0x99: // RES 3,C
+					case 0x9A: // RES 3,D
+					case 0x9B: // RES 3,E
+					case 0x9C: // RES 3,H
+					case 0x9D: // RES 3,L
+					case 0x9F: // RES 3,A
+					case 0xA0: // RES 4,B
+					case 0xA1: // RES 4,C
+					case 0xA2: // RES 4,D
+					case 0xA3: // RES 4,E
+					case 0xA4: // RES 4,H
+					case 0xA5: // RES 4,L
+					case 0xA7: // RES 4,A
+					case 0xA8: // RES 5,B
+					case 0xA9: // RES 5,C
+					case 0xAA: // RES 5,D
+					case 0xAB: // RES 5,E
+					case 0xAC: // RES 5,H
+					case 0xAD: // RES 5,L
+					case 0xAF: // RES 5,A
+					case 0xB0: // RES 6,B
+					case 0xB1: // RES 6,C
+					case 0xB2: // RES 6,D
+					case 0xB3: // RES 6,E
+					case 0xB4: // RES 6,H
+					case 0xB5: // RES 6,L
+					case 0xB7: // RES 6,A
+					case 0xB8: // RES 7,B
+					case 0xB9: // RES 7,C
+					case 0xBA: // RES 7,D
+					case 0xBB: // RES 7,E
+					case 0xBC: // RES 7,H
+					case 0xBD: // RES 7,L
+					case 0xBF: // RES 7,A
+						return ImplementRESbr();
+						break;
+
+					case 0x86: // RES 0,(HL)
+					case 0x8E: // RES 1,(HL)
+					case 0x96: // RES 2,(HL)
+					case 0x9E: // RES 3,(HL)
+					case 0xA6: // RES 4,(HL)
+					case 0xAE: // RES 5,(HL)
+					case 0xB6: // RES 6,(HL)
+					case 0xBE: // RES 7,(HL)
+						return ImplementRESb_HL_();
+						break;
+
+					case 0xC0: // SET 0,B
+					case 0xC1: // SET 0,C
+					case 0xC2: // SET 0,D
+					case 0xC3: // SET 0,E
+					case 0xC4: // SET 0,H
+					case 0xC5: // SET 0,L
+					case 0xC7: // SET 0,A
+					case 0xC8: // SET 1,B
+					case 0xC9: // SET 1,C
+					case 0xCA: // SET 1,D
+					case 0xCB: // SET 1,E
+					case 0xCC: // SET 1,H
+					case 0xCD: // SET 1,L
+					case 0xCF: // SET 1,A
+					case 0xD0: // SET 2,B
+					case 0xD1: // SET 2,C
+					case 0xD2: // SET 2,D
+					case 0xD3: // SET 2,E
+					case 0xD4: // SET 2,H
+					case 0xD5: // SET 2,L
+					case 0xD7: // SET 2,A
+					case 0xD8: // SET 3,B
+					case 0xD9: // SET 3,C
+					case 0xDA: // SET 3,D
+					case 0xDB: // SET 3,E
+					case 0xDC: // SET 3,H
+					case 0xDD: // SET 3,L
+					case 0xDF: // SET 3,A
+					case 0xE0: // SET 4,B
+					case 0xE1: // SET 4,C
+					case 0xE2: // SET 4,D
+					case 0xE3: // SET 4,E
+					case 0xE4: // SET 4,H
+					case 0xE5: // SET 4,L
+					case 0xE7: // SET 4,A
+					case 0xE8: // SET 5,B
+					case 0xE9: // SET 5,C
+					case 0xEA: // SET 5,D
+					case 0xEB: // SET 5,E
+					case 0xEC: // SET 5,H
+					case 0xED: // SET 5,L
+					case 0xEF: // SET 5,A
+					case 0xF0: // SET 6,B
+					case 0xF1: // SET 6,C
+					case 0xF2: // SET 6,D
+					case 0xF3: // SET 6,E
+					case 0xF4: // SET 6,H
+					case 0xF5: // SET 6,L
+					case 0xF7: // SET 6,A
+					case 0xF8: // SET 7,B
+					case 0xF9: // SET 7,C
+					case 0xFA: // SET 7,D
+					case 0xFB: // SET 7,E
+					case 0xFC: // SET 7,H
+					case 0xFD: // SET 7,L
+					case 0xFF: // SET 7,A
+						return ImplementSETbr();
+						break;
+
+					case 0xC6: // SET 0,(HL)
+					case 0xCE: // SET 1,(HL)
+					case 0xD6: // SET 2,(HL)
+					case 0xDE: // SET 3,(HL)
+					case 0xE6: // SET 4,(HL)
+					case 0xEE: // SET 5,(HL)
+					case 0xF6: // SET 6,(HL)
+					case 0xFE: // SET 7,(HL)
+						return ImplementRESb_HL_();
+						break;
+
+				default:
+					fprintf(stderr, "Unhandled opcode CB %02X at address %04X", m_pMemory[m_PC + 1], m_PC);
+					return 0;
+					break;
+				};
+				break;
+
+			case 0xDB:
+				return ImplementINA_n_();
+				break;
+
+			case 0xEB:
+				return ImplementEXDEHL();
+				break;
+
+			case 0xFB:
+				return ImplementEI();
+				break;
+
+			case 0xCD:
+				return ImplementCALLnn();
+				break;
+
+			case 0xDD: // Prefix DD
+				switch (m_pMemory[m_PC + 1])
+				{
+					case 0x46: // LD B,(IX+d)
+					case 0x56: // LD D,(IX+d)
+					case 0x66: // LD H,(IX+d)
+					case 0x4E: // LD C,(IX+d)
+					case 0x5E: // LD E,(IX+d)
+					case 0x6E: // LD L,(IX+d)
+					case 0x7E: // LD A,(IX+d)
+						return ImplementLDr_IXd_();
+						break;
+
+					case 0x70: // LD (IX+d),B
+					case 0x71: // LD (IX+d),C
+					case 0x72: // LD (IX+d),D
+					case 0x73: // LD (IX+d),E
+					case 0x74: // LD (IX+d),H
+					case 0x75: // LD (IX+d),L
+					case 0x77: // LD (IX+d),A
+						return ImplementLD_IXd_r();
+						break;
+
+					case 0x09: // ADD IX,BC
+					case 0x19: // ADD IX,DE
+					case 0x29: // ADD IX,HL
+					case 0x39: // ADD IX,SP
+						return ImplementADDIXdd();
+						break;
+
+					case 0x23:
+						return ImplementINCIX();
+						break;
+
+					case 0x2B:
+						return ImplementDECIX();
+						break;
+
+					case 0x34:
+						return ImplementINC_IXd_();
+						break;
+
+					case 0xE9:
+						return ImplementJP_IX_();
+						break;
+
+					case 0x21:
+						return ImplementLDIXnn();
+						break;
+
+					case 0x2A:
+						return ImplementLDIX_nn_();
+						break;
+
+					case 0xF9:
+						return ImplementLDSPIX();
+						break;
+
+					case 0xE5:
+						return ImplementPUSHIX();
+						break;
+
+					case 0xE1:
+						return ImplementPOPIX();
+						break;
+
+					case 0xE3:
+						return ImplementEX_SP_IX();
+						break;
+
+					case 0x86:
+						return ImplementADDA_IXd_();
+						break;
+
+					case 0x96:
+						return ImplementSUB_IXd_();
+
+					case 0xA6:
+						return ImplementAND_IXd_();
+						break;
+
+					case 0xB6:
+						return ImplementOR_IXd_();
+						break;
+
+					case 0x8E:
+						return ImplementADCA_IXd_();
+						break;
+
+					case 0x9E:
+						return ImplementSBCA_IXd_();
+						break;
+
+					case 0xAE:
+						return ImplementXOR_IXd_();
+						break;
+
+					case 0xBE:
+						return ImplementCP_IXd_();
+						break;
+
+					case 0xCB: // Prefix CB
+						switch (m_pMemory[m_PC + 2])
+						{
+							case 0x06:
+								return ImplementRLC_IXd_();
+								break;
+
+							case 0x0E:
+								return ImplementRRC_IXd_();
+								break;
+
+							case 0x16:
+								return ImplementRL_IXd_();
+								break;
+
+							case 0x1E:
+								return ImplementRR_IXd_();
+								break;
+
+							case 0x26:
+								return ImplementSLA_IXd_();
+								break;
+
+							case 0x2E:
+								return ImplementSRA_IXd_();
+								break;
+
+							case 0x3E:
+								return ImplementSRL_IXd_();
+								break;
+
+							case 0x46: // BIT 0,(IX+d)
+							case 0x4E: // BIT 1,(IX+d)
+							case 0x56: // BIT 2,(IX+d)
+							case 0x5E: // BIT 3,(IX+d)
+							case 0x66: // BIT 4,(IX+d)
+							case 0x6E: // BIT 5,(IX+d)
+							case 0x76: // BIT 6,(IX+d)
+							case 0x7E: // BIT 7,(IX+d)
+								return ImplementBITb_IXd_();
+								break;
+
+							case 0x86: // RES 0,(IX+d)
+							case 0x8E: // RES 1,(IX+d)
+							case 0x96: // RES 2,(IX+d)
+							case 0x9E: // RES 3,(IX+d)
+							case 0xA6: // RES 4,(IX+d)
+							case 0xAE: // RES 5,(IX+d)
+							case 0xB6: // RES 6,(IX+d)
+							case 0xBE: // RES 7,(IX+d)
+								return ImplementRESb_IXd_();
+								break;
+
+							case 0xC6: // SET 0,(IX+d)
+							case 0xCE: // SET 1,(IX+d)
+							case 0xD6: // SET 2,(IX+d)
+							case 0xDE: // SET 3,(IX+d)
+							case 0xE6: // SET 4,(IX+d)
+							case 0xEE: // SET 5,(IX+d)
+							case 0xF6: // SET 6,(IX+d)
+							case 0xFE: // SET 7,(IX+d)
+								return ImplementRESb_IXd_();
+								break;
+
+							default:
+								fprintf(stderr, "Unhandled opcode DD CB %02X at address %04X", m_pMemory[m_PC + 2], m_PC);
+								return 0;
+								break;
+						};
+
+				default:
+					fprintf(stderr, "Unhandled opcode DD %02X at address %04X", m_pMemory[m_PC + 1], m_PC);
+					return 0;
+					break;
+				};
+				break;
+
+			case 0xED: // Prefix ED
+				switch (m_pMemory[m_PC + 1])
+				{
+					case 0x40: // IN B,(C)
+					case 0x50: // IN D,(C)
+					case 0x60: // IN H,(C)
+					case 0x48: // IN C,(C)
+					case 0x58: // IN E,(C)
+					case 0x68: // IN L,(C)
+					case 0x78: // IN A,(C)
+						return ImplementINr_C_();
+						break;
+
+					case 0x41: // OUT (C),B
+					case 0x51: // OUT (C),D
+					case 0x61: // OUT (C),H
+					case 0x49: // OUT (C),C
+					case 0x59: // OUT (C),E
+					case 0x69: // OUT (C),L
+					case 0x79: // OUT (C),A
+						return ImplementOUT_C_r();
+						break;
+
+					case 0x42: // SBC HL,BC
+					case 0x52: // SBC HL,DE
+					case 0x62: // SBC HL,HL
+					case 0x72: // SBC HL,SP
+						return ImplementSBCHLdd();
+						break;
+
+					case 0x43: // LD (nn),BC
+					case 0x53: // LD (nn),DE
+					case 0x73: // LD (nn),SP
+						return ImplementLD_nn_dd();
+
+					case 0x44:
+						return ImplementNEG();
+						break;
+
+					case 0x45:
+						return ImplementRETN();
+						break;
+
+					case 0x46:
+						return ImplementIM0();
+						break;
+
+					case 0x56:
+						return ImplementIM1();
+						break;
+
+					case 0x47:
+						return ImplementLDIA();
+						break;
+
+					case 0x57:
+						return ImplementLDAI();
+						break;
+
+					case 0x67:
+						return ImplementRRD();
+						break;
+
+					case 0x4A: // ADC HL,BC
+					case 0x5A: // ADC HL,DE
+					case 0x6A: // ADC HL,HL
+					case 0x7A: // ADC HL,SP
+						return ImplementADCHLdd();
+						break;
+
+					case 0x4B: // LD BC,(nn)
+					case 0x5B: // LD DE,(nn)
+					case 0x7B: // LD SP,(nn)
+						return ImplementLDdd_nn_();
+						break;
+
+					case 0x4D:
+						return ImplementRETI();
+						break;
+
+					case 0x5E:
+						return ImplementIM2();
+						break;
+
+					case 0x4F:
+						return ImplementLDRA();
+						break;
+
+					case 0x5F:
+						return ImplementLDAR();
+						break;
+
+					case 0x6F:
+						return ImplementRLD();
+						break;
+
+					case 0xA0:
+						return ImplementLDI();
+						break;
+
+					case 0xA8:
+						return ImplementLDD();
+						break;
+
+					case 0xB0:
+						return ImplementLDIR();
+						break;
+
+					case 0xB8:
+						return ImplementLDDR();
+						break;
+
+					case 0xA1:
+						return ImplementCPI();
+						break;
+
+					case 0xA9:
+						return ImplementCPD();
+						break;
+
+					case 0xB1:
+						return ImplementCPIR();
+						break;
+
+					case 0xB9:
+						return ImplementCPDR();
+						break;
+
+					case 0xA2:
+						return ImplementINI();
+						break;
+
+					case 0xAA:
+						return ImplementIND();
+						break;
+
+					case 0xB2:
+						return ImplementINIR();
+						break;
+
+					case 0xBA:
+						return ImplementINDR();
+						break;
+
+					case 0xA3:
+						return ImplementOUTI();
+						break;
+
+					case 0xAB:
+						return ImplementOUTD();
+						break;
+
+					case 0xB3:
+						return ImplementOTIR();
+						break;
+
+					case 0xBB:
+						return ImplementOTDR();
+						break;
+
+				default:
+					fprintf(stderr, "Unhandled opcode ED %02X at address %04X", m_pMemory[m_PC + 1], m_PC);
+					return 0;
+					break;
+				};
+				break;
+
+			case 0xFD: // Prefix FD
+				switch (m_pMemory[m_PC + 1])
+				{
+					case 0x46: // LD B,(IY+d)
+					case 0x56: // LD D,(IY+d)
+					case 0x66: // LD H,(IY+d)
+					case 0x4E: // LD C,(IY+d)
+					case 0x5E: // LD E,(IY+d)
+					case 0x6E: // LD L,(IY+d)
+					case 0x7E: // LD A,(IY+d)
+						return ImplementLDr_IYd_();
+						break;
+
+					case 0x70: // LD (IY+d),B
+					case 0x71: // LD (IY+d),C
+					case 0x72: // LD (IY+d),D
+					case 0x73: // LD (IY+d),E
+					case 0x74: // LD (IY+d),H
+					case 0x75: // LD (IY+d),L
+					case 0x77: // LD (IY+d),A
+						return ImplementLD_IYd_r();
+						break;
+
+					case 0x09: // ADD IY,BC
+					case 0x19: // ADD IY,DE
+					case 0x29: // ADD IY,HL
+					case 0x39: // ADD IY,SP
+						return ImplementADDIYdd();
+						break;
+
+					case 0x23:
+						return ImplementINCIY();
+						break;
+
+					case 0x2B:
+						return ImplementDECIY();
+						break;
+
+					case 0x34:
+						return ImplementINC_IYd_();
+						break;
+
+					case 0xE9:
+						return ImplementJP_IY_();
+						break;
+
+					case 0x21:
+						return ImplementLDIYnn();
+						break;
+
+					case 0x2A:
+						return ImplementLDIY_nn_();
+						break;
+
+					case 0xF9:
+						return ImplementLDSPIY();
+						break;
+
+					case 0xE5:
+						return ImplementPUSHIY();
+						break;
+
+					case 0xE1:
+						return ImplementPOPIY();
+						break;
+
+					case 0xE3:
+						return ImplementEX_SP_IY();
+						break;
+
+					case 0x86:
+						return ImplementADDA_IYd_();
+						break;
+
+					case 0x96:
+						return ImplementSUB_IYd_();
+
+					case 0xA6:
+						return ImplementAND_IYd_();
+						break;
+
+					case 0xB6:
+						return ImplementOR_IYd_();
+						break;
+
+					case 0x8E:
+						return ImplementADCA_IYd_();
+						break;
+
+					case 0x9E:
+						return ImplementSBCA_IYd_();
+						break;
+
+					case 0xAE:
+						return ImplementXOR_IYd_();
+						break;
+
+					case 0xBE:
+						return ImplementCP_IYd_();
+						break;
+
+					case 0xCB: // Prefix CB
+						switch (m_pMemory[m_PC + 2])
+						{
+							case 0x06:
+								return ImplementRLC_IYd_();
+								break;
+
+							case 0x0E:
+								return ImplementRRC_IYd_();
+								break;
+
+							case 0x16:
+								return ImplementRL_IYd_();
+								break;
+
+							case 0x1E:
+								return ImplementRR_IYd_();
+								break;
+
+							case 0x26:
+								return ImplementSLA_IYd_();
+								break;
+
+							case 0x2E:
+								return ImplementSRA_IYd_();
+								break;
+
+							case 0x3E:
+								return ImplementSRL_IYd_();
+								break;
+
+							case 0x46: // BIT 0,(IY+d)
+							case 0x4E: // BIT 1,(IY+d)
+							case 0x56: // BIT 2,(IY+d)
+							case 0x5E: // BIT 3,(IY+d)
+							case 0x66: // BIT 4,(IY+d)
+							case 0x6E: // BIT 5,(IY+d)
+							case 0x76: // BIT 6,(IY+d)
+							case 0x7E: // BIT 7,(IY+d)
+								return ImplementBITb_IYd_();
+								break;
+
+							case 0x86: // RES 0,(IY+d)
+							case 0x8E: // RES 1,(IY+d)
+							case 0x96: // RES 2,(IY+d)
+							case 0x9E: // RES 3,(IY+d)
+							case 0xA6: // RES 4,(IY+d)
+							case 0xAE: // RES 5,(IY+d)
+							case 0xB6: // RES 6,(IY+d)
+							case 0xBE: // RES 7,(IY+d)
+								return ImplementRESb_IYd_();
+								break;
+
+							case 0xC6: // SET 0,(IY+d)
+							case 0xCE: // SET 1,(IY+d)
+							case 0xD6: // SET 2,(IY+d)
+							case 0xDE: // SET 3,(IY+d)
+							case 0xE6: // SET 4,(IY+d)
+							case 0xEE: // SET 5,(IY+d)
+							case 0xF6: // SET 6,(IY+d)
+							case 0xFE: // SET 7,(IY+d)
+								return ImplementRESb_IYd_();
+								break;
+
+							default:
+								fprintf(stderr, "Unhandled opcode FD CB %02X at address %04X", m_pMemory[m_PC + 2], m_PC);
+								return 0;
+								break;
+						};
+
+				default:
+					fprintf(stderr, "Unhandled opcode FD %02X at address %04X", m_pMemory[m_PC + 1], m_PC);
+					return 0;
+					break;
+				};
+				break;
+
+			case 0xCE:
+				return ImplementADCAn();
+				break;
+
+			case 0xDE:
+				return ImplementSBCAn();
+				break;
+
+			case 0xEE:
+				return ImplementXORn();
+				break;
+
+			case 0xFE:
+				return ImplementCPn();
+				break;
 
 			default:
-				fprintf(cerr, "Unhandled opcode %02X", m_pMemory[PC]);
-				return ImplementNOP();
+				fprintf(stderr, "Unhandled opcode %02X at address %04X", m_pMemory[m_PC], m_PC);
+				return 0;
 				break;
 		}
 }
@@ -540,6 +1486,38 @@ const char* CZ80::Get16BitRegisterString(uint8 twoBits)
 		case 1: return "DE";		break;
 		case 2: return "HL";		break;
 		case 3: return "SP";		break;
+	}
+}
+
+//=============================================================================
+
+const char* CZ80::GetConditionString(uint8 threeBits)
+{
+	switch (threeBits & 0x07)
+	{
+		case 0: return "NZ";		break; // Not Zero
+		case 1: return "Z";			break; // Zero
+		case 2: return "NC";		break; // Not Carry
+		case 3: return "C";			break; // Carry
+		case 4: return "PO";		break; // Parity Odd
+		case 5: return "PE";		break; // Parity Even
+		case 6: return "P";			break; // Positive (Not Sign)
+		case 7: return "M";			break; // Minus (Sign)
+	}
+}
+
+bool CZ80::IsConditionTrue(uint8 threeBits)
+{
+	switch (threeBits & 0x07)
+	{
+		case 0: return (m_F & eF_Z) == 0;		break; // Not Zero
+		case 1: return (m_F & eF_Z) != 0;		break; // Zero
+		case 2: return (m_F & eF_C) == 0;		break; // Not Carry
+		case 3: return (m_F & eF_C) != 0;		break; // Carry
+		case 4: return (m_F & eF_PV) == 0;	break; // Parity Odd
+		case 5: return (m_F & eF_PV) != 0;	break; // Parity Even
+		case 6: return (m_F & eF_S) == 0;		break; // Positive (Not Sign)
+		case 7: return (m_F & eF_S) != 0;		break; // Minus (Sign)
 	}
 }
 
@@ -3914,7 +4892,7 @@ uint32 CZ80::ImplementINCdd(void)
 
 //=============================================================================
 
-uint32 CZ80::ImplementINCIXdd(void)
+uint32 CZ80::ImplementINCIX(void)
 {
 	//
 	// Operation:	IX <- IX+1
@@ -3937,10 +4915,10 @@ uint32 CZ80::ImplementINCIXdd(void)
 
 //=============================================================================
 
-uint32 CZ80::ImplementINCIYdd(void)
+uint32 CZ80::ImplementINCIY(void)
 {
 	//
-	// Operation:	IY <- IX+1
+	// Operation:	IY <- IY+1
 	// Op Code:		INC
 	// Operands:	IY
 	//						+-+-+-+-+-+-+-+-+
@@ -3980,7 +4958,7 @@ uint32 CZ80::ImplementDECdd(void)
 
 //=============================================================================
 
-uint32 CZ80::ImplementDECIXdd(void)
+uint32 CZ80::ImplementDECIX(void)
 {
 	//
 	// Operation:	IX <- IX-1
@@ -4003,7 +4981,7 @@ uint32 CZ80::ImplementDECIXdd(void)
 
 //=============================================================================
 
-uint32 CZ80::ImplementDECIYdd(void)
+uint32 CZ80::ImplementDECIY(void)
 {
 	//
 	// Operation:	IY <- IY-1
@@ -5546,33 +6524,7 @@ uint32 CZ80::ImplementJPccnn(void)
 	IncrementR(1);
 	uint8 cc = (m_pMemory[m_PC++] & 0x38) >> 3;
 	uint16 addr = m_pMemory[m_PC] + (static_cast<int16>(m_pMemory[m_PC + 1]) << 8);
-	switch (cc)
-	{
-		case 0: // NZ
-			m_PC = (m_F & eF_Z) ? m_PC + 2 : addr;
-			break;
-		case 1: // Z
-			m_PC = (m_F & eF_Z) ? addr : m_PC + 2;
-			break;
-		case 2: // NC
-			m_PC = (m_F & eF_C) ? m_PC + 2 : addr;
-			break;
-		case 3: // C
-			m_PC = (m_F & eF_C) ? addr : m_PC + 2;
-			break;
-		case 4: // NP (odd)
-			m_PC = (m_F & eF_PV) ? m_PC + 2 : addr;
-			break;
-		case 5: // P (even)
-			m_PC = (m_F & eF_PV) ? addr : m_PC + 2;
-			break;
-		case 6: // NS (positive)
-			m_PC = (m_F & eF_S) ? m_PC + 2 : addr;
-			break;
-		case 7: // S (negative)
-			m_PC = (m_F & eF_S) ? addr : m_PC + 2;
-			break;
-	}
+	m_PC = (IsConditionTrue(cc)) ? addr : m_PC + 2;
 	return 10;
 }
 
@@ -5891,36 +6843,7 @@ uint32 CZ80::ImplementCALLccnn(void)
 	uint8 cc = (m_pMemory[m_PC++] & 0x38) >> 3;
 	uint16 addr = m_pMemory[m_PC] + (static_cast<int16>(m_pMemory[m_PC + 1]) << 8);
 	uint32 tstates = 0;
-	bool call = false;
-	switch (cc)
-	{
-		case 0: // NZ
-			call = (m_F & eF_Z) ? false : true;
-			break;
-		case 1: // Z
-			call = (m_F & eF_Z) ? true : false;
-			break;
-		case 2: // NC
-			call = (m_F & eF_C) ? false : true;
-			break;
-		case 3: // C
-			call = (m_F & eF_C) ? true : false;
-			break;
-		case 4: // NP (odd)
-			call = (m_F & eF_PV) ? false : true;
-			break;
-		case 5: // P (even)
-			call = (m_F & eF_PV) ? true : false;
-			break;
-		case 6: // NS (positive)
-			call = (m_F & eF_S) ? false : true;
-			break;
-		case 7: // S (negative)
-			call = (m_F & eF_S) ? true : false;
-			break;
-	}
-
-	if (call)
+	if (IsConditionTrue(cc))
 	{
 		m_pMemory[--m_SP] = m_PCh;
 		m_pMemory[--m_SP] = m_PCl;
@@ -5975,36 +6898,7 @@ uint32 CZ80::ImplementRETcc(void)
 	IncrementR(1);
 	uint32 tstates = 0;
 	uint8 cc = (m_pMemory[m_PC++] & 0x38) >> 3;
-	bool ret = false;
-	switch (cc)
-	{
-		case 0: // NZ
-			ret = (m_F & eF_Z) ? false : true;
-			break;
-		case 1: // Z
-			ret = (m_F & eF_Z) ? true : false;
-			break;
-		case 2: // NC
-			ret = (m_F & eF_C) ? false : true;
-			break;
-		case 3: // C
-			ret = (m_F & eF_C) ? true : false;
-			break;
-		case 4: // NP (odd)
-			ret = (m_F & eF_PV) ? false : true;
-			break;
-		case 5: // P (even)
-			ret = (m_F & eF_PV) ? true : false;
-			break;
-		case 6: // NS (positive)
-			ret = (m_F & eF_S) ? false : true;
-			break;
-		case 7: // S (negative)
-			ret = (m_F & eF_S) ? true : false;
-			break;
-	}
-
-	if (ret)
+	if (IsConditionTrue(cc))
 	{
 		m_PCl = m_pMemory[m_SP++];
 		m_PCh = m_pMemory[m_SP++];
@@ -7670,36 +8564,7 @@ void CZ80::DecodeJPccnn(uint16& address, char* pMnemonic)
 	uint8 cc = (m_pMemory[address++] & 0x38) >> 3;
 	uint16 addr = m_pMemory[address] + (static_cast<int16>(m_pMemory[address + 1]) << 8);
 	address += 2;
-	const char* pCondition = NULL;
-	switch (cc)
-	{
-		case 0: // NZ
-			pCondition = "NZ";
-			break;
-		case 1: // Z
-			pCondition = "Z";
-			break;
-		case 2: // NC
-			pCondition = "NC";
-			break;
-		case 3: // C
-			pCondition = "C";
-			break;
-		case 4: // NP (odd)
-			pCondition = "PO";
-			break;
-		case 5: // P (even)
-			pCondition = "PE";
-			break;
-		case 6: // NS (positive)
-			pCondition = "P";
-			break;
-		case 7: // S (negative)
-			pCondition = "M";
-			break;
-	}
-
-	sprintf(pMnemonic, "JP %s,%04x", pCondition, addr);
+	sprintf(pMnemonic, "JP %s,%04x", GetConditionString(cc), addr);
 }
 
 //=============================================================================
@@ -7795,35 +8660,7 @@ void CZ80::DecodeCALLccnn(uint16& address, char* pMnemonic)
 {
 	uint8 cc = (m_pMemory[address] & 0x38) >> 3;
 	uint16 addr = m_pMemory[address + 1] + (static_cast<int16>(m_pMemory[address + 2]) << 8);
-	const char* condition = "";
-	switch (cc)
-	{
-		case 0: // NZ
-			condition = "NZ";
-			break;
-		case 1: // Z
-			condition = "Z";
-			break;
-		case 2: // NC
-			condition = "NC";
-			break;
-		case 3: // C
-			condition = "C";
-			break;
-		case 4: // NP (odd)
-			condition = "PO";
-			break;
-		case 5: // P (even)
-			condition = "PE";
-			break;
-		case 6: // NS (positive)
-			condition = "P";
-			break;
-		case 7: // S (negative)
-			condition = "M";
-			break;
-	}
-	sprintf(pMnemonic, "CALL %s,%04x", condition, addr);
+	sprintf(pMnemonic, "CALL %s,%04x", GetConditionString(cc), addr);
 	address += 3;
 }
 
@@ -7840,35 +8677,7 @@ void CZ80::DecodeRET(uint16& address, char* pMnemonic)
 void CZ80::DecodeRETcc(uint16& address, char* pMnemonic)
 {
 	uint8 cc = (m_pMemory[address++] & 0x38) >> 3;
-	const char* condition = "";
-	switch (cc)
-	{
-		case 0: // NZ
-			condition = "NZ";
-			break;
-		case 1: // Z
-			condition = "Z";
-			break;
-		case 2: // NC
-			condition = "NC";
-			break;
-		case 3: // C
-			condition = "C";
-			break;
-		case 4: // NP (odd)
-			condition = "PO";
-			break;
-		case 5: // P (even)
-			condition = "PE";
-			break;
-		case 6: // NS (positive)
-			condition = "P";
-			break;
-		case 7: // S (negative)
-			condition = "M";
-			break;
-	}
-	sprintf(pMnemonic, "RET %s", condition);
+	sprintf(pMnemonic, "RET %s", GetConditionString(cc));
 }
 
 //=============================================================================
