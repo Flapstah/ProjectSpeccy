@@ -95,7 +95,7 @@ bool CDisplay::Update(IScreenMemory* pScreenMemory)
 	glfwSwapBuffers();
 	glDisable(GL_TEXTURE_2D);
 
-	bool cont = ((glfwGetKey(GLFW_KEY_ESC) != GLFW_PRESS) && (glfwGetWindowParam(GLFW_OPENED)));
+	bool cont = glfwGetWindowParam(GLFW_OPENED);
 
 	return cont;
 }
