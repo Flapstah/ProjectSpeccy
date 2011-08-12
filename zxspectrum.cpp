@@ -50,6 +50,27 @@ bool CZXSpectrum::Initialise(void)
 	
 	return initialised;
 }
+
+//=============================================================================
+
+bool CZXSpectrum::Update(void)
+{
+	bool ret = false;
+
+	if (m_pZ80 != NULL)
+	{
+		m_pZ80->Update(10.0f);
+		UpdateScreen(&m_memory[SC_SCREEN_START_ADDRESS]);
+
+		if (m_pDisplay != NULL)
+		{
+			ret = m_pDisplay->Update(this);
+		}
+	}
+
+	return ret;
+}
+
 //=============================================================================
 
 const void* CZXSpectrum::GetScreenMemory(void) const
@@ -121,26 +142,6 @@ bool CZXSpectrum::LoadROM(const char* fileName)
 	}
 
 	return success;
-}
-
-//=============================================================================
-
-bool CZXSpectrum::Update(void)
-{
-	bool ret = false;
-
-	if (m_pZ80 != NULL)
-	{
-		m_pZ80->Update(1.0f);
-		UpdateScreen(&m_memory[SC_SCREEN_START_ADDRESS]);
-
-		if (m_pDisplay != NULL)
-		{
-			ret = m_pDisplay->Update(this);
-		}
-	}
-
-	return ret;
 }
 
 //=============================================================================

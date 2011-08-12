@@ -21,9 +21,10 @@ class CZXSpectrum : public IScreenMemory
 		// ~IScreenMemory
 
 						bool				Initialise(void);
+						bool				Update(void);
+
 						bool				OpenSCR(const char* fileName);
 						bool				LoadROM(const char* fileName);
-						bool				Update(void);
 
 	protected:
 		enum SpectrumConstants
