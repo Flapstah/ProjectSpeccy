@@ -14,6 +14,17 @@ class CZ80
 
 		void Reset(void);
 		float Update(float milliseconds);
+		float SingleStep(void);
+
+		void OutputStatus(void);
+		bool GetEnableDebug(void) const;
+		void SetEnableDebug(bool set);
+		bool GetEnableUnattendedDebug(void) const;
+		void SetEnableUnattendedDebug(bool set);
+		bool GetEnableOutputStatus(void) const;
+		void SetEnableOutputStatus(bool set);
+		bool GetEnableBreakpoints(void) const;
+		void SetEnableBreakpoints(bool set);
 
 	protected:
 		uint32 Step(void);
@@ -641,10 +652,15 @@ class CZ80
 
 		uint8*	m_pMemory;
 		float		m_clockSpeedMHz;
+		float		m_reciprocalClockSpeedMHz;
+		bool		m_enableDebug;
+		bool		m_enableUnattendedDebug;
+		bool		m_enableOutputStatus;
+		bool		m_enableBreakpoints;
 
 		//=============================================================================
 
-		void	IncrementR(uint8 value)		{ m_R |= ((m_R + value) & 0x7F); }
+		void	IncrementR(uint8 value)		{ m_R = (m_R & 0x80) | ((m_R + value) & 0x7F); }
 
 		//=============================================================================
 

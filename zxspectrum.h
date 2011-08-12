@@ -27,16 +27,21 @@ class CZXSpectrum : public IScreenMemory
 						bool				LoadROM(const char* fileName);
 
 	protected:
+						void				UpdateKeyboard(void);
+						bool				IsKeyPressed(uint32 keyID) const;
+						bool				IsKeyHeld(uint32 keyID) const;
+
 		enum SpectrumConstants
 		{
 			SC_PIXEL_SCREEN_WIDTH = 256,
 			SC_PIXEL_SCREEN_HEIGHT = 192,
 			SC_ATTRIBUTE_SCREEN_WIDTH = 32,
 			SC_ATTRIBUTE_SCREEN_HEIGHT = 24,
-			SC_PIXEL_SCREEN_BYTES = (SC_PIXEL_SCREEN_WIDTH * SC_PIXEL_SCREEN_HEIGHT) >> 3,
-			SC_ATTRIBUTES_SCREEN_BYTES = SC_ATTRIBUTE_SCREEN_WIDTH * SC_ATTRIBUTE_SCREEN_HEIGHT,
 			SC_SCREEN_START_ADDRESS = 16384,
+			SC_PIXEL_SCREEN_BYTES = (SC_PIXEL_SCREEN_WIDTH * SC_PIXEL_SCREEN_HEIGHT) >> 3,
 			SC_ATTRIBUTES_START_ADDRESS = SC_SCREEN_START_ADDRESS + SC_PIXEL_SCREEN_BYTES,
+			SC_ATTRIBUTES_SCREEN_BYTES = SC_ATTRIBUTE_SCREEN_WIDTH * SC_ATTRIBUTE_SCREEN_HEIGHT,
+			SC_SCREEN_SIZE_BYTES = SC_PIXEL_SCREEN_BYTES + SC_ATTRIBUTES_SCREEN_BYTES,
 
 			SC_16K_SPECTRUM = 32768,
 			SC_48K_SPECTRUM = 65536
@@ -84,12 +89,14 @@ class CZXSpectrum : public IScreenMemory
 		inline	uint32	AttributeByteIndex(uint8 x, uint8 y) const { return (SC_PIXEL_SCREEN_BYTES + ((y >> 3) * SC_ATTRIBUTE_SCREEN_WIDTH) + (x >> 3)); }
 						void		UpdateScreen(const uint8* pScreenMemory);
 		
-		uint32 m_videoMemory[SC_PIXEL_SCREEN_WIDTH * SC_PIXEL_SCREEN_HEIGHT];
-
-	protected:
-		uint8 m_memory[SC_48K_SPECTRUM];
-		CDisplay* m_pDisplay;
-		CZ80* m_pZ80;
+		uint32		m_videoMemory[SC_PIXEL_SCREEN_WIDTH * SC_PIXEL_SCREEN_HEIGHT];
+		uint8			m_memory[SC_48K_SPECTRUM];
+		uint8			m_shadowMemory[SC_48K_SPECTRUM];
+		bool			m_keyState[512];
+		bool			m_keyPrevState[512];
+		CDisplay*	m_pDisplay;
+		CZ80*			m_pZ80;
+		bool			m_detectROMCorruption;
 
 	private:
 };

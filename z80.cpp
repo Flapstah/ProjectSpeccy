@@ -21,6 +21,9 @@
 //	each T State is assumed to be 0.25 microseconds, based on a 4MHz clock.
 //=============================================================================
 
+uint16 g_memoryBreakpoint = 0;
+uint8 g_opcodeBreakpoint = 0x02;
+
 //=============================================================================
 
 CZ80::CZ80(uint8* pMemory, float clockSpeedMHz)
@@ -56,6 +59,11 @@ CZ80::CZ80(uint8* pMemory, float clockSpeedMHz)
 	, m_State(*(reinterpret_cast<SProcessorState*>(&m_RegisterMemory[eR_State])))
 	, m_pMemory(pMemory)
 	, m_clockSpeedMHz(clockSpeedMHz)
+	, m_reciprocalClockSpeedMHz(1.0f / clockSpeedMHz)
+	, m_enableDebug(false)
+	, m_enableUnattendedDebug(false)
+	, m_enableOutputStatus(false)
+	, m_enableBreakpoints(false)
 {
 	// Easy decoding of opcodes to 16 bit registers
 	m_16BitRegisterOffset[BC] = eR_BC;
@@ -88,35 +96,171 @@ void CZ80::Reset(void)
 
 float CZ80::Update(float milliseconds)
 {
-	float microseconds = milliseconds * 1000.0f;
-	int32 tstates_available = static_cast<int32>(microseconds / (1.0f / m_clockSpeedMHz));
+	float microseconds_available = milliseconds * 1000.0f;
 
-	uint32 tstates = 0;
-	uint32 tstates_used = 0;
-	char buffer[32];
-	uint16 address = 0;
-
-	while (tstates_available >= tstates_used)
+	if (GetEnableDebug() || GetEnableUnattendedDebug())
 	{
 		// TODO: Interrupts need servicing here, I think
-//		address = m_PC;
-//		Decode(address, buffer);
-//		fprintf(stdout, "[Z80]: %04X : %04X : %s\n", m_PC, address, buffer);
-
-		tstates = Step();
-		if (tstates)
+		microseconds_available -= SingleStep();
+	}
+	else
+	{
+		while (microseconds_available > 1.0f)
 		{
-			tstates_used += tstates;
-		}
-		else
-		{
-			break;
+			// TODO: Interrupts need servicing here, I think
+			microseconds_available -= SingleStep();
+	
+			if (GetEnableDebug())
+				break;
 		}
 	}
 
-	float remaining_microseconds = (tstates_available - static_cast<float>(tstates_used)) * (1.0f / m_clockSpeedMHz);
-	float remaining_milliseconds = remaining_microseconds * 1000.0f;
-	return remaining_milliseconds;
+	return microseconds_available / 1000.0f;
+}
+
+//=============================================================================
+
+float CZ80::SingleStep(void)
+{
+	if (m_enableBreakpoints && (m_pMemory[m_PC] == g_opcodeBreakpoint))
+	{
+		fprintf(stderr, "[Z80] Hit opcode breakpoint at address %04X\n", m_PC);
+		SetEnableDebug(true);
+	}
+
+	if (GetEnableDebug() || GetEnableUnattendedDebug())
+	{
+		uint16 address = m_PC;
+		char buffer[64];
+		Decode(address, buffer);
+		fprintf(stdout, "[Z80] %04X : ", m_PC);
+		switch (address - m_PC)
+		{
+			case 1:
+				fprintf(stdout, "%02X          : %s\n", m_pMemory[m_PC], buffer);
+				break;
+
+			case 2:
+				fprintf(stdout, "%02X %02X       : %s\n", m_pMemory[m_PC], m_pMemory[m_PC + 1], buffer);
+				break;
+
+			case 3:
+				fprintf(stdout, "%02X %02X %02X    : %s\n", m_pMemory[m_PC], m_pMemory[m_PC + 1], m_pMemory[m_PC + 2], buffer);
+				break;
+
+			case 4:
+				fprintf(stdout, "%02X %02X %02X %02X : %s\n", m_pMemory[m_PC], m_pMemory[m_PC + 1], m_pMemory[m_PC + 2], m_pMemory[m_PC + 3], buffer);
+				break;
+		}
+	}
+
+	uint16 prevPC = m_PC;
+	float microseconds_elapsed = static_cast<float>(Step()) * m_reciprocalClockSpeedMHz;
+
+	if (GetEnableDebug() || GetEnableUnattendedDebug())
+	{
+		if (GetEnableOutputStatus())
+		{
+			OutputStatus();
+		}
+	}
+
+	if ((prevPC < 0x386E) && (m_PC >= 0x386E))
+	{
+		fprintf(stderr, "[Z80] PC just jumped from %04X to %04X, an invalid ROM location\n", prevPC, m_PC);
+		SetEnableDebug(true);
+	}
+
+	if (m_enableBreakpoints && (m_PC == g_memoryBreakpoint))
+	{
+		fprintf(stderr, "[Z80] Hit memory breakpoint at address %04X\n", m_PC);
+		SetEnableDebug(true);
+	}
+
+	return microseconds_elapsed;
+}
+
+//=============================================================================
+
+void CZ80::OutputStatus(void)
+{
+	fprintf(stdout, "[Z80]        Registers:\n");
+	fprintf(stdout, "[Z80]        AF'=%04X AF=%04X A=%02X F=%02X  C  N  PV X  H  Y  Z  S\n", m_AFalt, m_AF, m_A, m_F);
+	fprintf(stdout, "[Z80]                                    %i  %i  %i  %i  %i  %i  %i  %i\n", (m_F & eF_C), (m_F & eF_N) >> 1, (m_F & eF_PV) >> 2, (m_F & eF_X) >> 3, (m_F & eF_H) >> 4, (m_F & eF_Y) >> 5, (m_F & eF_Z) >> 6, (m_F & eF_S) >> 7);
+	fprintf(stdout, "[Z80]        BC'=%04X BC=%04X B=%02X C=%02X\n", m_BCalt, m_BC, m_B, m_C);
+	fprintf(stdout, "[Z80]        DE'=%04X DE=%04X D=%02X E=%02X\n", m_DEalt, m_DE, m_D, m_E);
+	fprintf(stdout, "[Z80]        HL'=%04X HL=%04X H=%02X L=%02X IX=%04X IY=%04X\n", m_HLalt, m_HL, m_H, m_L, m_IX, m_IY);
+	fprintf(stdout, "[Z80]        I=%02X R=%02X IM=%i IFF1=%i IFF2=%i\n", m_I, m_R, m_State.m_InterruptMode, m_State.m_IFF1, m_State.m_IFF2);
+	fprintf(stdout, "[Z80]        SP=%04X (%02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X)\n", m_SP, m_pMemory[m_SP], m_pMemory[m_SP - 1], m_pMemory[m_SP - 2], m_pMemory[m_SP - 3], m_pMemory[m_SP - 4], m_pMemory[m_SP - 5], m_pMemory[m_SP - 6], m_pMemory[m_SP - 7], m_pMemory[m_SP - 8], m_pMemory[m_SP - 9], m_pMemory[m_SP - 10], m_pMemory[m_SP - 11], m_pMemory[m_SP - 12], m_pMemory[m_SP - 13], m_pMemory[m_SP - 14], m_pMemory[m_SP - 15]);
+	fprintf(stdout, "[Z80]        PC=%04X (%02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X)\n", m_PC, m_pMemory[m_PC], m_pMemory[m_PC + 1], m_pMemory[m_PC + 2], m_pMemory[m_PC + 3], m_pMemory[m_PC + 4], m_pMemory[m_PC + 5], m_pMemory[m_PC + 6], m_pMemory[m_PC + 7], m_pMemory[m_PC + 8], m_pMemory[m_PC + 9], m_pMemory[m_PC + 10], m_pMemory[m_PC + 11], m_pMemory[m_PC + 12], m_pMemory[m_PC + 13], m_pMemory[m_PC + 14], m_pMemory[m_PC + 15]);
+}
+
+//=============================================================================
+
+bool CZ80::GetEnableDebug(void) const
+{
+ 	return m_enableDebug;
+}
+
+//=============================================================================
+
+void CZ80::SetEnableDebug(bool set)
+{
+ 	m_enableDebug = set;
+	fprintf(stderr, "[Z80] Turning %s debug mode\n", (m_enableDebug) ? "on" : "off");
+	if (!m_enableDebug && GetEnableUnattendedDebug())
+	{
+		SetEnableUnattendedDebug(false);
+	}
+}
+
+//=============================================================================
+
+bool CZ80::GetEnableUnattendedDebug(void) const
+{
+ 	return m_enableUnattendedDebug;
+}
+
+//=============================================================================
+
+void CZ80::SetEnableUnattendedDebug(bool set)
+{
+ 	m_enableUnattendedDebug = set;
+	fprintf(stderr, "[Z80] Turning %s unattended debug mode\n", (m_enableUnattendedDebug) ? "on" : "off");
+}
+
+//=============================================================================
+
+bool CZ80::GetEnableOutputStatus(void) const
+{
+ 	return m_enableOutputStatus;
+}
+
+//=============================================================================
+
+void CZ80::SetEnableOutputStatus(bool set)
+{
+ 	m_enableOutputStatus = set;
+	fprintf(stderr, "[Z80] Turning output status %s\n", (m_enableOutputStatus) ? "on" : "off");
+	if (m_enableOutputStatus)
+	{
+		OutputStatus();
+	}
+}
+
+//=============================================================================
+
+bool CZ80::GetEnableBreakpoints(void) const
+{
+	return m_enableBreakpoints;
+}
+
+//=============================================================================
+
+void CZ80::SetEnableBreakpoints(bool set)
+{
+ 	m_enableBreakpoints = set;
+	fprintf(stderr, "[Z80] Enable breakpoints %s\n", (m_enableBreakpoints) ? "on" : "off");
 }
 
 //=============================================================================
@@ -896,7 +1040,8 @@ uint32 CZ80::Step(void)
 						break;
 
 				default:
-					fprintf(stderr, "Unhandled opcode CB %02X at address %04X", m_pMemory[m_PC + 1], m_PC);
+					fprintf(stderr, "[Z80] Unhandled opcode CB %02X at address %04X\n", m_pMemory[m_PC + 1], m_PC);
+					SetEnableDebug(true);
 					return 0;
 					break;
 				};
@@ -1084,13 +1229,15 @@ uint32 CZ80::Step(void)
 								break;
 
 							default:
-								fprintf(stderr, "Unhandled opcode DD CB %02X at address %04X", m_pMemory[m_PC + 2], m_PC);
+								fprintf(stderr, "[Z80] Unhandled opcode DD CB %02X at address %04X\n", m_pMemory[m_PC + 2], m_PC);
+								SetEnableDebug(true);
 								return 0;
 								break;
 						};
 
 				default:
-					fprintf(stderr, "Unhandled opcode DD %02X at address %04X", m_pMemory[m_PC + 1], m_PC);
+					fprintf(stderr, "[Z80] Unhandled opcode DD %02X at address %04X\n", m_pMemory[m_PC + 1], m_PC);
+					SetEnableDebug(true);
 					return 0;
 					break;
 				};
@@ -1257,7 +1404,8 @@ uint32 CZ80::Step(void)
 						break;
 
 				default:
-					fprintf(stderr, "Unhandled opcode ED %02X at address %04X", m_pMemory[m_PC + 1], m_PC);
+					fprintf(stderr, "[Z80] Unhandled opcode ED %02X at address %04X\n", m_pMemory[m_PC + 1], m_PC);
+					SetEnableDebug(true);
 					return 0;
 					break;
 				};
@@ -1429,13 +1577,15 @@ uint32 CZ80::Step(void)
 								break;
 
 							default:
-								fprintf(stderr, "Unhandled opcode FD CB %02X at address %04X", m_pMemory[m_PC + 2], m_PC);
+								fprintf(stderr, "[Z80] Unhandled opcode FD CB %02X at address %04X\n", m_pMemory[m_PC + 2], m_PC);
+								SetEnableDebug(true);
 								return 0;
 								break;
 						};
 
 				default:
-					fprintf(stderr, "Unhandled opcode FD %02X at address %04X", m_pMemory[m_PC + 1], m_PC);
+					fprintf(stderr, "[Z80] Unhandled opcode FD %02X at address %04X\n", m_pMemory[m_PC + 1], m_PC);
+					SetEnableDebug(true);
 					return 0;
 					break;
 				};
@@ -1458,7 +1608,8 @@ uint32 CZ80::Step(void)
 				break;
 
 			default:
-				fprintf(stderr, "Unhandled opcode %02X at address %04X", m_pMemory[m_PC], m_PC);
+				fprintf(stderr, "[Z80] Unhandled opcode %02X at address %04X\n", m_pMemory[m_PC], m_PC);
+				SetEnableDebug(true);
 				return 0;
 				break;
 		}
@@ -2175,7 +2326,8 @@ void CZ80::Decode(uint16& address, char* pMnemonic)
 						break;
 
 				default:
-					fprintf(stderr, "Unhandled opcode CB %02X at address %04X", m_pMemory[address + 1], address);
+					fprintf(stderr, "[Z80] Error decoding unhandled opcode CB %02X at address %04X\n", m_pMemory[address + 1], address);
+					SetEnableDebug(true);
 					return;
 					break;
 				};
@@ -2363,13 +2515,15 @@ void CZ80::Decode(uint16& address, char* pMnemonic)
 								break;
 
 							default:
-								fprintf(stderr, "Unhandled opcode DD CB %02X at address %04X", m_pMemory[address + 2], address);
+								fprintf(stderr, "[Z80] Error decoding unhandled opcode DD CB %02X at address %04X\n", m_pMemory[address + 2], address);
+								SetEnableDebug(true);
 								return;
 								break;
 						};
 
 				default:
-					fprintf(stderr, "Unhandled opcode DD %02X at address %04X", m_pMemory[address + 1], address);
+					fprintf(stderr, "[Z80] Error decoding unhandled opcode DD %02X at address %04X\n", m_pMemory[address + 1], address);
+					SetEnableDebug(true);
 					return;
 					break;
 				};
@@ -2536,7 +2690,8 @@ void CZ80::Decode(uint16& address, char* pMnemonic)
 						break;
 
 				default:
-					fprintf(stderr, "Unhandled opcode ED %02X at address %04X", m_pMemory[address + 1], address);
+					fprintf(stderr, "[Z80] Error decoding unhandled opcode ED %02X at address %04X\n", m_pMemory[address + 1], address);
+					SetEnableDebug(true);
 					return;
 					break;
 				};
@@ -2708,13 +2863,15 @@ void CZ80::Decode(uint16& address, char* pMnemonic)
 								break;
 
 							default:
-								fprintf(stderr, "Unhandled opcode FD CB %02X at address %04X", m_pMemory[address + 2], address);
+								fprintf(stderr, "[Z80] Error decoding unhandled opcode FD CB %02X at address %04X\n", m_pMemory[address + 2], address);
+								SetEnableDebug(true);
 								return;
 								break;
 						};
 
 				default:
-					fprintf(stderr, "Unhandled opcode FD %02X at address %04X", m_pMemory[address + 1], address);
+					fprintf(stderr, "[Z80] Error decoding unhandled opcode FD %02X at address %04X\n", m_pMemory[address + 1], address);
+					SetEnableDebug(true);
 					return;
 					break;
 				};
@@ -2737,7 +2894,8 @@ void CZ80::Decode(uint16& address, char* pMnemonic)
 				break;
 
 			default:
-				fprintf(stderr, "Unhandled opcode %02X at address %04X", m_pMemory[address], address);
+				fprintf(stderr, "[Z80] Error decoding unhandled opcode %02X at address %04X\n", m_pMemory[address], address);
+				SetEnableDebug(true);
 				return;
 				break;
 		}
