@@ -17,6 +17,7 @@ class CZ80
 
 	protected:
 		uint32 Step(void);
+		void Decode(uint16& address, char* pMnemonic);
 
 		const char* Get8BitRegisterString(uint8 threeBits);
 		const char* Get16BitRegisterString(uint8 twoBits);
@@ -334,7 +335,7 @@ class CZ80
 		//-----------------------------------------------------------------------------
 
 		void DecodeEXDEHL(uint16& address, char* pMnemonic);
-		void DecodeEXAFAFalt(uint16& address, char* pMnemonic);
+		void DecodeEXAFAF(uint16& address, char* pMnemonic);
 		void DecodeEXX(uint16& address, char* pMnemonic);
 		void DecodeEX_SP_HL(uint16& address, char* pMnemonic);
 		void DecodeEX_SP_IX(uint16& address, char* pMnemonic);
@@ -418,11 +419,11 @@ class CZ80
 		void DecodeADDIXdd(uint16& address, char* pMnemonic);
 		void DecodeADDIYdd(uint16& address, char* pMnemonic);
 		void DecodeINCdd(uint16& address, char* pMnemonic);
-		void DecodeINCIXdd(uint16& address, char* pMnemonic);
-		void DecodeINCIYdd(uint16& address, char* pMnemonic);
+		void DecodeINCIX(uint16& address, char* pMnemonic);
+		void DecodeINCIY(uint16& address, char* pMnemonic);
 		void DecodeDECdd(uint16& address, char* pMnemonic);
-		void DecodeDECIXdd(uint16& address, char* pMnemonic);
-		void DecodeDECIYdd(uint16& address, char* pMnemonic);
+		void DecodeDECIX(uint16& address, char* pMnemonic);
+		void DecodeDECIY(uint16& address, char* pMnemonic);
 
 		//-----------------------------------------------------------------------------
 		//	Rotate and Shift Group

@@ -93,15 +93,18 @@ float CZ80::Update(float milliseconds)
 
 	uint32 tstates = 0;
 	uint32 tstates_used = 0;
+	char buffer[32];
 	while (tstates_available >= tstates_used)
 	{
 		// TODO: Interrupts need servicing here, I think
+		uint16 address = m_PC;
+		Decode(address, buffer);
+		fprintf(stdout, "[Z80]: %04X : %s\n", m_PC, buffer);
+
 		tstates = Step();
 		if (tstates)
 		{
 			tstates_used += tstates;
-
-			fprintf(stdout, "[Z80]: PC = %04X\n", m_PC);
 		}
 		else
 		{
@@ -1455,6 +1458,1285 @@ uint32 CZ80::Step(void)
 			default:
 				fprintf(stderr, "Unhandled opcode %02X at address %04X", m_pMemory[m_PC], m_PC);
 				return 0;
+				break;
+		}
+}
+
+//=============================================================================
+
+void CZ80::Decode(uint16& address, char* pMnemonic)
+{
+		switch (m_pMemory[address])
+		{
+			case 0x00:
+				DecodeNOP(address, pMnemonic);
+				break;
+
+			case 0x10:
+				DecodeDJNZe(address, pMnemonic);
+				break;
+
+			case 0x20:
+				DecodeJRNZe(address, pMnemonic);
+				break;
+
+			case 0x30:
+				DecodeJRNCe(address, pMnemonic);
+				break;
+
+			case 0x01: // LD BC,nn
+			case 0x11: // LD DE,nn
+			case 0x21: // LD HL,nn
+			case 0x31: // LD SP,nn
+				DecodeLDddnn(address, pMnemonic);
+				break;
+
+			case 0x02:
+				DecodeLD_BC_A(address, pMnemonic);
+				break;
+
+			case 0x12:
+				DecodeLD_DE_A(address, pMnemonic);
+				break;
+
+			case 0x22:
+				DecodeLD_nn_HL(address, pMnemonic);
+				break;
+
+			case 0x32:
+				DecodeLD_nn_A(address, pMnemonic);
+				break;
+
+			case 0x03: // INC BC
+			case 0x13: // INC DE
+			case 0x23: // INC HL
+			case 0x33: // INC SP
+				DecodeINCdd(address, pMnemonic);
+				break;
+
+			case 0x04: // INC B
+			case 0x14: // INC D
+			case 0x24: // INC H
+			case 0x34: // INC (HL)
+			case 0x0C: // INC C
+			case 0x1C: // INC E
+			case 0x2C: // INC L
+			case 0x3C: // INC A
+				DecodeINCr(address, pMnemonic);
+				break;
+
+			case 0x05: // DEC B
+			case 0x15: // DEC D
+			case 0x25: // DEC H
+			case 0x35: // DEC (HL)
+			case 0x0D: // DEC C
+			case 0x1D: // DEC E
+			case 0x2D: // DEC L
+			case 0x3D: // DEC A
+				DecodeDECr(address, pMnemonic);
+				break;
+
+			case 0x06: // LD B,n
+			case 0x16: // LD D,n
+			case 0x26: // LD H,n
+			case 0x0E: // LD C,n
+			case 0x1E: // LD E,n
+			case 0x2E: // LD L,n
+			case 0x3E: // LD A,n
+				DecodeLDrn(address, pMnemonic);
+				break;
+
+			case 0x36:
+				DecodeLD_HL_n(address, pMnemonic);
+				break;
+
+			case 0x07:
+				DecodeRLCA(address, pMnemonic);
+				break;
+
+			case 0x17:
+				DecodeRLA(address, pMnemonic);
+				break;
+
+			case 0x27:
+				DecodeDAA(address, pMnemonic);
+				break;
+
+			case 0x37:
+				DecodeSCF(address, pMnemonic);
+				break;
+
+			case 0x08:
+				DecodeEXAFAF(address, pMnemonic);
+				break;
+
+			case 0x18:
+				DecodeJRe(address, pMnemonic);
+				break;
+
+			case 0x28:
+				DecodeJRZe(address, pMnemonic);
+				break;
+
+			case 0x38:
+				DecodeJRCe(address, pMnemonic);
+				break;
+
+			case 0x09: // ADD HL,BC
+			case 0x19: // ADD HL,DE
+			case 0x29: // ADD HL,HL
+			case 0x39: // ADD HL,SP
+				DecodeADDHLdd(address, pMnemonic);
+				break;
+
+			case 0x0A:
+				DecodeLDA_BC_(address, pMnemonic);
+				break;
+
+			case 0x1A:
+				DecodeLDA_DE_(address, pMnemonic);
+				break;
+
+			case 0x2A:
+				DecodeLDHL_nn_(address, pMnemonic);
+				break;
+
+			case 0x3A:
+				DecodeLDA_nn_(address, pMnemonic);
+				break;
+
+			case 0x0B: // DEC BC
+			case 0x1B: // DEC DE
+			case 0x2B: // DEC HL
+			case 0x3B: // DEC SP
+				DecodeDECdd(address, pMnemonic);
+				break;
+
+			case 0x0F:
+				DecodeRRCA(address, pMnemonic);
+				break;
+
+			case 0x1F:
+				DecodeRRA(address, pMnemonic);
+				break;
+
+			case 0x2F:
+				DecodeCPL(address, pMnemonic);
+				break;
+
+			case 0x3F:
+				DecodeCCF(address, pMnemonic);
+				break;
+
+			case 0x40: // LD B,B
+			case 0x41: // LD B,C
+			case 0x42: // LD B,D
+			case 0x43: // LD B,E
+			case 0x44: // LD B,H
+			case 0x45: // LD B,L
+			case 0x46: // LD B,(HL)
+			case 0x47: // LD B,A
+			case 0x50: // LD D,B
+			case 0x51: // LD D,C
+			case 0x52: // LD D,D
+			case 0x53: // LD D,E
+			case 0x54: // LD D,H
+			case 0x55: // LD D,L
+			case 0x56: // LD D,(HL)
+			case 0x57: // LD D,A
+			case 0x60: // LD H,B
+			case 0x61: // LD H,C
+			case 0x62: // LD H,D
+			case 0x63: // LD H,E
+			case 0x64: // LD H,H
+			case 0x65: // LD H,L
+			case 0x66: // LD H,(HL)
+			case 0x67: // LD H,A
+			case 0x48: // LD C,B
+			case 0x49: // LD C,C
+			case 0x4A: // LD C,D
+			case 0x4B: // LD C,E
+			case 0x4C: // LD C,H
+			case 0x4D: // LD C,L
+			case 0x4E: // LD C,(HL)
+			case 0x4F: // LD C,A
+			case 0x58: // LD E,B
+			case 0x59: // LD E,C
+			case 0x5A: // LD E,D
+			case 0x5B: // LD E,E
+			case 0x5C: // LD E,H
+			case 0x5D: // LD E,L
+			case 0x5E: // LD E,(HL)
+			case 0x5F: // LD E,A
+			case 0x68: // LD L,B
+			case 0x69: // LD L,C
+			case 0x6A: // LD L,D
+			case 0x6B: // LD L,E
+			case 0x6C: // LD L,H
+			case 0x6D: // LD L,L
+			case 0x6E: // LD L,(HL)
+			case 0x6F: // LD L,A
+			case 0x70: // LD (HL),B
+			case 0x71: // LD (HL),C
+			case 0x72: // LD (HL),D
+			case 0x73: // LD (HL),E
+			case 0x74: // LD (HL),H
+			case 0x75: // LD (HL),L
+			case 0x77: // LD (HL),A
+			case 0x78: // LD A,B
+			case 0x79: // LD A,C
+			case 0x7A: // LD A,D
+			case 0x7B: // LD A,E
+			case 0x7C: // LD A,H
+			case 0x7D: // LD A,L
+			case 0x7F: // LD A,A
+			case 0x7E: // LD A,(HL)
+				DecodeLDrr(address, pMnemonic);
+				break;
+
+			case 0x76:
+				DecodeHALT(address, pMnemonic);
+				break;
+
+			case 0x80: // ADD A,B
+			case 0x81: // ADD A,C
+			case 0x82: // ADD A,D
+			case 0x83: // ADD A,E
+			case 0x84: // ADD A,H
+			case 0x85: // ADD A,L
+			case 0x86: // ADD A,(HL)
+			case 0x87: // ADD A,A
+				DecodeADDAr(address, pMnemonic);
+				break;
+
+			case 0x90: // SUB B
+			case 0x91: // SUB C
+			case 0x92: // SUB D
+			case 0x93: // SUB E
+			case 0x94: // SUB H
+			case 0x95: // SUB L
+			case 0x96: // SUB (HL)
+			case 0x97: // SUB A
+				DecodeSUBr(address, pMnemonic);
+				break;
+
+			case 0xA0: // AND B
+			case 0xA1: // AND C
+			case 0xA2: // AND D
+			case 0xA3: // AND E
+			case 0xA4: // AND H
+			case 0xA5: // AND L
+			case 0xA6: // AND (HL)
+			case 0xA7: // AND A
+				DecodeANDr(address, pMnemonic);
+				break;
+
+			case 0xB0: // OR B
+			case 0xB1: // OR C
+			case 0xB2: // OR D
+			case 0xB3: // OR E
+			case 0xB4: // OR H
+			case 0xB5: // OR L
+			case 0xB6: // OR (HL)
+			case 0xB7: // OR A
+				DecodeORr(address, pMnemonic);
+				break;
+
+			case 0x88: // ADC A,B
+			case 0x89: // ADC A,C
+			case 0x8A: // ADC A,D
+			case 0x8B: // ADC A,E
+			case 0x8C: // ADC A,H
+			case 0x8D: // ADC A,L
+			case 0x8E: // ADC A,(HL)
+			case 0x8F: // ADC A,A
+				DecodeADCAr(address, pMnemonic);
+				break;
+
+			case 0x98: // SBC A,B
+			case 0x99: // SBC A,C
+			case 0x9A: // SBC A,D
+			case 0x9B: // SBC A,E
+			case 0x9C: // SBC A,H
+			case 0x9D: // SBC A,L
+			case 0x9E: // SBC A,(HL)
+			case 0x9F: // SBC A,A
+				DecodeSBCAr(address, pMnemonic);
+				break;
+
+			case 0xA8: // XOR B
+			case 0xA9: // XOR C
+			case 0xAA: // XOR D
+			case 0xAB: // XOR E
+			case 0xAC: // XOR H
+			case 0xAD: // XOR L
+			case 0xAE: // XOR (HL)
+			case 0xAF: // XOR A
+				DecodeXORr(address, pMnemonic);
+				break;
+
+			case 0xB8: // CP B
+			case 0xB9: // CP C
+			case 0xBA: // CP D
+			case 0xBB: // CP E
+			case 0xBC: // CP H
+			case 0xBD: // CP L
+			case 0xBE: // CP (HL)
+			case 0xBF: // CP A
+				DecodeCPr(address, pMnemonic);
+				break;
+
+			case 0xC0: // RET NZ
+			case 0xD0: // RET NC
+			case 0xE0: // RET PO
+			case 0xF0: // RET P
+			case 0xC8: // RET Z
+			case 0xD8: // RET C
+			case 0xE8: // RET PE
+			case 0xF8: // RET M
+				DecodeRETcc(address, pMnemonic);
+				break;
+
+			case 0xC1: // POP BC
+			case 0xD1: // POP DE
+			case 0xE1: // POP HL
+			case 0xF1: // POP AF
+				DecodePOPqq(address, pMnemonic);
+				break;
+
+			case 0xC2: // JP NZ,nn
+			case 0xD2: // JP NC,nn
+			case 0xE2: // JP PO,nn
+			case 0xF2: // JP P,nn
+			case 0xCA: // JP Z,nn
+			case 0xDA: // JP C,nn
+			case 0xEA: // JP PE,nn
+			case 0xFA: // JP M,nn
+				DecodeJPccnn(address, pMnemonic);
+				break;
+
+			case 0xC3:
+				DecodeJPnn(address, pMnemonic);
+				break;
+
+			case 0xD3:
+				DecodeOUT_n_A(address, pMnemonic);
+				break;
+
+			case 0xE3:
+				DecodeEX_SP_HL(address, pMnemonic);
+				break;
+
+			case 0xF3:
+				DecodeDI(address, pMnemonic);
+				break;
+
+			case 0xC4: // CALL NZ,nn
+			case 0xD4: // CALL NC,nn
+			case 0xE4: // CALL PO,nn
+			case 0xF4: // CALL P,nn
+			case 0xCC: // CALL Z,nn
+			case 0xDC: // CALL C,nn
+			case 0xEC: // CALL PE,nn
+			case 0xFC: // CALL M,nn
+				DecodeCALLccnn(address, pMnemonic);
+				break;
+
+			case 0xC5: // PUSH BC
+			case 0xD5: // PUSH DE
+			case 0xE5: // PUSH HL
+			case 0xF5: // PUSH AF
+				DecodePUSHqq(address, pMnemonic);
+				break;
+
+			case 0xC6:
+				DecodeADDAn(address, pMnemonic);
+				break;
+
+			case 0xD6:
+				DecodeSUBn(address, pMnemonic);
+				break;
+
+			case 0xE6:
+				DecodeANDn(address, pMnemonic);
+				break;
+
+			case 0xF6:
+				DecodeORn(address, pMnemonic);
+				break;
+
+			case 0xC7: // RST 0
+			case 0xD7: // RST 16
+			case 0xE7: // RST 32
+			case 0xF7: // RST 48
+			case 0xCF: // RST 8
+			case 0xDF: // RST 24
+			case 0xEF: // RST 40
+			case 0xFF: // RST 56
+				DecodeRSTp(address, pMnemonic);
+				break;
+
+			case 0xC9:
+				DecodeRET(address, pMnemonic);
+				break;
+
+			case 0xD9:
+				DecodeEXX(address, pMnemonic);
+
+			case 0xE9:
+				DecodeJP_HL_(address, pMnemonic);
+				break;
+
+			case 0xF9:
+				DecodeLDSPHL(address, pMnemonic);
+				break;
+
+			case 0xCB: // Prefix CB
+				switch (m_pMemory[address + 1])
+				{
+					case 0x00: // RLC B
+					case 0x01: // RLC C
+					case 0x02: // RLC D
+					case 0x03: // RLC E
+					case 0x04: // RLC H
+					case 0x05: // RLC L
+					case 0x06: // RLC (HL)
+					case 0x07: // RLC A
+						DecodeRLCr(address, pMnemonic);
+						break;
+
+					case 0x08: // RRC B
+					case 0x09: // RRC C
+					case 0x0A: // RRC D
+					case 0x0B: // RRC E
+					case 0x0C: // RRC H
+					case 0x0D: // RRC L
+					case 0x0E: // RRC (HL)
+					case 0x0F: // RRC A
+						DecodeRRCr(address, pMnemonic);
+						break;
+
+					case 0x10: // RL B
+					case 0x11: // RL C
+					case 0x12: // RL D
+					case 0x13: // RL E
+					case 0x14: // RL H
+					case 0x15: // RL L
+					case 0x16: // RL (HL)
+					case 0x17: // RL A
+						DecodeRLr(address, pMnemonic);
+						break;
+
+					case 0x18: // RR B
+					case 0x19: // RR C
+					case 0x1A: // RR D
+					case 0x1B: // RR E
+					case 0x1C: // RR H
+					case 0x1D: // RR L
+					case 0x1E: // RR (HL)
+					case 0x1F: // RR A
+						DecodeRRr(address, pMnemonic);
+						break;
+
+					case 0x20: // SLA B
+					case 0x21: // SLA C
+					case 0x22: // SLA D
+					case 0x23: // SLA E
+					case 0x24: // SLA H
+					case 0x25: // SLA L
+					case 0x26: // SLA (HL)
+					case 0x27: // SLA A
+						DecodeSLAr(address, pMnemonic);
+						break;
+
+					case 0x28: // SRA B
+					case 0x29: // SRA C
+					case 0x2A: // SRA D
+					case 0x2B: // SRA E
+					case 0x2C: // SRA H
+					case 0x2D: // SRA L
+					case 0x2E: // SRA (HL)
+					case 0x2F: // SRA A
+						DecodeSRAr(address, pMnemonic);
+						break;
+
+					case 0x38: // SRL B
+					case 0x39: // SRL C
+					case 0x3A: // SRL D
+					case 0x3B: // SRL E
+					case 0x3C: // SRL H
+					case 0x3D: // SRL L
+					case 0x3E: // SRL (HL)
+					case 0x3F: // SRL A
+						DecodeSRLr(address, pMnemonic);
+						break;
+
+					case 0x40: // BIT 0,B
+					case 0x41: // BIT 0,C
+					case 0x42: // BIT 0,D
+					case 0x43: // BIT 0,E
+					case 0x44: // BIT 0,H
+					case 0x45: // BIT 0,L
+					case 0x47: // BIT 0,A
+					case 0x46: // BIT 0,(HL)
+					case 0x48: // BIT 1,B
+					case 0x49: // BIT 1,C
+					case 0x4A: // BIT 1,D
+					case 0x4B: // BIT 1,E
+					case 0x4C: // BIT 1,H
+					case 0x4D: // BIT 1,L
+					case 0x4E: // BIT 1,(HL)
+					case 0x4F: // BIT 1,A
+					case 0x50: // BIT 2,B
+					case 0x51: // BIT 2,C
+					case 0x52: // BIT 2,D
+					case 0x53: // BIT 2,E
+					case 0x54: // BIT 2,H
+					case 0x55: // BIT 2,L
+					case 0x56: // BIT 2,(HL)
+					case 0x57: // BIT 2,A
+					case 0x58: // BIT 3,B
+					case 0x59: // BIT 3,C
+					case 0x5A: // BIT 3,D
+					case 0x5B: // BIT 3,E
+					case 0x5C: // BIT 3,H
+					case 0x5D: // BIT 3,L
+					case 0x5E: // BIT 3,(HL)
+					case 0x5F: // BIT 3,A
+					case 0x60: // BIT 4,B
+					case 0x61: // BIT 4,C
+					case 0x62: // BIT 4,D
+					case 0x63: // BIT 4,E
+					case 0x64: // BIT 4,H
+					case 0x65: // BIT 4,L
+					case 0x66: // BIT 4,(HL)
+					case 0x67: // BIT 4,A
+					case 0x68: // BIT 5,B
+					case 0x69: // BIT 5,C
+					case 0x6A: // BIT 5,D
+					case 0x6B: // BIT 5,E
+					case 0x6C: // BIT 5,H
+					case 0x6D: // BIT 5,L
+					case 0x6E: // BIT 5,(HL)
+					case 0x6F: // BIT 5,A
+					case 0x70: // BIT 6,B
+					case 0x71: // BIT 6,C
+					case 0x72: // BIT 6,D
+					case 0x73: // BIT 6,E
+					case 0x74: // BIT 6,H
+					case 0x75: // BIT 6,L
+					case 0x76: // BIT 6,(HL)
+					case 0x77: // BIT 6,A
+					case 0x78: // BIT 7,B
+					case 0x79: // BIT 7,C
+					case 0x7A: // BIT 7,D
+					case 0x7B: // BIT 7,E
+					case 0x7C: // BIT 7,H
+					case 0x7D: // BIT 7,L
+					case 0x7E: // BIT 7,(HL)
+					case 0x7F: // BIT 7,A
+						DecodeBITbr(address, pMnemonic);
+						break;
+
+					case 0x80: // RES 0,B
+					case 0x81: // RES 0,C
+					case 0x82: // RES 0,D
+					case 0x83: // RES 0,E
+					case 0x84: // RES 0,H
+					case 0x85: // RES 0,L
+					case 0x86: // RES 0,(HL)
+					case 0x87: // RES 0,A
+					case 0x88: // RES 1,B
+					case 0x89: // RES 1,C
+					case 0x8A: // RES 1,D
+					case 0x8B: // RES 1,E
+					case 0x8C: // RES 1,H
+					case 0x8D: // RES 1,L
+					case 0x8E: // RES 1,(HL)
+					case 0x8F: // RES 1,A
+					case 0x90: // RES 2,B
+					case 0x91: // RES 2,C
+					case 0x92: // RES 2,D
+					case 0x93: // RES 2,E
+					case 0x94: // RES 2,H
+					case 0x95: // RES 2,L
+					case 0x96: // RES 2,(HL)
+					case 0x97: // RES 2,A
+					case 0x98: // RES 3,B
+					case 0x99: // RES 3,C
+					case 0x9A: // RES 3,D
+					case 0x9B: // RES 3,E
+					case 0x9C: // RES 3,H
+					case 0x9D: // RES 3,L
+					case 0x9E: // RES 3,(HL)
+					case 0x9F: // RES 3,A
+					case 0xA0: // RES 4,B
+					case 0xA1: // RES 4,C
+					case 0xA2: // RES 4,D
+					case 0xA3: // RES 4,E
+					case 0xA4: // RES 4,H
+					case 0xA5: // RES 4,L
+					case 0xA6: // RES 4,(HL)
+					case 0xA7: // RES 4,A
+					case 0xA8: // RES 5,B
+					case 0xA9: // RES 5,C
+					case 0xAA: // RES 5,D
+					case 0xAB: // RES 5,E
+					case 0xAC: // RES 5,H
+					case 0xAD: // RES 5,L
+					case 0xAE: // RES 5,(HL)
+					case 0xAF: // RES 5,A
+					case 0xB0: // RES 6,B
+					case 0xB1: // RES 6,C
+					case 0xB2: // RES 6,D
+					case 0xB3: // RES 6,E
+					case 0xB4: // RES 6,H
+					case 0xB5: // RES 6,L
+					case 0xB6: // RES 6,(HL)
+					case 0xB7: // RES 6,A
+					case 0xB8: // RES 7,B
+					case 0xB9: // RES 7,C
+					case 0xBA: // RES 7,D
+					case 0xBB: // RES 7,E
+					case 0xBC: // RES 7,H
+					case 0xBD: // RES 7,L
+					case 0xBE: // RES 7,(HL)
+					case 0xBF: // RES 7,A
+						DecodeRESbr(address, pMnemonic);
+						break;
+
+					case 0xC0: // SET 0,B
+					case 0xC1: // SET 0,C
+					case 0xC2: // SET 0,D
+					case 0xC3: // SET 0,E
+					case 0xC4: // SET 0,H
+					case 0xC5: // SET 0,L
+					case 0xC6: // SET 0,(HL)
+					case 0xC7: // SET 0,A
+					case 0xC8: // SET 1,B
+					case 0xC9: // SET 1,C
+					case 0xCA: // SET 1,D
+					case 0xCB: // SET 1,E
+					case 0xCC: // SET 1,H
+					case 0xCD: // SET 1,L
+					case 0xCE: // SET 1,(HL)
+					case 0xCF: // SET 1,A
+					case 0xD0: // SET 2,B
+					case 0xD1: // SET 2,C
+					case 0xD2: // SET 2,D
+					case 0xD3: // SET 2,E
+					case 0xD4: // SET 2,H
+					case 0xD5: // SET 2,L
+					case 0xD6: // SET 2,(HL)
+					case 0xD7: // SET 2,A
+					case 0xD8: // SET 3,B
+					case 0xD9: // SET 3,C
+					case 0xDA: // SET 3,D
+					case 0xDB: // SET 3,E
+					case 0xDC: // SET 3,H
+					case 0xDD: // SET 3,L
+					case 0xDE: // SET 3,(HL)
+					case 0xDF: // SET 3,A
+					case 0xE0: // SET 4,B
+					case 0xE1: // SET 4,C
+					case 0xE2: // SET 4,D
+					case 0xE3: // SET 4,E
+					case 0xE4: // SET 4,H
+					case 0xE6: // SET 4,(HL)
+					case 0xE5: // SET 4,L
+					case 0xE7: // SET 4,A
+					case 0xE8: // SET 5,B
+					case 0xE9: // SET 5,C
+					case 0xEA: // SET 5,D
+					case 0xEB: // SET 5,E
+					case 0xEC: // SET 5,H
+					case 0xED: // SET 5,L
+					case 0xEE: // SET 5,(HL)
+					case 0xEF: // SET 5,A
+					case 0xF0: // SET 6,B
+					case 0xF1: // SET 6,C
+					case 0xF2: // SET 6,D
+					case 0xF3: // SET 6,E
+					case 0xF4: // SET 6,H
+					case 0xF5: // SET 6,L
+					case 0xF7: // SET 6,A
+					case 0xF6: // SET 6,(HL)
+					case 0xF8: // SET 7,B
+					case 0xF9: // SET 7,C
+					case 0xFA: // SET 7,D
+					case 0xFB: // SET 7,E
+					case 0xFC: // SET 7,H
+					case 0xFD: // SET 7,L
+					case 0xFE: // SET 7,(HL)
+					case 0xFF: // SET 7,A
+						DecodeSETbr(address, pMnemonic);
+						break;
+
+				default:
+					fprintf(stderr, "Unhandled opcode CB %02X at address %04X", m_pMemory[address + 1], address);
+					return;
+					break;
+				};
+				break;
+
+			case 0xDB:
+				DecodeINA_n_(address, pMnemonic);
+				break;
+
+			case 0xEB:
+				DecodeEXDEHL(address, pMnemonic);
+				break;
+
+			case 0xFB:
+				DecodeEI(address, pMnemonic);
+				break;
+
+			case 0xCD:
+				DecodeCALLnn(address, pMnemonic);
+				break;
+
+			case 0xDD: // Prefix DD
+				switch (m_pMemory[address + 1])
+				{
+					case 0x46: // LD B,(IX+d)
+					case 0x56: // LD D,(IX+d)
+					case 0x66: // LD H,(IX+d)
+					case 0x4E: // LD C,(IX+d)
+					case 0x5E: // LD E,(IX+d)
+					case 0x6E: // LD L,(IX+d)
+					case 0x7E: // LD A,(IX+d)
+						DecodeLDr_IXd_(address, pMnemonic);
+						break;
+
+					case 0x70: // LD (IX+d),B
+					case 0x71: // LD (IX+d),C
+					case 0x72: // LD (IX+d),D
+					case 0x73: // LD (IX+d),E
+					case 0x74: // LD (IX+d),H
+					case 0x75: // LD (IX+d),L
+					case 0x77: // LD (IX+d),A
+						DecodeLD_IXd_r(address, pMnemonic);
+						break;
+
+					case 0x09: // ADD IX,BC
+					case 0x19: // ADD IX,DE
+					case 0x29: // ADD IX,HL
+					case 0x39: // ADD IX,SP
+						DecodeADDIXdd(address, pMnemonic);
+						break;
+
+					case 0x23:
+						DecodeINCIX(address, pMnemonic);
+						break;
+
+					case 0x2B:
+						DecodeDECIX(address, pMnemonic);
+						break;
+
+					case 0x34:
+						DecodeINC_IXd_(address, pMnemonic);
+						break;
+
+					case 0xE9:
+						DecodeJP_IX_(address, pMnemonic);
+						break;
+
+					case 0x21:
+						DecodeLDIXnn(address, pMnemonic);
+						break;
+
+					case 0x2A:
+						DecodeLDIX_nn_(address, pMnemonic);
+						break;
+
+					case 0xF9:
+						DecodeLDSPIX(address, pMnemonic);
+						break;
+
+					case 0xE5:
+						DecodePUSHIX(address, pMnemonic);
+						break;
+
+					case 0xE1:
+						DecodePOPIX(address, pMnemonic);
+						break;
+
+					case 0xE3:
+						DecodeEX_SP_IX(address, pMnemonic);
+						break;
+
+					case 0x86:
+						DecodeADDA_IXd_(address, pMnemonic);
+						break;
+
+					case 0x96:
+						DecodeSUB_IXd_(address, pMnemonic);
+
+					case 0xA6:
+						DecodeAND_IXd_(address, pMnemonic);
+						break;
+
+					case 0xB6:
+						DecodeOR_IXd_(address, pMnemonic);
+						break;
+
+					case 0x8E:
+						DecodeADCA_IXd_(address, pMnemonic);
+						break;
+
+					case 0x9E:
+						DecodeSBCA_IXd_(address, pMnemonic);
+						break;
+
+					case 0xAE:
+						DecodeXOR_IXd_(address, pMnemonic);
+						break;
+
+					case 0xBE:
+						DecodeCP_IXd_(address, pMnemonic);
+						break;
+
+					case 0xCB: // Prefix CB
+						switch (m_pMemory[address + 2])
+						{
+							case 0x06:
+								DecodeRLC_IXd_(address, pMnemonic);
+								break;
+
+							case 0x0E:
+								DecodeRRC_IXd_(address, pMnemonic);
+								break;
+
+							case 0x16:
+								DecodeRL_IXd_(address, pMnemonic);
+								break;
+
+							case 0x1E:
+								DecodeRR_IXd_(address, pMnemonic);
+								break;
+
+							case 0x26:
+								DecodeSLA_IXd_(address, pMnemonic);
+								break;
+
+							case 0x2E:
+								DecodeSRA_IXd_(address, pMnemonic);
+								break;
+
+							case 0x3E:
+								DecodeSRL_IXd_(address, pMnemonic);
+								break;
+
+							case 0x46: // BIT 0,(IX+d)
+							case 0x4E: // BIT 1,(IX+d)
+							case 0x56: // BIT 2,(IX+d)
+							case 0x5E: // BIT 3,(IX+d)
+							case 0x66: // BIT 4,(IX+d)
+							case 0x6E: // BIT 5,(IX+d)
+							case 0x76: // BIT 6,(IX+d)
+							case 0x7E: // BIT 7,(IX+d)
+								DecodeBITb_IXd_(address, pMnemonic);
+								break;
+
+							case 0x86: // RES 0,(IX+d)
+							case 0x8E: // RES 1,(IX+d)
+							case 0x96: // RES 2,(IX+d)
+							case 0x9E: // RES 3,(IX+d)
+							case 0xA6: // RES 4,(IX+d)
+							case 0xAE: // RES 5,(IX+d)
+							case 0xB6: // RES 6,(IX+d)
+							case 0xBE: // RES 7,(IX+d)
+								DecodeRESb_IXd_(address, pMnemonic);
+								break;
+
+							case 0xC6: // SET 0,(IX+d)
+							case 0xCE: // SET 1,(IX+d)
+							case 0xD6: // SET 2,(IX+d)
+							case 0xDE: // SET 3,(IX+d)
+							case 0xE6: // SET 4,(IX+d)
+							case 0xEE: // SET 5,(IX+d)
+							case 0xF6: // SET 6,(IX+d)
+							case 0xFE: // SET 7,(IX+d)
+								DecodeRESb_IXd_(address, pMnemonic);
+								break;
+
+							default:
+								fprintf(stderr, "Unhandled opcode DD CB %02X at address %04X", m_pMemory[address + 2], address);
+								return;
+								break;
+						};
+
+				default:
+					fprintf(stderr, "Unhandled opcode DD %02X at address %04X", m_pMemory[address + 1], address);
+					return;
+					break;
+				};
+				break;
+
+			case 0xED: // Prefix ED
+				switch (m_pMemory[address + 1])
+				{
+					case 0x40: // IN B,(C)
+					case 0x50: // IN D,(C)
+					case 0x60: // IN H,(C)
+					case 0x48: // IN C,(C)
+					case 0x58: // IN E,(C)
+					case 0x68: // IN L,(C)
+					case 0x78: // IN A,(C)
+						DecodeINr_C_(address, pMnemonic);
+						break;
+
+					case 0x41: // OUT (C),B
+					case 0x51: // OUT (C),D
+					case 0x61: // OUT (C),H
+					case 0x49: // OUT (C),C
+					case 0x59: // OUT (C),E
+					case 0x69: // OUT (C),L
+					case 0x79: // OUT (C),A
+						DecodeOUT_C_r(address, pMnemonic);
+						break;
+
+					case 0x42: // SBC HL,BC
+					case 0x52: // SBC HL,DE
+					case 0x62: // SBC HL,HL
+					case 0x72: // SBC HL,SP
+						DecodeSBCHLdd(address, pMnemonic);
+						break;
+
+					case 0x43: // LD (nn),BC
+					case 0x53: // LD (nn),DE
+					case 0x73: // LD (nn),SP
+						DecodeLD_nn_dd(address, pMnemonic);
+
+					case 0x44:
+						DecodeNEG(address, pMnemonic);
+						break;
+
+					case 0x45:
+						DecodeRETN(address, pMnemonic);
+						break;
+
+					case 0x46:
+						DecodeIM0(address, pMnemonic);
+						break;
+
+					case 0x56:
+						DecodeIM1(address, pMnemonic);
+						break;
+
+					case 0x47:
+						DecodeLDIA(address, pMnemonic);
+						break;
+
+					case 0x57:
+						DecodeLDAI(address, pMnemonic);
+						break;
+
+					case 0x67:
+						DecodeRRD(address, pMnemonic);
+						break;
+
+					case 0x4A: // ADC HL,BC
+					case 0x5A: // ADC HL,DE
+					case 0x6A: // ADC HL,HL
+					case 0x7A: // ADC HL,SP
+						DecodeADCHLdd(address, pMnemonic);
+						break;
+
+					case 0x4B: // LD BC,(nn)
+					case 0x5B: // LD DE,(nn)
+					case 0x7B: // LD SP,(nn)
+						DecodeLDdd_nn_(address, pMnemonic);
+						break;
+
+					case 0x4D:
+						DecodeRETI(address, pMnemonic);
+						break;
+
+					case 0x5E:
+						DecodeIM2(address, pMnemonic);
+						break;
+
+					case 0x4F:
+						DecodeLDRA(address, pMnemonic);
+						break;
+
+					case 0x5F:
+						DecodeLDAR(address, pMnemonic);
+						break;
+
+					case 0x6F:
+						(address, pMnemonic);
+						break;
+
+					case 0xA0:
+						DecodeLDI(address, pMnemonic);
+						break;
+
+					case 0xA8:
+						DecodeLDD(address, pMnemonic);
+						break;
+
+					case 0xB0:
+						DecodeLDIR(address, pMnemonic);
+						break;
+
+					case 0xB8:
+						DecodeLDDR(address, pMnemonic);
+						break;
+
+					case 0xA1:
+						DecodeCPI(address, pMnemonic);
+						break;
+
+					case 0xA9:
+						DecodeCPD(address, pMnemonic);
+						break;
+
+					case 0xB1:
+						DecodeCPIR(address, pMnemonic);
+						break;
+
+					case 0xB9:
+						DecodeCPDR(address, pMnemonic);
+						break;
+
+					case 0xA2:
+						DecodeINI(address, pMnemonic);
+						break;
+
+					case 0xAA:
+						DecodeIND(address, pMnemonic);
+						break;
+
+					case 0xB2:
+						DecodeINIR(address, pMnemonic);
+						break;
+
+					case 0xBA:
+						DecodeINDR(address, pMnemonic);
+						break;
+
+					case 0xA3:
+						DecodeOUTI(address, pMnemonic);
+						break;
+
+					case 0xAB:
+						DecodeOUTD(address, pMnemonic);
+						break;
+
+					case 0xB3:
+						DecodeOTIR(address, pMnemonic);
+						break;
+
+					case 0xBB:
+						DecodeOTDR(address, pMnemonic);
+						break;
+
+				default:
+					fprintf(stderr, "Unhandled opcode ED %02X at address %04X", m_pMemory[address + 1], address);
+					return;
+					break;
+				};
+				break;
+
+			case 0xFD: // Prefix FD
+				switch (m_pMemory[address + 1])
+				{
+					case 0x46: // LD B,(IY+d)
+					case 0x56: // LD D,(IY+d)
+					case 0x66: // LD H,(IY+d)
+					case 0x4E: // LD C,(IY+d)
+					case 0x5E: // LD E,(IY+d)
+					case 0x6E: // LD L,(IY+d)
+					case 0x7E: // LD A,(IY+d)
+						DecodeLDr_IYd_(address, pMnemonic);
+						break;
+
+					case 0x70: // LD (IY+d),B
+					case 0x71: // LD (IY+d),C
+					case 0x72: // LD (IY+d),D
+					case 0x73: // LD (IY+d),E
+					case 0x74: // LD (IY+d),H
+					case 0x75: // LD (IY+d),L
+					case 0x77: // LD (IY+d),A
+						DecodeLD_IYd_r(address, pMnemonic);
+						break;
+
+					case 0x09: // ADD IY,BC
+					case 0x19: // ADD IY,DE
+					case 0x29: // ADD IY,HL
+					case 0x39: // ADD IY,SP
+						DecodeADDIYdd(address, pMnemonic);
+						break;
+
+					case 0x23:
+						DecodeINCIY(address, pMnemonic);
+						break;
+
+					case 0x2B:
+						DecodeDECIY(address, pMnemonic);
+						break;
+
+					case 0x34:
+						DecodeINC_IYd_(address, pMnemonic);
+						break;
+
+					case 0xE9:
+						DecodeJP_IY_(address, pMnemonic);
+						break;
+
+					case 0x21:
+						DecodeLDIYnn(address, pMnemonic);
+						break;
+
+					case 0x2A:
+						DecodeLDIY_nn_(address, pMnemonic);
+						break;
+
+					case 0xF9:
+						DecodeLDSPIY(address, pMnemonic);
+						break;
+
+					case 0xE5:
+						DecodePUSHIY(address, pMnemonic);
+						break;
+
+					case 0xE1:
+						DecodePOPIY(address, pMnemonic);
+						break;
+
+					case 0xE3:
+						DecodeEX_SP_IY(address, pMnemonic);
+						break;
+
+					case 0x86:
+						DecodeADDA_IYd_(address, pMnemonic);
+						break;
+
+					case 0x96:
+						DecodeSUB_IYd_(address, pMnemonic);
+
+					case 0xA6:
+						DecodeAND_IYd_(address, pMnemonic);
+						break;
+
+					case 0xB6:
+						DecodeOR_IYd_(address, pMnemonic);
+						break;
+
+					case 0x8E:
+						DecodeADCA_IYd_(address, pMnemonic);
+						break;
+
+					case 0x9E:
+						DecodeSBCA_IYd_(address, pMnemonic);
+						break;
+
+					case 0xAE:
+						DecodeXOR_IYd_(address, pMnemonic);
+						break;
+
+					case 0xBE:
+						DecodeCP_IYd_(address, pMnemonic);
+						break;
+
+					case 0xCB: // Prefix CB
+						switch (m_pMemory[address + 2])
+						{
+							case 0x06:
+								DecodeRLC_IYd_(address, pMnemonic);
+								break;
+
+							case 0x0E:
+								DecodeRRC_IYd_(address, pMnemonic);
+								break;
+
+							case 0x16:
+								DecodeRL_IYd_(address, pMnemonic);
+								break;
+
+							case 0x1E:
+								DecodeRR_IYd_(address, pMnemonic);
+								break;
+
+							case 0x26:
+								DecodeSLA_IYd_(address, pMnemonic);
+								break;
+
+							case 0x2E:
+								DecodeSRA_IYd_(address, pMnemonic);
+								break;
+
+							case 0x3E:
+								DecodeSRL_IYd_(address, pMnemonic);
+								break;
+
+							case 0x46: // BIT 0,(IY+d)
+							case 0x4E: // BIT 1,(IY+d)
+							case 0x56: // BIT 2,(IY+d)
+							case 0x5E: // BIT 3,(IY+d)
+							case 0x66: // BIT 4,(IY+d)
+							case 0x6E: // BIT 5,(IY+d)
+							case 0x76: // BIT 6,(IY+d)
+							case 0x7E: // BIT 7,(IY+d)
+								DecodeBITb_IYd_(address, pMnemonic);
+								break;
+
+							case 0x86: // RES 0,(IY+d)
+							case 0x8E: // RES 1,(IY+d)
+							case 0x96: // RES 2,(IY+d)
+							case 0x9E: // RES 3,(IY+d)
+							case 0xA6: // RES 4,(IY+d)
+							case 0xAE: // RES 5,(IY+d)
+							case 0xB6: // RES 6,(IY+d)
+							case 0xBE: // RES 7,(IY+d)
+								DecodeRESb_IYd_(address, pMnemonic);
+								break;
+
+							case 0xC6: // SET 0,(IY+d)
+							case 0xCE: // SET 1,(IY+d)
+							case 0xD6: // SET 2,(IY+d)
+							case 0xDE: // SET 3,(IY+d)
+							case 0xE6: // SET 4,(IY+d)
+							case 0xEE: // SET 5,(IY+d)
+							case 0xF6: // SET 6,(IY+d)
+							case 0xFE: // SET 7,(IY+d)
+								DecodeRESb_IYd_(address, pMnemonic);
+								break;
+
+							default:
+								fprintf(stderr, "Unhandled opcode FD CB %02X at address %04X", m_pMemory[address + 2], address);
+								return;
+								break;
+						};
+
+				default:
+					fprintf(stderr, "Unhandled opcode FD %02X at address %04X", m_pMemory[address + 1], address);
+					return;
+					break;
+				};
+				break;
+
+			case 0xCE:
+				DecodeADCAn(address, pMnemonic);
+				break;
+
+			case 0xDE:
+				DecodeSBCAn(address, pMnemonic);
+				break;
+
+			case 0xEE:
+				DecodeXORn(address, pMnemonic);
+				break;
+
+			case 0xFE:
+				DecodeCPn(address, pMnemonic);
+				break;
+
+			default:
+				fprintf(stderr, "Unhandled opcode %02X at address %04X", m_pMemory[address], address);
+				return;
 				break;
 		}
 }
@@ -7645,7 +8927,7 @@ void CZ80::DecodeEXDEHL(uint16& address, char* pMnemonic)
 
 //=============================================================================
 
-void CZ80::DecodeEXAFAFalt(uint16& address, char* pMnemonic)
+void CZ80::DecodeEXAFAF(uint16& address, char* pMnemonic)
 {
 	sprintf(pMnemonic, "EX AF,AF'");
 	++address;
@@ -8205,7 +9487,7 @@ void CZ80::DecodeINCdd(uint16& address, char* pMnemonic)
 
 //=============================================================================
 
-void CZ80::DecodeINCIXdd(uint16& address, char* pMnemonic)
+void CZ80::DecodeINCIX(uint16& address, char* pMnemonic)
 {
 	sprintf(pMnemonic, "INC IX");
 	address += 2;
@@ -8213,7 +9495,7 @@ void CZ80::DecodeINCIXdd(uint16& address, char* pMnemonic)
 
 //=============================================================================
 
-void CZ80::DecodeINCIYdd(uint16& address, char* pMnemonic)
+void CZ80::DecodeINCIY(uint16& address, char* pMnemonic)
 {
 	sprintf(pMnemonic, "INC IY");
 	address += 2;
@@ -8228,7 +9510,7 @@ void CZ80::DecodeDECdd(uint16& address, char* pMnemonic)
 
 //=============================================================================
 
-void CZ80::DecodeDECIXdd(uint16& address, char* pMnemonic)
+void CZ80::DecodeDECIX(uint16& address, char* pMnemonic)
 {
 	sprintf(pMnemonic, "DEC IX");
 	address += 2;
@@ -8236,7 +9518,7 @@ void CZ80::DecodeDECIXdd(uint16& address, char* pMnemonic)
 
 //=============================================================================
 
-void CZ80::DecodeDECIYdd(uint16& address, char* pMnemonic)
+void CZ80::DecodeDECIY(uint16& address, char* pMnemonic)
 {
 	sprintf(pMnemonic, "DEC IY");
 	address += 2;
