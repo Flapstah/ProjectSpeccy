@@ -590,7 +590,7 @@ class CZ80
 			eR_PC = eR_SP + sizeof(uint16),
 			eR_PCh = eR_PC + HI,
 			eR_PCl = eR_PC + LO,
-			eR_I = eR_PC + sizeof(uint8),
+			eR_I = eR_PC + sizeof(uint16),
 			eR_R = eR_I + sizeof(uint8),
 			eR_AFalt = eR_R + sizeof(uint8),
 			eR_BCalt = eR_AFalt + sizeof(uint16),

@@ -94,12 +94,14 @@ float CZ80::Update(float milliseconds)
 	uint32 tstates = 0;
 	uint32 tstates_used = 0;
 	char buffer[32];
+	uint16 address = 0;
+
 	while (tstates_available >= tstates_used)
 	{
 		// TODO: Interrupts need servicing here, I think
-		uint16 address = m_PC;
-		Decode(address, buffer);
-		fprintf(stdout, "[Z80]: %04X : %s\n", m_PC, buffer);
+//		address = m_PC;
+//		Decode(address, buffer);
+//		fprintf(stdout, "[Z80]: %04X : %04X : %s\n", m_PC, address, buffer);
 
 		tstates = Step();
 		if (tstates)
@@ -7828,7 +7830,7 @@ uint32 CZ80::ImplementJRe(void)
 	//								3						12 (4,3,5)				3.00
 	//
 	IncrementR(1);
-	m_PC = (m_PC + 2) + static_cast<int16>(m_pMemory[m_PC + 1]);
+	m_PC = (m_PC + 2) + static_cast<int16>(static_cast<int8>(m_pMemory[m_PC + 1]));
 	return 12;
 }
 
@@ -7853,7 +7855,7 @@ uint32 CZ80::ImplementJRCe(void)
 	//
 	IncrementR(1);
 	uint32 tstates = 0;
-	uint16 addr = (m_PC + 2) + static_cast<int16>(m_pMemory[m_PC + 1]);
+	uint16 addr = (m_PC + 2) + static_cast<int16>(static_cast<int8>(m_pMemory[m_PC + 1]));
 	if (m_F & eF_C)
 	{
 		m_PC = addr;
@@ -7888,7 +7890,7 @@ uint32 CZ80::ImplementJRNCe(void)
 	//
 	IncrementR(1);
 	uint32 tstates = 0;
-	uint16 addr = (m_PC + 2) + static_cast<int16>(m_pMemory[m_PC + 1]);
+	uint16 addr = (m_PC + 2) + static_cast<int16>(static_cast<int8>(m_pMemory[m_PC + 1]));
 	if (m_F & eF_C)
 	{
 		m_PC += 2;
@@ -7923,7 +7925,7 @@ uint32 CZ80::ImplementJRZe(void)
 	//
 	IncrementR(1);
 	uint32 tstates = 0;
-	uint16 addr = (m_PC + 2) + static_cast<int16>(m_pMemory[m_PC + 1]);
+	uint16 addr = (m_PC + 2) + static_cast<int16>(static_cast<int8>(m_pMemory[m_PC + 1]));
 	if (m_F & eF_Z)
 	{
 		m_PC = addr;
@@ -7958,7 +7960,7 @@ uint32 CZ80::ImplementJRNZe(void)
 	//
 	IncrementR(1);
 	uint32 tstates = 0;
-	uint16 addr = (m_PC + 2) + static_cast<int16>(m_pMemory[m_PC + 1]);
+	uint16 addr = (m_PC + 2) + static_cast<int16>(static_cast<int8>(m_pMemory[m_PC + 1]));
 	if (m_F & eF_Z)
 	{
 		m_PC += 2;
@@ -8095,6 +8097,7 @@ uint32 CZ80::ImplementCALLnn(void)
 	//
 	IncrementR(1);
 	uint16 addr = m_pMemory[m_PC + 1] + (static_cast<int16>(m_pMemory[m_PC + 2]) << 8);
+	m_PC += 3;
 	m_pMemory[--m_SP] = m_PCh;
 	m_pMemory[--m_SP] = m_PCl;
 	m_PC = addr;
@@ -8125,6 +8128,7 @@ uint32 CZ80::ImplementCALLccnn(void)
 	uint8 cc = (m_pMemory[m_PC++] & 0x38) >> 3;
 	uint16 addr = m_pMemory[m_PC] + (static_cast<int16>(m_pMemory[m_PC + 1]) << 8);
 	uint32 tstates = 0;
+	m_PC += 2;
 	if (IsConditionTrue(cc))
 	{
 		m_pMemory[--m_SP] = m_PCh;
@@ -8134,7 +8138,6 @@ uint32 CZ80::ImplementCALLccnn(void)
 	}
 	else
 	{
-		m_PC += 2;
 		tstates += 10;
 	}
 	return tstates;
@@ -8710,7 +8713,7 @@ void CZ80::DecodeLD_DE_A(uint16& address, char* pMnemonic)
 void CZ80::DecodeLD_nn_A(uint16& address, char* pMnemonic)
 {
 	sprintf(pMnemonic, "LD (0x%02X%02X),A", m_pMemory[address + 2], m_pMemory[address + 1]);
-	++address;
+	address += 3;
 }
 
 //=============================================================================
@@ -8718,7 +8721,7 @@ void CZ80::DecodeLD_nn_A(uint16& address, char* pMnemonic)
 void CZ80::DecodeLDAI(uint16& address, char* pMnemonic)
 {
 	sprintf(pMnemonic, "LD A,I");
-	++address;
+	++++address;
 }
 
 //=============================================================================
@@ -8726,7 +8729,7 @@ void CZ80::DecodeLDAI(uint16& address, char* pMnemonic)
 void CZ80::DecodeLDAR(uint16& address, char* pMnemonic)
 {
 	sprintf(pMnemonic, "LD A,R");
-	++address;
+	++++address;
 }
 
 //=============================================================================
@@ -8734,7 +8737,7 @@ void CZ80::DecodeLDAR(uint16& address, char* pMnemonic)
 void CZ80::DecodeLDIA(uint16& address, char* pMnemonic)
 {
 	sprintf(pMnemonic, "LD I,A");
-	++address;
+	++++address;
 }
 
 //=============================================================================
@@ -8742,7 +8745,7 @@ void CZ80::DecodeLDIA(uint16& address, char* pMnemonic)
 void CZ80::DecodeLDRA(uint16& address, char* pMnemonic)
 {
 	sprintf(pMnemonic, "LD R,A");
-	++address;
+	++++address;
 }
 
 //=============================================================================

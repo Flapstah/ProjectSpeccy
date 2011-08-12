@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <GL/glfw.h>
+
 #include "zxspectrum.h"
 #include "display.h"
 #include "z80.h"
@@ -57,10 +59,22 @@ bool CZXSpectrum::Update(void)
 {
 	bool ret = false;
 
+/*	bool updateZ80 = false;
+	if (glfwGetKey(GLFW_KEY_SPACE) == GLFW_PRESS)
+	{
+		while(glfwGetKey(GLFW_KEY_SPACE) == GLFW_PRESS)
+			m_pDisplay->Update(this);
+		updateZ80 = true;
+	}*/
+
+
 	if (m_pZ80 != NULL)
 	{
-		m_pZ80->Update(10.0f);
-		UpdateScreen(&m_memory[SC_SCREEN_START_ADDRESS]);
+//		if (updateZ80)
+		{
+			m_pZ80->Update(10.0f);
+			UpdateScreen(&m_memory[SC_SCREEN_START_ADDRESS]);
+		}
 
 		if (m_pDisplay != NULL)
 		{
@@ -134,6 +148,7 @@ bool CZXSpectrum::LoadROM(const char* fileName)
 		fclose(pFile);
 
 		fprintf(stdout, "[ZX Spectrum]: loaded rom [%s] successfully\n", fileName);
+
 		success = true;
 	}
 	else
