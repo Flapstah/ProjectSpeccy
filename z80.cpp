@@ -19,7 +19,7 @@
 //	each T State is assumed to be 0.25 microseconds, based on a 4MHz clock.
 //=============================================================================
 
-uint16 g_memoryBreakpoint = 0;
+uint16 g_addressBreakpoint = 0;
 uint8 g_opcodeBreakpoint = 0x02;
 
 //=============================================================================
@@ -127,8 +127,7 @@ float CZ80::SingleStep(void)
 {
 	if (GetEnableBreakpoints() && (m_pMemory[m_PC] == g_opcodeBreakpoint))
 	{
-		fprintf(stderr, "[Z80] Hit opcode breakpoint at address %04X\n", m_PC);
-		SetEnableDebug(true);
+		HitBreakpoint("opcode");
 	}
 
 	if (GetEnableDebug() || GetEnableUnattendedDebug())
@@ -150,13 +149,12 @@ float CZ80::SingleStep(void)
 	if ((prevPC < 0x386E) && (m_PC >= 0x386E))
 	{
 		fprintf(stderr, "[Z80] PC just jumped from %04X to %04X, an invalid ROM location\n", prevPC, m_PC);
-		SetEnableDebug(true);
+		HitBreakpoint("invalid ROM location");
 	}
 
-	if (GetEnableBreakpoints() && (m_PC == g_memoryBreakpoint))
+	if (GetEnableBreakpoints() && (m_PC == g_addressBreakpoint))
 	{
-		fprintf(stderr, "[Z80] Hit memory breakpoint at address %04X\n", m_PC);
-		SetEnableDebug(true);
+		HitBreakpoint("address");
 	}
 
 	return microseconds_elapsed;
@@ -178,14 +176,14 @@ void CZ80::SetEnableDebug(bool set)
 	if (m_enableDebug)
 	{
 		OutputCurrentInstruction();
-		OutputStatus();
+		if (GetEnableOutputStatus())
+		{
+			OutputStatus();
+		}
 	}
 	else
 	{
-		if (GetEnableUnattendedDebug())
-		{
-			SetEnableUnattendedDebug(false);
-		}
+		m_enableUnattendedDebug = false;
 	}
 }
 
@@ -302,6 +300,22 @@ void CZ80::OutputCurrentInstruction(void)
 
 //=============================================================================
 
+void CZ80::HitBreakpoint(const char* type)
+{
+	fprintf(stderr, "[Z80] Hit %s breakpoint at address %04X\n", type, m_PC);
+	if (GetEnableProgramFlowBreakpoints())
+	{
+		m_enableUnattendedDebug = false;
+	}
+	else
+	{
+		OutputCurrentInstruction();
+	}
+	m_enableDebug = true;
+}
+
+//=============================================================================
+
 uint32 CZ80::Step(void)
 {
 		switch (m_pMemory[m_PC])
@@ -313,8 +327,7 @@ uint32 CZ80::Step(void)
 			case 0x10:
 				if (GetEnableProgramFlowBreakpoints())
 				{
-					fprintf(stderr, "[Z80] Hit program flow breakpoint at address %04X\n", m_PC);
-					SetEnableDebug(true);
+					HitBreakpoint("program flow");
 				}
 				return ImplementDJNZe();
 				break;
@@ -322,8 +335,7 @@ uint32 CZ80::Step(void)
 			case 0x20:
 				if (GetEnableProgramFlowBreakpoints())
 				{
-					fprintf(stderr, "[Z80] Hit program flow breakpoint at address %04X\n", m_PC);
-					SetEnableDebug(true);
+					HitBreakpoint("program flow");
 				}
 				return ImplementJRNZe();
 				break;
@@ -331,8 +343,7 @@ uint32 CZ80::Step(void)
 			case 0x30:
 				if (GetEnableProgramFlowBreakpoints())
 				{
-					fprintf(stderr, "[Z80] Hit program flow breakpoint at address %04X\n", m_PC);
-					SetEnableDebug(true);
+					HitBreakpoint("program flow");
 				}
 				return ImplementJRNCe();
 				break;
@@ -432,8 +443,7 @@ uint32 CZ80::Step(void)
 			case 0x18:
 				if (GetEnableProgramFlowBreakpoints())
 				{
-					fprintf(stderr, "[Z80] Hit program flow breakpoint at address %04X\n", m_PC);
-					SetEnableDebug(true);
+					HitBreakpoint("program flow");
 				}
 				return ImplementJRe();
 				break;
@@ -441,8 +451,7 @@ uint32 CZ80::Step(void)
 			case 0x28:
 				if (GetEnableProgramFlowBreakpoints())
 				{
-					fprintf(stderr, "[Z80] Hit program flow breakpoint at address %04X\n", m_PC);
-					SetEnableDebug(true);
+					HitBreakpoint("program flow");
 				}
 				return ImplementJRZe();
 				break;
@@ -450,8 +459,7 @@ uint32 CZ80::Step(void)
 			case 0x38:
 				if (GetEnableProgramFlowBreakpoints())
 				{
-					fprintf(stderr, "[Z80] Hit program flow breakpoint at address %04X\n", m_PC);
-					SetEnableDebug(true);
+					HitBreakpoint("program flow");
 				}
 				return ImplementJRCe();
 				break;
@@ -700,8 +708,7 @@ uint32 CZ80::Step(void)
 			case 0xF8: // RET M
 				if (GetEnableProgramFlowBreakpoints())
 				{
-					fprintf(stderr, "[Z80] Hit program flow breakpoint at address %04X\n", m_PC);
-					SetEnableDebug(true);
+					HitBreakpoint("program flow");
 				}
 				return ImplementRETcc();
 				break;
@@ -723,8 +730,7 @@ uint32 CZ80::Step(void)
 			case 0xFA: // JP M,nn
 				if (GetEnableProgramFlowBreakpoints())
 				{
-					fprintf(stderr, "[Z80] Hit program flow breakpoint at address %04X\n", m_PC);
-					SetEnableDebug(true);
+					HitBreakpoint("program flow");
 				}
 				return ImplementJPccnn();
 				break;
@@ -732,8 +738,7 @@ uint32 CZ80::Step(void)
 			case 0xC3:
 				if (GetEnableProgramFlowBreakpoints())
 				{
-					fprintf(stderr, "[Z80] Hit program flow breakpoint at address %04X\n", m_PC);
-					SetEnableDebug(true);
+					HitBreakpoint("program flow");
 				}
 				return ImplementJPnn();
 				break;
@@ -760,8 +765,7 @@ uint32 CZ80::Step(void)
 			case 0xFC: // CALL M,nn
 				if (GetEnableProgramFlowBreakpoints())
 				{
-					fprintf(stderr, "[Z80] Hit program flow breakpoint at address %04X\n", m_PC);
-					SetEnableDebug(true);
+					HitBreakpoint("program flow");
 				}
 				return ImplementCALLccnn();
 				break;
@@ -799,8 +803,7 @@ uint32 CZ80::Step(void)
 			case 0xFF: // RST 56
 				if (GetEnableProgramFlowBreakpoints())
 				{
-					fprintf(stderr, "[Z80] Hit program flow breakpoint at address %04X\n", m_PC);
-					SetEnableDebug(true);
+					HitBreakpoint("program flow");
 				}
 				return ImplementRSTp();
 				break;
@@ -808,8 +811,7 @@ uint32 CZ80::Step(void)
 			case 0xC9:
 				if (GetEnableProgramFlowBreakpoints())
 				{
-					fprintf(stderr, "[Z80] Hit program flow breakpoint at address %04X\n", m_PC);
-					SetEnableDebug(true);
+					HitBreakpoint("program flow");
 				}
 				return ImplementRET();
 				break;
@@ -820,8 +822,7 @@ uint32 CZ80::Step(void)
 			case 0xE9:
 				if (GetEnableProgramFlowBreakpoints())
 				{
-					fprintf(stderr, "[Z80] Hit program flow breakpoint at address %04X\n", m_PC);
-					SetEnableDebug(true);
+					HitBreakpoint("program flow");
 				}
 				return ImplementJP_HL_();
 				break;
@@ -1164,8 +1165,7 @@ uint32 CZ80::Step(void)
 			case 0xCD:
 				if (GetEnableProgramFlowBreakpoints())
 				{
-					fprintf(stderr, "[Z80] Hit program flow breakpoint at address %04X\n", m_PC);
-					SetEnableDebug(true);
+					HitBreakpoint("program flow");
 				}
 				return ImplementCALLnn();
 				break;
@@ -1215,8 +1215,7 @@ uint32 CZ80::Step(void)
 					case 0xE9:
 						if (GetEnableProgramFlowBreakpoints())
 						{
-							fprintf(stderr, "[Z80] Hit program flow breakpoint at address %04X\n", m_PC);
-							SetEnableDebug(true);
+							HitBreakpoint("program flow");
 						}
 						return ImplementJP_IX_();
 						break;
@@ -1397,8 +1396,7 @@ uint32 CZ80::Step(void)
 					case 0x45:
 						if (GetEnableProgramFlowBreakpoints())
 						{
-							fprintf(stderr, "[Z80] Hit program flow breakpoint at address %04X\n", m_PC);
-							SetEnableDebug(true);
+							HitBreakpoint("program flow");
 						}
 						return ImplementRETN();
 						break;
@@ -1439,8 +1437,7 @@ uint32 CZ80::Step(void)
 					case 0x4D:
 						if (GetEnableProgramFlowBreakpoints())
 						{
-							fprintf(stderr, "[Z80] Hit program flow breakpoint at address %04X\n", m_PC);
-							SetEnableDebug(true);
+							HitBreakpoint("program flow");
 						}
 						return ImplementRETI();
 						break;
@@ -1578,8 +1575,7 @@ uint32 CZ80::Step(void)
 					case 0xE9:
 						if (GetEnableProgramFlowBreakpoints())
 						{
-							fprintf(stderr, "[Z80] Hit program flow breakpoint at address %04X\n", m_PC);
-							SetEnableDebug(true);
+							HitBreakpoint("program flow");
 						}
 						return ImplementJP_IY_();
 						break;

@@ -30,6 +30,7 @@ class CZ80
 	protected:
 		void OutputStatus(void);
 		void OutputCurrentInstruction(void);
+		void HitBreakpoint(const char* type);
 
 		uint32 Step(void);
 		void Decode(uint16& address, char* pMnemonic);
