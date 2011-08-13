@@ -35,6 +35,10 @@ class CZ80
 		uint32 Step(void);
 		void Decode(uint16& address, char* pMnemonic);
 
+		bool Write(uint16 address, uint8 byte);
+		bool Read(uint16 address, uint8& byte);
+		bool Read(uint16 address, int8& byte);
+		
 		const char* Get8BitRegisterString(uint8 threeBits);
 		const char* Get16BitRegisterString(uint8 twoBits);
 		const char* GetConditionString(uint8 threeBits);
@@ -613,6 +617,9 @@ class CZ80
 			eR_DEalt = eR_BCalt + sizeof(uint16),
 			eR_HLalt = eR_DEalt + sizeof(uint16),
 			eR_State = eR_HLalt + sizeof(uint16),
+			eR_Address = eR_State + sizeof(uint16),
+			eR_Addressh = eR_Address + HI,
+			eR_Addressl = eR_Address + LO
 		};
 
 		//=============================================================================
@@ -650,6 +657,9 @@ class CZ80
 		uint8&	m_I;
 		uint8&	m_R;
 		SProcessorState& m_State;
+		uint16&	m_address;
+		uint8&	m_addresshi;
+		uint8&	m_addresslo;
 
 		// Opcode register decode lookups
 		uint8		m_16BitRegisterOffset[4];
