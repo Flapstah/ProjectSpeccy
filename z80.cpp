@@ -3,8 +3,6 @@
 
 #include "z80.h"
 
-//=============================================================================
-
 // Helper macros to determine 8 and 16 bit registers from opcodes
 #define REGISTER_8BIT(_3bits_) m_RegisterMemory[m_8BitRegisterOffset[_3bits_ & 0x07]]
 #define REGISTER_16BIT(_2bits_) *(reinterpret_cast<uint16*>(&m_RegisterMemory[m_16BitRegisterOffset[_2bits_ & 0x03]]))
@@ -60,10 +58,15 @@ CZ80::CZ80(uint8* pMemory, float clockSpeedMHz)
 	, m_pMemory(pMemory)
 	, m_clockSpeedMHz(clockSpeedMHz)
 	, m_reciprocalClockSpeedMHz(1.0f / clockSpeedMHz)
+#if defined(NDEBUG)
 	, m_enableDebug(false)
+#else
+	, m_enableDebug(true)
+#endif // defined(NDEBUG)
 	, m_enableUnattendedDebug(false)
 	, m_enableOutputStatus(false)
 	, m_enableBreakpoints(false)
+	, m_enableProgramFlowBreakpoints(false)
 {
 	// Easy decoding of opcodes to 16 bit registers
 	m_16BitRegisterOffset[BC] = eR_BC;
@@ -122,7 +125,7 @@ float CZ80::Update(float milliseconds)
 
 float CZ80::SingleStep(void)
 {
-	if (m_enableBreakpoints && (m_pMemory[m_PC] == g_opcodeBreakpoint))
+	if (GetEnableBreakpoints() && (m_pMemory[m_PC] == g_opcodeBreakpoint))
 	{
 		fprintf(stderr, "[Z80] Hit opcode breakpoint at address %04X\n", m_PC);
 		SetEnableDebug(true);
@@ -130,28 +133,7 @@ float CZ80::SingleStep(void)
 
 	if (GetEnableDebug() || GetEnableUnattendedDebug())
 	{
-		uint16 address = m_PC;
-		char buffer[64];
-		Decode(address, buffer);
-		fprintf(stdout, "[Z80] %04X : ", m_PC);
-		switch (address - m_PC)
-		{
-			case 1:
-				fprintf(stdout, "%02X          : %s\n", m_pMemory[m_PC], buffer);
-				break;
-
-			case 2:
-				fprintf(stdout, "%02X %02X       : %s\n", m_pMemory[m_PC], m_pMemory[m_PC + 1], buffer);
-				break;
-
-			case 3:
-				fprintf(stdout, "%02X %02X %02X    : %s\n", m_pMemory[m_PC], m_pMemory[m_PC + 1], m_pMemory[m_PC + 2], buffer);
-				break;
-
-			case 4:
-				fprintf(stdout, "%02X %02X %02X %02X : %s\n", m_pMemory[m_PC], m_pMemory[m_PC + 1], m_pMemory[m_PC + 2], m_pMemory[m_PC + 3], buffer);
-				break;
-		}
+		OutputCurrentInstruction();
 	}
 
 	uint16 prevPC = m_PC;
@@ -171,28 +153,13 @@ float CZ80::SingleStep(void)
 		SetEnableDebug(true);
 	}
 
-	if (m_enableBreakpoints && (m_PC == g_memoryBreakpoint))
+	if (GetEnableBreakpoints() && (m_PC == g_memoryBreakpoint))
 	{
 		fprintf(stderr, "[Z80] Hit memory breakpoint at address %04X\n", m_PC);
 		SetEnableDebug(true);
 	}
 
 	return microseconds_elapsed;
-}
-
-//=============================================================================
-
-void CZ80::OutputStatus(void)
-{
-	fprintf(stdout, "[Z80]        Registers:\n");
-	fprintf(stdout, "[Z80]        AF'=%04X AF=%04X A=%02X F=%02X  C  N  PV X  H  Y  Z  S\n", m_AFalt, m_AF, m_A, m_F);
-	fprintf(stdout, "[Z80]                                    %i  %i  %i  %i  %i  %i  %i  %i\n", (m_F & eF_C), (m_F & eF_N) >> 1, (m_F & eF_PV) >> 2, (m_F & eF_X) >> 3, (m_F & eF_H) >> 4, (m_F & eF_Y) >> 5, (m_F & eF_Z) >> 6, (m_F & eF_S) >> 7);
-	fprintf(stdout, "[Z80]        BC'=%04X BC=%04X B=%02X C=%02X\n", m_BCalt, m_BC, m_B, m_C);
-	fprintf(stdout, "[Z80]        DE'=%04X DE=%04X D=%02X E=%02X\n", m_DEalt, m_DE, m_D, m_E);
-	fprintf(stdout, "[Z80]        HL'=%04X HL=%04X H=%02X L=%02X IX=%04X IY=%04X\n", m_HLalt, m_HL, m_H, m_L, m_IX, m_IY);
-	fprintf(stdout, "[Z80]        I=%02X R=%02X IM=%i IFF1=%i IFF2=%i\n", m_I, m_R, m_State.m_InterruptMode, m_State.m_IFF1, m_State.m_IFF2);
-	fprintf(stdout, "[Z80]        SP=%04X (%02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X)\n", m_SP, m_pMemory[m_SP], m_pMemory[m_SP - 1], m_pMemory[m_SP - 2], m_pMemory[m_SP - 3], m_pMemory[m_SP - 4], m_pMemory[m_SP - 5], m_pMemory[m_SP - 6], m_pMemory[m_SP - 7], m_pMemory[m_SP - 8], m_pMemory[m_SP - 9], m_pMemory[m_SP - 10], m_pMemory[m_SP - 11], m_pMemory[m_SP - 12], m_pMemory[m_SP - 13], m_pMemory[m_SP - 14], m_pMemory[m_SP - 15]);
-	fprintf(stdout, "[Z80]        PC=%04X (%02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X)\n", m_PC, m_pMemory[m_PC], m_pMemory[m_PC + 1], m_pMemory[m_PC + 2], m_pMemory[m_PC + 3], m_pMemory[m_PC + 4], m_pMemory[m_PC + 5], m_pMemory[m_PC + 6], m_pMemory[m_PC + 7], m_pMemory[m_PC + 8], m_pMemory[m_PC + 9], m_pMemory[m_PC + 10], m_pMemory[m_PC + 11], m_pMemory[m_PC + 12], m_pMemory[m_PC + 13], m_pMemory[m_PC + 14], m_pMemory[m_PC + 15]);
 }
 
 //=============================================================================
@@ -208,9 +175,17 @@ void CZ80::SetEnableDebug(bool set)
 {
  	m_enableDebug = set;
 	fprintf(stderr, "[Z80] Turning %s debug mode\n", (m_enableDebug) ? "on" : "off");
-	if (!m_enableDebug && GetEnableUnattendedDebug())
+	if (m_enableDebug)
 	{
-		SetEnableUnattendedDebug(false);
+		OutputCurrentInstruction();
+		OutputStatus();
+	}
+	else
+	{
+		if (GetEnableUnattendedDebug())
+		{
+			SetEnableUnattendedDebug(false);
+		}
 	}
 }
 
@@ -261,6 +236,68 @@ void CZ80::SetEnableBreakpoints(bool set)
 {
  	m_enableBreakpoints = set;
 	fprintf(stderr, "[Z80] Enable breakpoints %s\n", (m_enableBreakpoints) ? "on" : "off");
+	if (!m_enableBreakpoints && GetEnableProgramFlowBreakpoints())
+	{
+		SetEnableProgramFlowBreakpoints(false);
+	}
+}
+
+//=============================================================================
+
+bool CZ80::GetEnableProgramFlowBreakpoints(void) const
+{
+	return m_enableProgramFlowBreakpoints;
+}
+
+//=============================================================================
+
+void CZ80::SetEnableProgramFlowBreakpoints(bool set)
+{
+ 	m_enableProgramFlowBreakpoints = set;
+	fprintf(stderr, "[Z80] Enable program flow breakpoints %s\n", (m_enableProgramFlowBreakpoints) ? "on" : "off");
+}
+
+//=============================================================================
+
+void CZ80::OutputStatus(void)
+{
+	fprintf(stdout, "[Z80]        Registers:\n");
+	fprintf(stdout, "[Z80]        AF'=%04X AF=%04X A=%02X F=%02X  C  N  PV X  H  Y  Z  S\n", m_AFalt, m_AF, m_A, m_F);
+	fprintf(stdout, "[Z80]                                    %i  %i  %i  %i  %i  %i  %i  %i\n", (m_F & eF_C), (m_F & eF_N) >> 1, (m_F & eF_PV) >> 2, (m_F & eF_X) >> 3, (m_F & eF_H) >> 4, (m_F & eF_Y) >> 5, (m_F & eF_Z) >> 6, (m_F & eF_S) >> 7);
+	fprintf(stdout, "[Z80]        BC'=%04X BC=%04X B=%02X C=%02X\n", m_BCalt, m_BC, m_B, m_C);
+	fprintf(stdout, "[Z80]        DE'=%04X DE=%04X D=%02X E=%02X\n", m_DEalt, m_DE, m_D, m_E);
+	fprintf(stdout, "[Z80]        HL'=%04X HL=%04X H=%02X L=%02X IX=%04X IY=%04X\n", m_HLalt, m_HL, m_H, m_L, m_IX, m_IY);
+	fprintf(stdout, "[Z80]        I=%02X R=%02X IM=%i IFF1=%i IFF2=%i\n", m_I, m_R, m_State.m_InterruptMode, m_State.m_IFF1, m_State.m_IFF2);
+	fprintf(stdout, "[Z80]        SP=%04X (%02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X)\n", m_SP, m_pMemory[m_SP], m_pMemory[m_SP - 1], m_pMemory[m_SP - 2], m_pMemory[m_SP - 3], m_pMemory[m_SP - 4], m_pMemory[m_SP - 5], m_pMemory[m_SP - 6], m_pMemory[m_SP - 7], m_pMemory[m_SP - 8], m_pMemory[m_SP - 9], m_pMemory[m_SP - 10], m_pMemory[m_SP - 11], m_pMemory[m_SP - 12], m_pMemory[m_SP - 13], m_pMemory[m_SP - 14], m_pMemory[m_SP - 15]);
+	fprintf(stdout, "[Z80]        PC=%04X (%02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X)\n", m_PC, m_pMemory[m_PC], m_pMemory[m_PC + 1], m_pMemory[m_PC + 2], m_pMemory[m_PC + 3], m_pMemory[m_PC + 4], m_pMemory[m_PC + 5], m_pMemory[m_PC + 6], m_pMemory[m_PC + 7], m_pMemory[m_PC + 8], m_pMemory[m_PC + 9], m_pMemory[m_PC + 10], m_pMemory[m_PC + 11], m_pMemory[m_PC + 12], m_pMemory[m_PC + 13], m_pMemory[m_PC + 14], m_pMemory[m_PC + 15]);
+}
+
+//=============================================================================
+
+void CZ80::OutputCurrentInstruction(void)
+{
+	uint16 address = m_PC;
+	char buffer[64];
+	Decode(address, buffer);
+	fprintf(stdout, "[Z80] %04X : ", m_PC);
+	switch (address - m_PC)
+	{
+		case 1:
+			fprintf(stdout, "%02X          : %s\n", m_pMemory[m_PC], buffer);
+			break;
+
+		case 2:
+			fprintf(stdout, "%02X %02X       : %s\n", m_pMemory[m_PC], m_pMemory[m_PC + 1], buffer);
+			break;
+
+		case 3:
+			fprintf(stdout, "%02X %02X %02X    : %s\n", m_pMemory[m_PC], m_pMemory[m_PC + 1], m_pMemory[m_PC + 2], buffer);
+			break;
+
+		case 4:
+			fprintf(stdout, "%02X %02X %02X %02X : %s\n", m_pMemory[m_PC], m_pMemory[m_PC + 1], m_pMemory[m_PC + 2], m_pMemory[m_PC + 3], buffer);
+			break;
+	}
 }
 
 //=============================================================================
@@ -274,14 +311,29 @@ uint32 CZ80::Step(void)
 				break;
 
 			case 0x10:
+				if (GetEnableProgramFlowBreakpoints())
+				{
+					fprintf(stderr, "[Z80] Hit program flow breakpoint at address %04X\n", m_PC);
+					SetEnableDebug(true);
+				}
 				return ImplementDJNZe();
 				break;
 
 			case 0x20:
+				if (GetEnableProgramFlowBreakpoints())
+				{
+					fprintf(stderr, "[Z80] Hit program flow breakpoint at address %04X\n", m_PC);
+					SetEnableDebug(true);
+				}
 				return ImplementJRNZe();
 				break;
 
 			case 0x30:
+				if (GetEnableProgramFlowBreakpoints())
+				{
+					fprintf(stderr, "[Z80] Hit program flow breakpoint at address %04X\n", m_PC);
+					SetEnableDebug(true);
+				}
 				return ImplementJRNCe();
 				break;
 
@@ -378,14 +430,29 @@ uint32 CZ80::Step(void)
 				break;
 
 			case 0x18:
+				if (GetEnableProgramFlowBreakpoints())
+				{
+					fprintf(stderr, "[Z80] Hit program flow breakpoint at address %04X\n", m_PC);
+					SetEnableDebug(true);
+				}
 				return ImplementJRe();
 				break;
 
 			case 0x28:
+				if (GetEnableProgramFlowBreakpoints())
+				{
+					fprintf(stderr, "[Z80] Hit program flow breakpoint at address %04X\n", m_PC);
+					SetEnableDebug(true);
+				}
 				return ImplementJRZe();
 				break;
 
 			case 0x38:
+				if (GetEnableProgramFlowBreakpoints())
+				{
+					fprintf(stderr, "[Z80] Hit program flow breakpoint at address %04X\n", m_PC);
+					SetEnableDebug(true);
+				}
 				return ImplementJRCe();
 				break;
 
@@ -631,6 +698,11 @@ uint32 CZ80::Step(void)
 			case 0xD8: // RET C
 			case 0xE8: // RET PE
 			case 0xF8: // RET M
+				if (GetEnableProgramFlowBreakpoints())
+				{
+					fprintf(stderr, "[Z80] Hit program flow breakpoint at address %04X\n", m_PC);
+					SetEnableDebug(true);
+				}
 				return ImplementRETcc();
 				break;
 
@@ -649,10 +721,20 @@ uint32 CZ80::Step(void)
 			case 0xDA: // JP C,nn
 			case 0xEA: // JP PE,nn
 			case 0xFA: // JP M,nn
+				if (GetEnableProgramFlowBreakpoints())
+				{
+					fprintf(stderr, "[Z80] Hit program flow breakpoint at address %04X\n", m_PC);
+					SetEnableDebug(true);
+				}
 				return ImplementJPccnn();
 				break;
 
 			case 0xC3:
+				if (GetEnableProgramFlowBreakpoints())
+				{
+					fprintf(stderr, "[Z80] Hit program flow breakpoint at address %04X\n", m_PC);
+					SetEnableDebug(true);
+				}
 				return ImplementJPnn();
 				break;
 
@@ -676,6 +758,11 @@ uint32 CZ80::Step(void)
 			case 0xDC: // CALL C,nn
 			case 0xEC: // CALL PE,nn
 			case 0xFC: // CALL M,nn
+				if (GetEnableProgramFlowBreakpoints())
+				{
+					fprintf(stderr, "[Z80] Hit program flow breakpoint at address %04X\n", m_PC);
+					SetEnableDebug(true);
+				}
 				return ImplementCALLccnn();
 				break;
 
@@ -710,10 +797,20 @@ uint32 CZ80::Step(void)
 			case 0xDF: // RST 24
 			case 0xEF: // RST 40
 			case 0xFF: // RST 56
+				if (GetEnableProgramFlowBreakpoints())
+				{
+					fprintf(stderr, "[Z80] Hit program flow breakpoint at address %04X\n", m_PC);
+					SetEnableDebug(true);
+				}
 				return ImplementRSTp();
 				break;
 
 			case 0xC9:
+				if (GetEnableProgramFlowBreakpoints())
+				{
+					fprintf(stderr, "[Z80] Hit program flow breakpoint at address %04X\n", m_PC);
+					SetEnableDebug(true);
+				}
 				return ImplementRET();
 				break;
 
@@ -721,6 +818,11 @@ uint32 CZ80::Step(void)
 				return ImplementEXX();
 
 			case 0xE9:
+				if (GetEnableProgramFlowBreakpoints())
+				{
+					fprintf(stderr, "[Z80] Hit program flow breakpoint at address %04X\n", m_PC);
+					SetEnableDebug(true);
+				}
 				return ImplementJP_HL_();
 				break;
 
@@ -1060,6 +1162,11 @@ uint32 CZ80::Step(void)
 				break;
 
 			case 0xCD:
+				if (GetEnableProgramFlowBreakpoints())
+				{
+					fprintf(stderr, "[Z80] Hit program flow breakpoint at address %04X\n", m_PC);
+					SetEnableDebug(true);
+				}
 				return ImplementCALLnn();
 				break;
 
@@ -1106,6 +1213,11 @@ uint32 CZ80::Step(void)
 						break;
 
 					case 0xE9:
+						if (GetEnableProgramFlowBreakpoints())
+						{
+							fprintf(stderr, "[Z80] Hit program flow breakpoint at address %04X\n", m_PC);
+							SetEnableDebug(true);
+						}
 						return ImplementJP_IX_();
 						break;
 
@@ -1283,6 +1395,11 @@ uint32 CZ80::Step(void)
 						break;
 
 					case 0x45:
+						if (GetEnableProgramFlowBreakpoints())
+						{
+							fprintf(stderr, "[Z80] Hit program flow breakpoint at address %04X\n", m_PC);
+							SetEnableDebug(true);
+						}
 						return ImplementRETN();
 						break;
 
@@ -1320,6 +1437,11 @@ uint32 CZ80::Step(void)
 						break;
 
 					case 0x4D:
+						if (GetEnableProgramFlowBreakpoints())
+						{
+							fprintf(stderr, "[Z80] Hit program flow breakpoint at address %04X\n", m_PC);
+							SetEnableDebug(true);
+						}
 						return ImplementRETI();
 						break;
 
@@ -1454,6 +1576,11 @@ uint32 CZ80::Step(void)
 						break;
 
 					case 0xE9:
+						if (GetEnableProgramFlowBreakpoints())
+						{
+							fprintf(stderr, "[Z80] Hit program flow breakpoint at address %04X\n", m_PC);
+							SetEnableDebug(true);
+						}
 						return ImplementJP_IY_();
 						break;
 
@@ -7988,7 +8115,7 @@ uint32 CZ80::ImplementJRe(void)
 	//								3						12 (4,3,5)				3.00
 	//
 	IncrementR(1);
-	m_PC = (m_PC + 2) + static_cast<int16>(static_cast<int8>(m_pMemory[m_PC + 1]));
+	m_PC = (m_PC + 2) + static_cast<int8>(m_pMemory[m_PC + 1]);
 	return 12;
 }
 
@@ -8013,7 +8140,7 @@ uint32 CZ80::ImplementJRCe(void)
 	//
 	IncrementR(1);
 	uint32 tstates = 0;
-	uint16 addr = (m_PC + 2) + static_cast<int16>(static_cast<int8>(m_pMemory[m_PC + 1]));
+	uint16 addr = (m_PC + 2) + static_cast<int8>(m_pMemory[m_PC + 1]);
 	if (m_F & eF_C)
 	{
 		m_PC = addr;
@@ -8048,7 +8175,7 @@ uint32 CZ80::ImplementJRNCe(void)
 	//
 	IncrementR(1);
 	uint32 tstates = 0;
-	uint16 addr = (m_PC + 2) + static_cast<int16>(static_cast<int8>(m_pMemory[m_PC + 1]));
+	uint16 addr = (m_PC + 2) + static_cast<int8>(m_pMemory[m_PC + 1]);
 	if (m_F & eF_C)
 	{
 		m_PC += 2;
@@ -8083,7 +8210,7 @@ uint32 CZ80::ImplementJRZe(void)
 	//
 	IncrementR(1);
 	uint32 tstates = 0;
-	uint16 addr = (m_PC + 2) + static_cast<int16>(static_cast<int8>(m_pMemory[m_PC + 1]));
+	uint16 addr = (m_PC + 2) + static_cast<int8>(m_pMemory[m_PC + 1]);
 	if (m_F & eF_Z)
 	{
 		m_PC = addr;
@@ -8118,7 +8245,7 @@ uint32 CZ80::ImplementJRNZe(void)
 	//
 	IncrementR(1);
 	uint32 tstates = 0;
-	uint16 addr = (m_PC + 2) + static_cast<int16>(static_cast<int8>(m_pMemory[m_PC + 1]));
+	uint16 addr = (m_PC + 2) + static_cast<int8>(m_pMemory[m_PC + 1]);
 	if (m_F & eF_Z)
 	{
 		m_PC += 2;
@@ -8215,7 +8342,7 @@ uint32 CZ80::ImplementDJNZe(void)
 	//
 	IncrementR(1);
 	uint32 tstates = 0;
-	uint16 addr = (m_PC + 2) + static_cast<int16>(m_pMemory[m_PC + 1]);
+	uint16 addr = (m_PC + 2) + static_cast<int8>(m_pMemory[m_PC + 1]);
 	if (--m_BC == 0)
 	{
 		m_PC += 2;
@@ -8759,7 +8886,7 @@ void CZ80::DecodeLDrr(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeLDrn(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "LD %s,0x%02X", Get8BitRegisterString(m_pMemory[address] >> 3), m_pMemory[address + 1]);
+	sprintf(pMnemonic, "LD %s,%02X", Get8BitRegisterString(m_pMemory[address] >> 3), m_pMemory[address + 1]);
 	address += 2;
 }
 
@@ -8767,7 +8894,7 @@ void CZ80::DecodeLDrn(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeLDr_IXd_(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "LD %s,(IX+0x%02X)", Get8BitRegisterString(m_pMemory[address + 1] >> 3), m_pMemory[address + 2]);
+	sprintf(pMnemonic, "LD %s,(IX+%02X)", Get8BitRegisterString(m_pMemory[address + 1] >> 3), m_pMemory[address + 2]);
 	address += 3;
 }
 
@@ -8775,7 +8902,7 @@ void CZ80::DecodeLDr_IXd_(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeLDr_IYd_(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "LD %s,(IY+0x%02X)", Get8BitRegisterString(m_pMemory[address + 1] >> 3), m_pMemory[address + 2]);
+	sprintf(pMnemonic, "LD %s,(IY+%02X)", Get8BitRegisterString(m_pMemory[address + 1] >> 3), m_pMemory[address + 2]);
 	address += 3;
 }
 
@@ -8790,7 +8917,7 @@ void CZ80::DecodeLD_HL_r(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeLD_IXd_r(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "LD (IX+0x%02X),%s", m_pMemory[address + 2], Get8BitRegisterString(m_pMemory[address + 1] >> 3));
+	sprintf(pMnemonic, "LD (IX+%02X),%s", m_pMemory[address + 2], Get8BitRegisterString(m_pMemory[address + 1] >> 3));
 	address += 3;
 }
 
@@ -8798,7 +8925,7 @@ void CZ80::DecodeLD_IXd_r(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeLD_IYd_r(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "LD (IY+0x%02X),%s", m_pMemory[address + 2], Get8BitRegisterString(m_pMemory[address + 1] >> 3));
+	sprintf(pMnemonic, "LD (IY+%02X),%s", m_pMemory[address + 2], Get8BitRegisterString(m_pMemory[address + 1] >> 3));
 	address += 3;
 }
 
@@ -8806,7 +8933,7 @@ void CZ80::DecodeLD_IYd_r(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeLD_HL_n(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "LD (HL),0x%02X", m_pMemory[address + 1]);
+	sprintf(pMnemonic, "LD (HL),%02X", m_pMemory[address + 1]);
 	address += 2;
 }
 
@@ -8814,7 +8941,7 @@ void CZ80::DecodeLD_HL_n(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeLD_IXd_n(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "LD (IX+0x%02X),0x%02X", m_pMemory[address + 2], m_pMemory[address + 3]);
+	sprintf(pMnemonic, "LD (IX+%02X),%02X", m_pMemory[address + 2], m_pMemory[address + 3]);
 	address += 4;
 }
 
@@ -8822,7 +8949,7 @@ void CZ80::DecodeLD_IXd_n(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeLD_IYd_n(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "LD (IY+0x%02X),0x%02X", m_pMemory[address + 2], m_pMemory[address + 3]);
+	sprintf(pMnemonic, "LD (IY+%02X),%02X", m_pMemory[address + 2], m_pMemory[address + 3]);
 	address += 4;
 }
 
@@ -8846,7 +8973,7 @@ void CZ80::DecodeLDA_DE_(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeLDA_nn_(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "LD A,(0x%02X%02X)", m_pMemory[address + 2], m_pMemory[address + 1]);
+	sprintf(pMnemonic, "LD A,(%02X%02X)", m_pMemory[address + 2], m_pMemory[address + 1]);
 	++address;
 }
 
@@ -8870,7 +8997,7 @@ void CZ80::DecodeLD_DE_A(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeLD_nn_A(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "LD (0x%02X%02X),A", m_pMemory[address + 2], m_pMemory[address + 1]);
+	sprintf(pMnemonic, "LD (%02X%02X),A", m_pMemory[address + 2], m_pMemory[address + 1]);
 	address += 3;
 }
 
@@ -8916,7 +9043,7 @@ void CZ80::DecodeLDRA(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeLDddnn(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "LD %s,0x%02X%02X", Get16BitRegisterString(m_pMemory[address] >> 4), m_pMemory[address + 2], m_pMemory[address + 1]);
+	sprintf(pMnemonic, "LD %s,%02X%02X", Get16BitRegisterString(m_pMemory[address] >> 4), m_pMemory[address + 2], m_pMemory[address + 1]);
 	address += 3;
 }
 
@@ -8924,7 +9051,7 @@ void CZ80::DecodeLDddnn(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeLDIXnn(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "LD IX,0x%02X%02X", m_pMemory[address + 3], m_pMemory[address + 2]);
+	sprintf(pMnemonic, "LD IX,%02X%02X", m_pMemory[address + 3], m_pMemory[address + 2]);
 	address += 4;
 }
 
@@ -8932,7 +9059,7 @@ void CZ80::DecodeLDIXnn(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeLDIYnn(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "LD IY,0x%02X%02X", m_pMemory[address + 3], m_pMemory[address + 2]);
+	sprintf(pMnemonic, "LD IY,%02X%02X", m_pMemory[address + 3], m_pMemory[address + 2]);
 	address += 4;
 }
 
@@ -8940,7 +9067,7 @@ void CZ80::DecodeLDIYnn(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeLDHL_nn_(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "LD HL,(0x%02X%02X)", m_pMemory[address + 2], m_pMemory[address + 1]);
+	sprintf(pMnemonic, "LD HL,(%02X%02X)", m_pMemory[address + 2], m_pMemory[address + 1]);
 	address += 3;
 }
 
@@ -8948,7 +9075,7 @@ void CZ80::DecodeLDHL_nn_(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeLDdd_nn_(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "LD %s,(0x%02X%02X)", Get16BitRegisterString(m_pMemory[address + 1] >> 4), m_pMemory[address + 3], m_pMemory[address + 2]);
+	sprintf(pMnemonic, "LD %s,(%02X%02X)", Get16BitRegisterString(m_pMemory[address + 1] >> 4), m_pMemory[address + 3], m_pMemory[address + 2]);
 	address += 4;
 }
 
@@ -8956,7 +9083,7 @@ void CZ80::DecodeLDdd_nn_(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeLDIX_nn_(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "LD IX,(0x%02X%02X)", m_pMemory[address + 3], m_pMemory[address + 2]);
+	sprintf(pMnemonic, "LD IX,(%02X%02X)", m_pMemory[address + 3], m_pMemory[address + 2]);
 	address += 4;
 }
 
@@ -8964,7 +9091,7 @@ void CZ80::DecodeLDIX_nn_(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeLDIY_nn_(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "LD IY,(0x%02X%02X)", m_pMemory[address + 3], m_pMemory[address + 2]);
+	sprintf(pMnemonic, "LD IY,(%02X%02X)", m_pMemory[address + 3], m_pMemory[address + 2]);
 	address += 4;
 }
 
@@ -8972,7 +9099,7 @@ void CZ80::DecodeLDIY_nn_(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeLD_nn_HL(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "LD (0x%02X%02X),HL", m_pMemory[address + 2], m_pMemory[address + 1]);
+	sprintf(pMnemonic, "LD (%02X%02X),HL", m_pMemory[address + 2], m_pMemory[address + 1]);
 	address += 3;
 }
 
@@ -8980,7 +9107,7 @@ void CZ80::DecodeLD_nn_HL(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeLD_nn_dd(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "LD (0x%02X%02X),%s", m_pMemory[address + 3], m_pMemory[address + 2], Get16BitRegisterString(m_pMemory[address + 1] >> 4));
+	sprintf(pMnemonic, "LD (%02X%02X),%s", m_pMemory[address + 3], m_pMemory[address + 2], Get16BitRegisterString(m_pMemory[address + 1] >> 4));
 	address += 4;
 }
 
@@ -8988,7 +9115,7 @@ void CZ80::DecodeLD_nn_dd(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeLD_nn_IX(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "LD (0x%02X%02X),IX", m_pMemory[address + 3], m_pMemory[address + 2]);
+	sprintf(pMnemonic, "LD (%02X%02X),IX", m_pMemory[address + 3], m_pMemory[address + 2]);
 	address += 4;
 }
 
@@ -8996,7 +9123,7 @@ void CZ80::DecodeLD_nn_IX(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeLD_nn_IY(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "LD (0x%02X%02X),IY", m_pMemory[address + 3], m_pMemory[address + 2]);
+	sprintf(pMnemonic, "LD (%02X%02X),IY", m_pMemory[address + 3], m_pMemory[address + 2]);
 	address += 4;
 }
 
@@ -9207,7 +9334,7 @@ void CZ80::DecodeADDAr(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeADDAn(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "ADD A,0x%02X", m_pMemory[++address]);
+	sprintf(pMnemonic, "ADD A,%02X", m_pMemory[++address]);
 	address += 2;
 }
 
@@ -9215,7 +9342,7 @@ void CZ80::DecodeADDAn(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeADDA_IXd_(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "ADD A,(IX + 0x%02X)", m_pMemory[address + 2]);
+	sprintf(pMnemonic, "ADD A,(IX+%02X)", m_pMemory[address + 2]);
 	address += 3;
 }
 
@@ -9223,7 +9350,7 @@ void CZ80::DecodeADDA_IXd_(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeADDA_IYd_(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "ADD A,(IY + 0x%02X)", m_pMemory[address + 2]);
+	sprintf(pMnemonic, "ADD A,(IY+%02X)", m_pMemory[address + 2]);
 	address += 3;
 }
 
@@ -9238,7 +9365,7 @@ void CZ80::DecodeADCAr(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeADCAn(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "ADC A,0x%02X", m_pMemory[++address]);
+	sprintf(pMnemonic, "ADC A,%02X", m_pMemory[++address]);
 	++address;
 }
 
@@ -9246,7 +9373,7 @@ void CZ80::DecodeADCAn(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeADCA_IXd_(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "ADC A,(IX + 0x%02X)", m_pMemory[address + 2]);
+	sprintf(pMnemonic, "ADC A,(IX+%02X)", m_pMemory[address + 2]);
 	address += 3;
 }
 
@@ -9254,7 +9381,7 @@ void CZ80::DecodeADCA_IXd_(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeADCA_IYd_(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "ADC A,(IY + 0x%02X)", m_pMemory[address + 2]);
+	sprintf(pMnemonic, "ADC A,(IY+%02X)", m_pMemory[address + 2]);
 	address += 3;
 }
 
@@ -9269,7 +9396,7 @@ void CZ80::DecodeSUBr(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeSUBn(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "SUB 0x%02X", m_pMemory[++address]);
+	sprintf(pMnemonic, "SUB %02X", m_pMemory[++address]);
 	++address;
 }
 
@@ -9277,7 +9404,7 @@ void CZ80::DecodeSUBn(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeSUB_IXd_(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "SUB (IX + 0x%02X)", m_pMemory[address + 2]);
+	sprintf(pMnemonic, "SUB (IX+%02X)", m_pMemory[address + 2]);
 	address += 3;
 }
 
@@ -9285,7 +9412,7 @@ void CZ80::DecodeSUB_IXd_(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeSUB_IYd_(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "SUB (IY + 0x%02X)", m_pMemory[address + 2]);
+	sprintf(pMnemonic, "SUB (IY+%02X)", m_pMemory[address + 2]);
 	address += 3;
 }
 
@@ -9300,7 +9427,7 @@ void CZ80::DecodeSBCAr(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeSBCAn(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "SBC A,0x%02X", m_pMemory[++address]);
+	sprintf(pMnemonic, "SBC A,%02X", m_pMemory[++address]);
 	++address;
 }
 
@@ -9308,7 +9435,7 @@ void CZ80::DecodeSBCAn(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeSBCA_IXd_(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "SBC A,(IX + 0x%02X)", m_pMemory[address + 2]);
+	sprintf(pMnemonic, "SBC A,(IX+%02X)", m_pMemory[address + 2]);
 	address += 3;
 }
 
@@ -9316,7 +9443,7 @@ void CZ80::DecodeSBCA_IXd_(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeSBCA_IYd_(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "SBC A,(IY + 0x%02X)", m_pMemory[address + 2]);
+	sprintf(pMnemonic, "SBC A,(IY+%02X)", m_pMemory[address + 2]);
 	address += 3;
 }
 
@@ -9331,7 +9458,7 @@ void CZ80::DecodeANDr(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeANDn(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "AND 0x%02X", m_pMemory[++address]);
+	sprintf(pMnemonic, "AND %02X", m_pMemory[++address]);
 	++address;
 }
 
@@ -9339,7 +9466,7 @@ void CZ80::DecodeANDn(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeAND_IXd_(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "AND (IX + 0x%02X)", m_pMemory[address + 2]);
+	sprintf(pMnemonic, "AND (IX+%02X)", m_pMemory[address + 2]);
 	address += 3;
 }
 
@@ -9347,7 +9474,7 @@ void CZ80::DecodeAND_IXd_(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeAND_IYd_(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "AND (IY + 0x%02X)", m_pMemory[address += 2]);
+	sprintf(pMnemonic, "AND (IY+%02X)", m_pMemory[address += 2]);
 	address += 3;
 }
 
@@ -9362,7 +9489,7 @@ void CZ80::DecodeORr(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeORn(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "OR 0x%02X", m_pMemory[++address]);
+	sprintf(pMnemonic, "OR %02X", m_pMemory[++address]);
 	++address;
 }
 
@@ -9370,7 +9497,7 @@ void CZ80::DecodeORn(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeOR_IXd_(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "OR (IX + 0x%02X)", m_pMemory[address += 2]);
+	sprintf(pMnemonic, "OR (IX+%02X)", m_pMemory[address += 2]);
 	address += 3;
 }
 
@@ -9378,7 +9505,7 @@ void CZ80::DecodeOR_IXd_(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeOR_IYd_(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "OR (IY + 0x%02X)", m_pMemory[address + 2]);
+	sprintf(pMnemonic, "OR (IY+%02X)", m_pMemory[address + 2]);
 	address += 3;
 }
 
@@ -9393,7 +9520,7 @@ void CZ80::DecodeXORr(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeXORn(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "XOR 0x%02X", m_pMemory[++address]);
+	sprintf(pMnemonic, "XOR %02X", m_pMemory[++address]);
 	++address;
 }
 
@@ -9401,7 +9528,7 @@ void CZ80::DecodeXORn(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeXOR_IXd_(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "XOR (IX + 0x%02X)", m_pMemory[address + 2]);
+	sprintf(pMnemonic, "XOR (IX+%02X)", m_pMemory[address + 2]);
 	address += 3;
 }
 
@@ -9409,7 +9536,7 @@ void CZ80::DecodeXOR_IXd_(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeXOR_IYd_(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "XOR (IY + 0x%02X)", m_pMemory[address + 2]);
+	sprintf(pMnemonic, "XOR (IY+%02X)", m_pMemory[address + 2]);
 	address += 3;
 }
 
@@ -9424,7 +9551,7 @@ void CZ80::DecodeCPr(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeCPn(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "CP 0x%02X", m_pMemory[++address]);
+	sprintf(pMnemonic, "CP %02X", m_pMemory[++address]);
 	++address;
 }
 
@@ -9432,7 +9559,7 @@ void CZ80::DecodeCPn(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeCP_IXd_(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "CP (IX + 0x%02X)", m_pMemory[address + 2]);
+	sprintf(pMnemonic, "CP (IX+%02X)", m_pMemory[address + 2]);
 	address += 3;
 }
 
@@ -9440,7 +9567,7 @@ void CZ80::DecodeCP_IXd_(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeCP_IYd_(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "CP (IY + 0x%02X)", m_pMemory[address + 2]);
+	sprintf(pMnemonic, "CP (IY+%02X)", m_pMemory[address + 2]);
 	address += 3;
 }
 
@@ -9455,7 +9582,7 @@ void CZ80::DecodeINCr(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeINC_IXd_(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "INC (IX + 0x%02X)", m_pMemory[address + 2]);
+	sprintf(pMnemonic, "INC (IX+%02X)", m_pMemory[address + 2]);
 	address += 3;
 }
 
@@ -9463,7 +9590,7 @@ void CZ80::DecodeINC_IXd_(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeINC_IYd_(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "INC (IY + 0x%02X)", m_pMemory[address + 2]);
+	sprintf(pMnemonic, "INC (IY+%02X)", m_pMemory[address + 2]);
 	address += 3;
 }
 
@@ -9478,7 +9605,7 @@ void CZ80::DecodeDECr(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeDEC_IXd_(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "DEC (IX + 0x%02X)", m_pMemory[address + 2]);
+	sprintf(pMnemonic, "DEC (IX+%02X)", m_pMemory[address + 2]);
 	address += 3;
 }
 
@@ -9486,7 +9613,7 @@ void CZ80::DecodeDEC_IXd_(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeDEC_IYd_(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "DEC (IY + 0x%02X)", m_pMemory[address + 2]);
+	sprintf(pMnemonic, "DEC (IY+%02X)", m_pMemory[address + 2]);
 	address += 3;
 }
 
@@ -9735,7 +9862,7 @@ void CZ80::DecodeRLCr(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeRLC_IXd_(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "RLC (IX+0x%02X)", m_pMemory[address + 2]);
+	sprintf(pMnemonic, "RLC (IX+%02X)", m_pMemory[address + 2]);
 	address += 4;
 }
 
@@ -9743,7 +9870,7 @@ void CZ80::DecodeRLC_IXd_(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeRLC_IYd_(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "RLC (IY+0x%02X)", m_pMemory[address + 2]);
+	sprintf(pMnemonic, "RLC (IY+%02X)", m_pMemory[address + 2]);
 	address += 4;
 }
 
@@ -9759,7 +9886,7 @@ void CZ80::DecodeRLr(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeRL_IXd_(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "RL (IX+0x%02X)", m_pMemory[address + 2]);
+	sprintf(pMnemonic, "RL (IX+%02X)", m_pMemory[address + 2]);
 	address += 4;
 }
 
@@ -9767,7 +9894,7 @@ void CZ80::DecodeRL_IXd_(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeRL_IYd_(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "RL (IY+0x%02X)", m_pMemory[address + 2]);
+	sprintf(pMnemonic, "RL (IY+%02X)", m_pMemory[address + 2]);
 	address += 4;
 }
 
@@ -9783,7 +9910,7 @@ void CZ80::DecodeRRCr(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeRRC_IXd_(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "RRC (IX+0x%02X)", m_pMemory[address + 2]);
+	sprintf(pMnemonic, "RRC (IX+%02X)", m_pMemory[address + 2]);
 	address += 4;
 }
 
@@ -9791,7 +9918,7 @@ void CZ80::DecodeRRC_IXd_(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeRRC_IYd_(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "RRC (IY+0x%02X)", m_pMemory[address + 2]);
+	sprintf(pMnemonic, "RRC (IY+%02X)", m_pMemory[address + 2]);
 	address += 4;
 }
 
@@ -9807,7 +9934,7 @@ void CZ80::DecodeRRr(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeRR_IXd_(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "RR (IX+0x%02X)", m_pMemory[address + 2]);
+	sprintf(pMnemonic, "RR (IX+%02X)", m_pMemory[address + 2]);
 	address += 4;
 }
 
@@ -9815,7 +9942,7 @@ void CZ80::DecodeRR_IXd_(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeRR_IYd_(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "RR (IY+0x%02X)", m_pMemory[address + 2]);
+	sprintf(pMnemonic, "RR (IY+%02X)", m_pMemory[address + 2]);
 	address += 4;
 }
 
@@ -9831,7 +9958,7 @@ void CZ80::DecodeSLAr(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeSLA_IXd_(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "SLA (IX+0x%02X)", m_pMemory[address + 2]);
+	sprintf(pMnemonic, "SLA (IX+%02X)", m_pMemory[address + 2]);
 	address += 4;
 }
 
@@ -9839,7 +9966,7 @@ void CZ80::DecodeSLA_IXd_(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeSLA_IYd_(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "SLA (IY+0x%02X)", m_pMemory[address + 2]);
+	sprintf(pMnemonic, "SLA (IY+%02X)", m_pMemory[address + 2]);
 	address += 4;
 }
 
@@ -9855,7 +9982,7 @@ void CZ80::DecodeSRAr(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeSRA_IXd_(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "SRA (IX+0x%02X)", m_pMemory[address + 2]);
+	sprintf(pMnemonic, "SRA (IX+%02X)", m_pMemory[address + 2]);
 	address += 4;
 }
 
@@ -9863,7 +9990,7 @@ void CZ80::DecodeSRA_IXd_(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeSRA_IYd_(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "SRA (IY+0x%02X)", m_pMemory[address + 2]);
+	sprintf(pMnemonic, "SRA (IY+%02X)", m_pMemory[address + 2]);
 	address += 4;
 }
 
@@ -9879,7 +10006,7 @@ void CZ80::DecodeSRLr(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeSRL_IXd_(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "SRL (IX+0x%02X)", m_pMemory[address + 2]);
+	sprintf(pMnemonic, "SRL (IX+%02X)", m_pMemory[address + 2]);
 	address += 4;
 }
 
@@ -9887,7 +10014,7 @@ void CZ80::DecodeSRL_IXd_(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeSRL_IYd_(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "SRL (IY+0x%02X)", m_pMemory[address + 2]);
+	sprintf(pMnemonic, "SRL (IY+%02X)", m_pMemory[address + 2]);
 	address += 4;
 }
 
@@ -9925,7 +10052,7 @@ void CZ80::DecodeBITbr(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeBITb_IXd_(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "BIT %d,(IX+0x%02X)", m_pMemory[address + 2], (m_pMemory[address + 3] >> 3) & 0x07);
+	sprintf(pMnemonic, "BIT %d,(IX+%02X)", m_pMemory[address + 2], (m_pMemory[address + 3] >> 3) & 0x07);
 	address += 4;
 }
 
@@ -9933,7 +10060,7 @@ void CZ80::DecodeBITb_IXd_(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeBITb_IYd_(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "BIT %d,(IY+0x%02X)", m_pMemory[address + 2], (m_pMemory[address + 3] >> 3) & 0x07);
+	sprintf(pMnemonic, "BIT %d,(IY+%02X)", m_pMemory[address + 2], (m_pMemory[address + 3] >> 3) & 0x07);
 	address += 4;
 }
 
@@ -9949,7 +10076,7 @@ void CZ80::DecodeSETbr(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeSETb_IXd_(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "SET %d,(IX+0x%02X)", m_pMemory[address + 2], (m_pMemory[address + 3] >> 3) & 0x07);
+	sprintf(pMnemonic, "SET %d,(IX+%02X)", m_pMemory[address + 2], (m_pMemory[address + 3] >> 3) & 0x07);
 	address += 4;
 }
 
@@ -9957,7 +10084,7 @@ void CZ80::DecodeSETb_IXd_(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeSETb_IYd_(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "SET %d,(IY+0x%02X)", m_pMemory[address + 2], (m_pMemory[address + 3] >> 3) & 0x07);
+	sprintf(pMnemonic, "SET %d,(IY+%02X)", m_pMemory[address + 2], (m_pMemory[address + 3] >> 3) & 0x07);
 	address += 4;
 }
 
@@ -9973,7 +10100,7 @@ void CZ80::DecodeRESbr(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeRESb_IXd_(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "RES %d,(IX+0x%02X)", m_pMemory[address + 2], (m_pMemory[address + 3] >> 3) & 0x07);
+	sprintf(pMnemonic, "RES %d,(IX+%02X)", m_pMemory[address + 2], (m_pMemory[address + 3] >> 3) & 0x07);
 	address += 4;
 }
 
@@ -9981,7 +10108,7 @@ void CZ80::DecodeRESb_IXd_(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeRESb_IYd_(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "RES %d,(IY+0x%02X)", m_pMemory[address + 2], (m_pMemory[address + 3] >> 3) & 0x07);
+	sprintf(pMnemonic, "RES %d,(IY+%02X)", m_pMemory[address + 2], (m_pMemory[address + 3] >> 3) & 0x07);
 	address += 4;
 }
 
@@ -10007,47 +10134,47 @@ void CZ80::DecodeJPccnn(uint16& address, char* pMnemonic)
 	uint8 cc = (m_pMemory[address++] & 0x38) >> 3;
 	uint16 addr = m_pMemory[address] + (static_cast<int16>(m_pMemory[address + 1]) << 8);
 	address += 2;
-	sprintf(pMnemonic, "JP %s,%04x", GetConditionString(cc), addr);
+	sprintf(pMnemonic, "JP %s,%04X", GetConditionString(cc), addr);
 }
 
 //=============================================================================
 
 void CZ80::DecodeJRe(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "JR %02x", static_cast<int8>(m_pMemory[address + 1]));
 	address += 2;
+	sprintf(pMnemonic, "JR %04X", address + static_cast<int8>(m_pMemory[address + 1]));
 }
 
 //=============================================================================
 
 void CZ80::DecodeJRCe(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "JR C,%02x", static_cast<int8>(m_pMemory[address + 1]));
 	address += 2;
+	sprintf(pMnemonic, "JR C,%04X", address + static_cast<int8>(m_pMemory[address + 1]));
 }
 
 //=============================================================================
 
 void CZ80::DecodeJRNCe(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "JR NC,%02x", static_cast<int8>(m_pMemory[address + 1]));
 	address += 2;
+	sprintf(pMnemonic, "JR Z,%04X", address + static_cast<int8>(m_pMemory[address + 1]));
 }
 
 //=============================================================================
 
 void CZ80::DecodeJRZe(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "JR Z,%02x", static_cast<int8>(m_pMemory[address + 1]));
 	address += 2;
+	sprintf(pMnemonic, "JR Z,%04X", address + static_cast<int8>(m_pMemory[address + 1]));
 }
 
 //=============================================================================
 
 void CZ80::DecodeJRNZe(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "JR NZ,%02x", static_cast<int8>(m_pMemory[address + 1]));
 	address += 2;
+	sprintf(pMnemonic, "JR NZ,%04X", address + static_cast<int8>(m_pMemory[address + 1]));
 }
 
 //=============================================================================
@@ -10078,8 +10205,8 @@ void CZ80::DecodeJP_IY_(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeDJNZe(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "DJNZ %02x", static_cast<int8>(m_pMemory[address + 1]));
 	address += 2;
+	sprintf(pMnemonic, "DJNZ %04X", address + static_cast<int8>(m_pMemory[address + 1]));
 }
 
 //=============================================================================
@@ -10093,7 +10220,7 @@ void CZ80::DecodeDJNZe(uint16& address, char* pMnemonic)
 void CZ80::DecodeCALLnn(uint16& address, char* pMnemonic)
 {
 	uint16 addr = m_pMemory[address + 1] + (static_cast<int16>(m_pMemory[address + 2]) << 8);
-	sprintf(pMnemonic, "CALL %04x", addr);
+	sprintf(pMnemonic, "CALL %04X", addr);
 	address += 3;
 }
 
@@ -10103,7 +10230,7 @@ void CZ80::DecodeCALLccnn(uint16& address, char* pMnemonic)
 {
 	uint8 cc = (m_pMemory[address] & 0x38) >> 3;
 	uint16 addr = m_pMemory[address + 1] + (static_cast<int16>(m_pMemory[address + 2]) << 8);
-	sprintf(pMnemonic, "CALL %s,%04x", GetConditionString(cc), addr);
+	sprintf(pMnemonic, "CALL %s,%04X", GetConditionString(cc), addr);
 	address += 3;
 }
 

@@ -16,7 +16,6 @@ class CZ80
 		float Update(float milliseconds);
 		float SingleStep(void);
 
-		void OutputStatus(void);
 		bool GetEnableDebug(void) const;
 		void SetEnableDebug(bool set);
 		bool GetEnableUnattendedDebug(void) const;
@@ -25,8 +24,13 @@ class CZ80
 		void SetEnableOutputStatus(bool set);
 		bool GetEnableBreakpoints(void) const;
 		void SetEnableBreakpoints(bool set);
+		bool GetEnableProgramFlowBreakpoints(void) const;
+		void SetEnableProgramFlowBreakpoints(bool set);
 
 	protected:
+		void OutputStatus(void);
+		void OutputCurrentInstruction(void);
+
 		uint32 Step(void);
 		void Decode(uint16& address, char* pMnemonic);
 
@@ -657,6 +661,7 @@ class CZ80
 		bool		m_enableUnattendedDebug;
 		bool		m_enableOutputStatus;
 		bool		m_enableBreakpoints;
+		bool		m_enableProgramFlowBreakpoints;
 
 		//=============================================================================
 

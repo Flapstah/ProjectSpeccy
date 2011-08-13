@@ -22,7 +22,7 @@ CZXSpectrum::CZXSpectrum(void)
 
 CZXSpectrum::~CZXSpectrum(void)
 {
-	fprintf(stdout, "ZX Spectrum shutting down\n");
+	fprintf(stdout, "[ZX Spectrum] Shutting down\n");
 
 	if (m_pDisplay != NULL)
 	{
@@ -46,10 +46,7 @@ bool CZXSpectrum::Initialise(void)
 	{
 		if (m_pZ80 = new CZ80(m_memory, 4.0f))
 		{
-			fprintf(stdout, "ZX Spectrum initialised\n");
-#if !defined(NDEBUG)
-			m_pZ80->SetEnableDebug(true);
-#endif // !defined(NDEBUG)
+			fprintf(stdout, "[ZX Spectrum] Initialised\n");
 			initialised = true;
 		}
 	}
@@ -89,6 +86,11 @@ bool CZXSpectrum::Update(void)
 
 		if (IsKeyPressed(GLFW_KEY_F5))
 		{
+			m_pZ80->SetEnableProgramFlowBreakpoints(!m_pZ80->GetEnableProgramFlowBreakpoints());
+		}
+
+		if (IsKeyPressed(GLFW_KEY_F6))
+		{
 			m_detectROMCorruption = !m_detectROMCorruption;
 			fprintf(stderr, "[ZX Spectrum] Turning %s ROM corruption detection mode\n", (m_detectROMCorruption) ? "on" : "off");
 		}
@@ -126,7 +128,8 @@ void CZXSpectrum::UpdateKeyboard(void)
 	m_keyState[GLFW_KEY_F2] = (glfwGetKey(GLFW_KEY_F2) == GLFW_PRESS);				// toggle unattended debug mode
 	m_keyState[GLFW_KEY_F3] = (glfwGetKey(GLFW_KEY_F3) == GLFW_PRESS);				// toggle status output
 	m_keyState[GLFW_KEY_F4] = (glfwGetKey(GLFW_KEY_F4) == GLFW_PRESS);				// toggle enable breakpoints
-	m_keyState[GLFW_KEY_F5] = (glfwGetKey(GLFW_KEY_F5) == GLFW_PRESS);				// toggle ROM corruption detection
+	m_keyState[GLFW_KEY_F5] = (glfwGetKey(GLFW_KEY_F5) == GLFW_PRESS);				// toggle enable program flow breakpoints
+	m_keyState[GLFW_KEY_F6] = (glfwGetKey(GLFW_KEY_F6) == GLFW_PRESS);				// toggle ROM corruption detection
 	m_keyState[GLFW_KEY_SPACE] = (glfwGetKey(GLFW_KEY_SPACE) == GLFW_PRESS);	// single step
 	m_keyState[GLFW_KEY_ESC] = (glfwGetKey(GLFW_KEY_ESC) == GLFW_PRESS);			// quit
 }
