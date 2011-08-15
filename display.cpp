@@ -7,6 +7,8 @@
 
 #include "display.h"
 
+//=============================================================================
+
 CDisplay::CDisplay(uint32 width, uint32 height, const char* title)
 : m_state(eS_Uninitialised)
 , m_displayScale(1.0f)
@@ -41,6 +43,8 @@ CDisplay::CDisplay(uint32 width, uint32 height, const char* title)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 }
 
+//=============================================================================
+
 CDisplay::~CDisplay(void)
 {
 	switch (m_state)
@@ -51,6 +55,8 @@ CDisplay::~CDisplay(void)
 			break;
 	}
 }
+
+//=============================================================================
 
 bool CDisplay::Update(IScreenMemory* pScreenMemory)
 {
@@ -99,4 +105,6 @@ bool CDisplay::Update(IScreenMemory* pScreenMemory)
 
 	return cont;
 }
+
+//=============================================================================
 

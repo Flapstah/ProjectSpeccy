@@ -27,9 +27,7 @@ class CZXSpectrum : public IScreenMemory
 						bool				LoadROM(const char* fileName);
 
 	protected:
-						void				UpdateKeyboard(void);
-						bool				IsKeyPressed(uint32 keyID) const;
-						bool				IsKeyHeld(uint32 keyID) const;
+						void				DisplayHelp(void) const;
 
 		enum SpectrumConstants
 		{
@@ -89,14 +87,11 @@ class CZXSpectrum : public IScreenMemory
 		inline	uint32	AttributeByteIndex(uint8 x, uint8 y) const { return (SC_PIXEL_SCREEN_BYTES + ((y >> 3) * SC_ATTRIBUTE_SCREEN_WIDTH) + (x >> 3)); }
 						void		UpdateScreen(const uint8* pScreenMemory);
 		
-		uint32		m_videoMemory[SC_PIXEL_SCREEN_WIDTH * SC_PIXEL_SCREEN_HEIGHT];
-		uint8			m_memory[SC_48K_SPECTRUM];
-		uint8			m_shadowMemory[SC_48K_SPECTRUM];
-		bool			m_keyState[512];
-		bool			m_keyPrevState[512];
-		CDisplay*	m_pDisplay;
-		CZ80*			m_pZ80;
-		bool			m_detectROMCorruption;
+		uint32			m_videoMemory[SC_PIXEL_SCREEN_WIDTH * SC_PIXEL_SCREEN_HEIGHT];
+		uint8				m_memory[SC_48K_SPECTRUM];
+		uint8				m_shadowMemory[SC_48K_SPECTRUM];
+		CDisplay*		m_pDisplay;
+		CZ80*				m_pZ80;
 
 	private:
 };
