@@ -5,9 +5,6 @@
 
 //=============================================================================
 // TODO:
-// - Fix up ImplementXXX to use Read/Write functions instead of accessing
-// m_pMemory directly.  Need to protect ROM! :o)
-//		- need to do from 16 bit arithmetic group onwards
 // - need to implement breakpoint logic in HitBreakpoint() to ignore when
 // turned off
 //=============================================================================
@@ -6522,7 +6519,9 @@ uint32 CZ80::ImplementADDHLdd(void)
 	//								3						11 (4,4,3)				2.75
 	//
 	IncrementR(1);
-	uint16 source = REGISTER_16BIT(m_pMemory[m_PC++] >> 4);
+	uint8 opcode;
+	Read(m_PC++, opcode);
+	uint16 source = REGISTER_16BIT(opcode >> 4);
 	uint16 origHL = m_HL;
 	m_HL += source;
 	uint16 flag_calc = ((origHL & source & ~m_HL) | (~origHL & ~source & m_HL));
@@ -6555,7 +6554,10 @@ uint32 CZ80::ImplementADCHLdd(void)
 	//								4						15 (4,4,4,3)			3.75
 	//
 	IncrementR(2);
-	uint16 source = REGISTER_16BIT(m_pMemory[(++m_PC)++] >> 4) + (m_F & eF_C);
+	uint8 opcode;
+	Read(++m_PC, opcode);
+	++m_PC;
+	uint16 source = REGISTER_16BIT(opcode >> 4) + (m_F & eF_C);
 	uint16 origHL = m_HL;
 	m_HL += source;
 	uint16 flag_calc = ((origHL & source & ~m_HL) | (~origHL & ~source & m_HL));
@@ -6587,7 +6589,10 @@ uint32 CZ80::ImplementSBCHLdd(void)
 	//								4						15 (4,4,4,3)			3.75
 	//
 	IncrementR(2);
-	uint16 source = REGISTER_16BIT(m_pMemory[(++m_PC)++] >> 4) - (m_F & eF_C);
+	uint8 opcode;
+	Read(++m_PC, opcode);
+	++m_PC;
+	uint16 source = REGISTER_16BIT(opcode >> 4) - (m_F & eF_C);
 	uint16 origHL = m_HL;
 	m_HL -= source;
 	uint16 flag_calc = ((origHL & source & ~m_HL) | (~origHL & ~source & m_HL));
@@ -6619,7 +6624,10 @@ uint32 CZ80::ImplementADDIXdd(void)
 	//								3						15 (4,4,4,3)			3.75
 	//
 	IncrementR(2);
-	uint8 opcode = m_pMemory[(++m_PC)++] >> 4;
+	uint8 opcode;
+	Read(++m_PC, opcode);
+	++m_PC;
+	opcode >>= 4;
 	uint16 source = (opcode == 2) ? m_IX : REGISTER_16BIT(opcode);
 	uint16 origHL = m_HL;
 	m_HL += source;
@@ -6653,7 +6661,10 @@ uint32 CZ80::ImplementADDIYdd(void)
 	//								3						15 (4,4,4,3)			3.75
 	//
 	IncrementR(2);
-	uint8 opcode = m_pMemory[(++m_PC)++] >> 4;
+	uint8 opcode;
+	Read(++m_PC, opcode);
+	++m_PC;
+	opcode >>= 4;
 	uint16 source = (opcode == 2) ? m_IY : REGISTER_16BIT(opcode);
 	uint16 origHL = m_HL;
 	m_HL += source;
@@ -6685,7 +6696,9 @@ uint32 CZ80::ImplementINCdd(void)
 	//								1						6									1.50
 	//
 	IncrementR(1);
-	++REGISTER_16BIT(m_pMemory[m_PC++] >> 4);
+	uint8 opcode;
+	Read(m_PC++, opcode);
+	++REGISTER_16BIT(opcode >> 4);
 	return 6;
 }
 
@@ -6751,7 +6764,9 @@ uint32 CZ80::ImplementDECdd(void)
 	//								1						6									1.50
 	//
 	IncrementR(1);
-	--REGISTER_16BIT(m_pMemory[m_PC++] >> 4);
+	uint8 opcode;
+	Read(m_PC++, opcode);
+	--REGISTER_16BIT(opcode >> 4);
 	return 6;
 }
 
@@ -6922,8 +6937,10 @@ uint32 CZ80::ImplementRLCr(void)
 	//								2						8	(4,4)						2.00	
 	//
 	IncrementR(2);
-	++++m_PC;
-	uint8& reg = REGISTER_8BIT(m_pMemory[(++m_PC)++]);
+	uint8 opcode;
+	Read(++m_PC, opcode);
+	++m_PC;
+	uint8& reg = REGISTER_8BIT(opcode);
 	uint8 carry = (reg & eF_S) >> 7;
 	reg = (reg << 1) | carry;
 	uint8 parity = reg;
@@ -6954,14 +6971,16 @@ uint32 CZ80::ImplementRLC_HL_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	uint8& loc = m_pMemory[m_HL];
-	uint8 carry = (loc & eF_S) >> 7;
-	loc = (loc << 1) | carry;
-	uint8 parity = loc;
+	uint8 byte;
+	Read(m_HL, byte);
+	uint8 carry = (byte & eF_S) >> 7;
+	byte = (byte << 1) | carry;
+	Write(m_HL, byte);
+	uint8 parity = byte;
 	parity ^= parity >> 4;
 	parity &= 0xF;
 	parity = ((0x6996 >> parity) << 2) & eF_PV;
-	m_F = (loc & (eF_S | eF_X | eF_Y)) | ((loc == 0) ? eF_Z : 0) | parity | carry;
+	m_F = (byte & (eF_S | eF_X | eF_Y)) | ((byte == 0) ? eF_Z : 0) | parity | carry;
 	return 15;
 }
 
@@ -6989,15 +7008,19 @@ uint32 CZ80::ImplementRLC_IXd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	uint8& loc = m_pMemory[m_IX + static_cast<int16>(m_pMemory[m_PC])];
-	++++m_PC;
-	uint8 carry = (loc & eF_S) >> 7;
-	loc = (loc << 1) | carry;
-	uint8 parity = loc;
+	int8 displacement;
+	Read(m_PC++, displacement);
+	++m_PC;
+	uint8 byte;
+	Read(m_IX + displacement, byte);
+	uint8 carry = (byte & eF_S) >> 7;
+	byte = (byte << 1) | carry;
+	Write(m_IX + displacement, byte);
+	uint8 parity = byte;
 	parity ^= parity >> 4;
 	parity &= 0xF;
 	parity = ((0x6996 >> parity) << 2) & eF_PV;
-	m_F = (loc & (eF_S | eF_X | eF_Y)) | ((loc == 0) ? eF_Z : 0) | parity | carry;
+	m_F = (byte & (eF_S | eF_X | eF_Y)) | ((byte == 0) ? eF_Z : 0) | parity | carry;
 	return 23;
 }
 
@@ -7025,15 +7048,19 @@ uint32 CZ80::ImplementRLC_IYd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	uint8& loc = m_pMemory[m_IY + static_cast<int16>(m_pMemory[m_PC])];
-	++++m_PC;
-	uint8 carry = (loc & eF_S) >> 7;
-	loc = (loc << 1) | carry;
-	uint8 parity = loc;
+	int8 displacement;
+	Read(m_PC++, displacement);
+	++m_PC;
+	uint8 byte;
+	Read(m_IY + displacement, byte);
+	uint8 carry = (byte & eF_S) >> 7;
+	byte = (byte << 1) | carry;
+	Write(m_IY + displacement, byte);
+	uint8 parity = byte;
 	parity ^= parity >> 4;
 	parity &= 0xF;
 	parity = ((0x6996 >> parity) << 2) & eF_PV;
-	m_F = (loc & (eF_S | eF_X | eF_Y)) | ((loc == 0) ? eF_Z : 0) | parity | carry;
+	m_F = (byte & (eF_S | eF_X | eF_Y)) | ((byte == 0) ? eF_Z : 0) | parity | carry;
 	return 23;
 }
 
@@ -7056,8 +7083,10 @@ uint32 CZ80::ImplementRLr(void)
 	//								2						8	(4,4)						2.00	
 	//
 	IncrementR(2);
-	++++m_PC;
-	uint8& reg = REGISTER_8BIT(m_pMemory[(++m_PC)++]);
+	++m_PC;
+	uint8 opcode;
+	Read(m_PC++, opcode);
+	uint8& reg = REGISTER_8BIT(opcode);
 	uint8 carry = (reg & eF_S) >> 7;
 	reg = (reg << 1) | (m_F & eF_C);
 	uint8 parity = reg;
@@ -7088,14 +7117,16 @@ uint32 CZ80::ImplementRL_HL_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	uint8& loc = m_pMemory[m_HL];
-	uint8 carry = (loc & eF_S) >> 7;
-	loc = (loc << 1) | (m_F & eF_C);
-	uint8 parity = loc;
+	uint8 byte;
+	Read(m_HL, byte);
+	uint8 carry = (byte & eF_S) >> 7;
+	byte = (byte << 1) | (m_F & eF_C);
+	Write(m_HL, byte);
+	uint8 parity = byte;
 	parity ^= parity >> 4;
 	parity &= 0xF;
 	parity = ((0x6996 >> parity) << 2) & eF_PV;
-	m_F = (loc & (eF_S | eF_X | eF_Y)) | ((loc == 0) ? eF_Z : 0) | parity | carry;
+	m_F = (byte & (eF_S | eF_X | eF_Y)) | ((byte == 0) ? eF_Z : 0) | parity | carry;
 	return 15;
 }
 
@@ -7123,15 +7154,19 @@ uint32 CZ80::ImplementRL_IXd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	uint8& loc = m_pMemory[m_IX + static_cast<int16>(m_pMemory[m_PC])];
-	++++m_PC;
-	uint8 carry = (loc & eF_S) >> 7;
-	loc = (loc << 1) | (m_F & eF_C);
-	uint8 parity = loc;
+	int8 displacement;
+	Read(m_PC++, displacement);
+	++m_PC;
+	uint8 byte;
+	Read(m_IX + displacement, byte);
+	uint8 carry = (byte & eF_S) >> 7;
+	byte = (byte << 1) | (m_F & eF_C);
+	Write(m_IX + displacement, byte);
+	uint8 parity = byte;
 	parity ^= parity >> 4;
 	parity &= 0xF;
 	parity = ((0x6996 >> parity) << 2) & eF_PV;
-	m_F = (loc & (eF_S | eF_X | eF_Y)) | ((loc == 0) ? eF_Z : 0) | parity | carry;
+	m_F = (byte & (eF_S | eF_X | eF_Y)) | ((byte == 0) ? eF_Z : 0) | parity | carry;
 	return 23;
 }
 
@@ -7159,15 +7194,20 @@ uint32 CZ80::ImplementRL_IYd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	uint8& loc = m_pMemory[m_IY + static_cast<int16>(m_pMemory[m_PC])];
 	++++m_PC;
-	uint8 carry = (loc & eF_S) >> 7;
-	loc = (loc << 1) | (m_F & eF_C);
-	uint8 parity = loc;
+	int8 displacement;
+	Read(m_PC++, displacement);
+	++m_PC;
+	uint8 byte;
+	Read(m_IY + displacement, byte);
+	uint8 carry = (byte & eF_S) >> 7;
+	byte = (byte << 1) | (m_F & eF_C);
+	Write(m_IY + displacement, byte);
+	uint8 parity = byte;
 	parity ^= parity >> 4;
 	parity &= 0xF;
 	parity = ((0x6996 >> parity) << 2) & eF_PV;
-	m_F = (loc & (eF_S | eF_X | eF_Y)) | ((loc == 0) ? eF_Z : 0) | parity | carry;
+	m_F = (byte & (eF_S | eF_X | eF_Y)) | ((byte == 0) ? eF_Z : 0) | parity | carry;
 	return 23;
 }
 
@@ -7190,8 +7230,10 @@ uint32 CZ80::ImplementRRCr(void)
 	//								2						8	(4,4)						2.00	
 	//
 	IncrementR(2);
-	++++m_PC;
-	uint8& reg = REGISTER_8BIT(m_pMemory[(++m_PC)++]);
+	++m_PC;
+	uint8 opcode;
+	Read(m_PC++, opcode);
+	uint8& reg = REGISTER_8BIT(opcode);
 	uint8 carry = (reg & eF_C);
 	reg = (reg >> 1) | (carry << 7);
 	uint8 parity = reg;
@@ -7222,14 +7264,16 @@ uint32 CZ80::ImplementRRC_HL_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	uint8& loc = m_pMemory[m_HL];
-	uint8 carry = (loc & eF_C);
-	loc = (loc >> 1) | (carry << 7);
-	uint8 parity = loc;
+	uint8 byte;
+	Read(m_HL, byte);
+	uint8 carry = (byte & eF_C);
+	byte = (byte >> 1) | (carry << 7);
+	Write(m_HL, byte);
+	uint8 parity = byte;
 	parity ^= parity >> 4;
 	parity &= 0xF;
 	parity = ((0x6996 >> parity) << 2) & eF_PV;
-	m_F = (loc & (eF_S | eF_X | eF_Y)) | ((loc == 0) ? eF_Z : 0) | parity | carry;
+	m_F = (byte & (eF_S | eF_X | eF_Y)) | ((byte == 0) ? eF_Z : 0) | parity | carry;
 	return 15;
 }
 
@@ -7257,15 +7301,19 @@ uint32 CZ80::ImplementRRC_IXd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	uint8& loc = m_pMemory[m_IX + static_cast<int16>(m_pMemory[m_PC])];
-	++++m_PC;
-	uint8 carry = (loc & eF_C);
-	loc = (loc >> 1) | (carry << 7);
-	uint8 parity = loc;
+	int8 displacement;
+	Read(m_PC++, displacement);
+	++m_PC;
+	uint8 byte;
+	Read(m_IX + displacement, byte);
+	uint8 carry = (byte & eF_C);
+	byte = (byte >> 1) | (carry << 7);
+	Write(m_IX + displacement, byte);
+	uint8 parity = byte;
 	parity ^= parity >> 4;
 	parity &= 0xF;
 	parity = ((0x6996 >> parity) << 2) & eF_PV;
-	m_F = (loc & (eF_S | eF_X | eF_Y)) | ((loc == 0) ? eF_Z : 0) | parity | carry;
+	m_F = (byte & (eF_S | eF_X | eF_Y)) | ((byte == 0) ? eF_Z : 0) | parity | carry;
 	return 23;
 }
 
@@ -7293,15 +7341,19 @@ uint32 CZ80::ImplementRRC_IYd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	uint8& loc = m_pMemory[m_IX + static_cast<int16>(m_pMemory[m_PC])];
-	++++m_PC;
-	uint8 carry = (loc & eF_C);
-	loc = (loc >> 1) | (carry << 7);
-	uint8 parity = loc;
+	int8 displacement;
+	Read(m_PC++, displacement);
+	++m_PC;
+	uint8 byte;
+	Read(m_IY + displacement, byte);
+	uint8 carry = (byte & eF_C);
+	byte = (byte >> 1) | (carry << 7);
+	Write(m_IY + displacement, byte);
+	uint8 parity = byte;
 	parity ^= parity >> 4;
 	parity &= 0xF;
 	parity = ((0x6996 >> parity) << 2) & eF_PV;
-	m_F = (loc & (eF_S | eF_X | eF_Y)) | ((loc == 0) ? eF_Z : 0) | parity | carry;
+	m_F = (byte & (eF_S | eF_X | eF_Y)) | ((byte == 0) ? eF_Z : 0) | parity | carry;
 	return 23;
 }
 
@@ -7324,8 +7376,10 @@ uint32 CZ80::ImplementRRr(void)
 	//								2						8	(4,4)						2.00	
 	//
 	IncrementR(2);
-	++++m_PC;
-	uint8& reg = REGISTER_8BIT(m_pMemory[(++m_PC)++]);
+	++m_PC;
+	uint8 opcode;
+	Read(m_PC++, opcode);
+	uint8& reg = REGISTER_8BIT(opcode);
 	uint8 carry = (reg & eF_C);
 	reg = (reg >> 1) | ((m_F & eF_C) << 7);
 	uint8 parity = reg;
@@ -7356,14 +7410,16 @@ uint32 CZ80::ImplementRR_HL_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	uint8& loc = m_pMemory[m_HL];
-	uint8 carry = (loc & eF_C);
-	loc = (loc >> 1) | ((m_F & eF_C) << 7);
-	uint8 parity = loc;
+	uint8 byte;
+	Read(m_HL, byte);
+	uint8 carry = (byte & eF_C);
+	byte = (byte >> 1) | ((m_F & eF_C) << 7);
+	Write(m_HL, byte);
+	uint8 parity = byte;
 	parity ^= parity >> 4;
 	parity &= 0xF;
 	parity = ((0x6996 >> parity) << 2) & eF_PV;
-	m_F = (loc & (eF_S | eF_X | eF_Y)) | ((loc == 0) ? eF_Z : 0) | parity | carry;
+	m_F = (byte & (eF_S | eF_X | eF_Y)) | ((byte == 0) ? eF_Z : 0) | parity | carry;
 	return 15;
 }
 
@@ -7391,15 +7447,19 @@ uint32 CZ80::ImplementRR_IXd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	uint8& loc = m_pMemory[m_IX + static_cast<int16>(m_pMemory[m_PC])];
-	++++m_PC;
-	uint8 carry = (loc & eF_C);
-	loc = (loc >> 1) | ((m_F & eF_C) << 7);
-	uint8 parity = loc;
+	int8 displacement;
+	Read(m_PC++, displacement);
+	++m_PC;
+	uint8 byte;
+	Read(m_IX + displacement, byte);
+	uint8 carry = (byte & eF_C);
+	byte = (byte >> 1) | ((m_F & eF_C) << 7);
+	Write(m_IX + displacement, byte);
+	uint8 parity = byte;
 	parity ^= parity >> 4;
 	parity &= 0xF;
 	parity = ((0x6996 >> parity) << 2) & eF_PV;
-	m_F = (loc & (eF_S | eF_X | eF_Y)) | ((loc == 0) ? eF_Z : 0) | parity | carry;
+	m_F = (byte & (eF_S | eF_X | eF_Y)) | ((byte == 0) ? eF_Z : 0) | parity | carry;
 	return 23;
 }
 
@@ -7427,15 +7487,19 @@ uint32 CZ80::ImplementRR_IYd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	uint8& loc = m_pMemory[m_IX + static_cast<int16>(m_pMemory[m_PC])];
-	++++m_PC;
-	uint8 carry = (loc & eF_C);
-	loc = (loc >> 1) | ((m_F & eF_C) << 7);
-	uint8 parity = loc;
+	int8 displacement;
+	Read(m_PC++, displacement);
+	++m_PC;
+	uint8 byte;
+	Read(m_IY + displacement, byte);
+	uint8 carry = (byte & eF_C);
+	byte = (byte >> 1) | ((m_F & eF_C) << 7);
+	Write(m_IY + displacement, byte);
+	uint8 parity = byte;
 	parity ^= parity >> 4;
 	parity &= 0xF;
 	parity = ((0x6996 >> parity) << 2) & eF_PV;
-	m_F = (loc & (eF_S | eF_X | eF_Y)) | ((loc == 0) ? eF_Z : 0) | parity | carry;
+	m_F = (byte & (eF_S | eF_X | eF_Y)) | ((byte == 0) ? eF_Z : 0) | parity | carry;
 	return 23;
 }
 
@@ -7457,8 +7521,10 @@ uint32 CZ80::ImplementSLAr(void)
 	//								2						8	(4,4)						2.00	
 	//
 	IncrementR(2);
-	++++m_PC;
-	uint8& reg = REGISTER_8BIT(m_pMemory[(++m_PC)++]);
+	++m_PC;
+	uint8 opcode;
+	Read(m_PC++, opcode);
+	uint8& reg = REGISTER_8BIT(opcode);
 	uint8 carry = (reg & eF_S) >> 7;
 	reg = (reg << 1);
 	uint8 parity = reg;
@@ -7488,14 +7554,16 @@ uint32 CZ80::ImplementSLA_HL_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	uint8& loc = m_pMemory[m_HL];
-	uint8 carry = (loc & eF_S) >> 7;
-	loc = (loc << 1);
-	uint8 parity = loc;
+	uint8 byte;
+	Read(m_HL, byte);
+	uint8 carry = (byte & eF_S) >> 7;
+	byte = (byte << 1);
+	Write(m_HL, byte);
+	uint8 parity = byte;
 	parity ^= parity >> 4;
 	parity &= 0xF;
 	parity = ((0x6996 >> parity) << 2) & eF_PV;
-	m_F = (loc & (eF_S | eF_X | eF_Y)) | ((loc == 0) ? eF_Z : 0) | parity | carry;
+	m_F = (byte & (eF_S | eF_X | eF_Y)) | ((byte == 0) ? eF_Z : 0) | parity | carry;
 	return 15;
 }
 
@@ -7522,15 +7590,19 @@ uint32 CZ80::ImplementSLA_IXd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	uint8& loc = m_pMemory[m_IX + static_cast<int16>(m_pMemory[m_PC])];
-	++++m_PC;
-	uint8 carry = (loc & eF_S) >> 7;
-	loc = (loc << 1);
-	uint8 parity = loc;
+	int8 displacement;
+	Read(m_PC++, displacement);
+	++m_PC;
+	uint8 byte;
+	Read(m_IX + displacement, byte);
+	uint8 carry = (byte & eF_S) >> 7;
+	byte = (byte << 1);
+	Write(m_IX + displacement, byte);
+	uint8 parity = byte;
 	parity ^= parity >> 4;
 	parity &= 0xF;
 	parity = ((0x6996 >> parity) << 2) & eF_PV;
-	m_F = (loc & (eF_S | eF_X | eF_Y)) | ((loc == 0) ? eF_Z : 0) | parity | carry;
+	m_F = (byte & (eF_S | eF_X | eF_Y)) | ((byte == 0) ? eF_Z : 0) | parity | carry;
 	return 23;
 }
 
@@ -7557,15 +7629,19 @@ uint32 CZ80::ImplementSLA_IYd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	uint8& loc = m_pMemory[m_IY + static_cast<int16>(m_pMemory[m_PC])];
-	++++m_PC;
-	uint8 carry = (loc & eF_S) >> 7;
-	loc = (loc << 1);
-	uint8 parity = loc;
+	int8 displacement;
+	Read(m_PC++, displacement);
+	++m_PC;
+	uint8 byte;
+	Read(m_IX + displacement, byte);
+	uint8 carry = (byte & eF_S) >> 7;
+	byte = (byte << 1);
+	Write(m_IX + displacement, byte);
+	uint8 parity = byte;
 	parity ^= parity >> 4;
 	parity &= 0xF;
 	parity = ((0x6996 >> parity) << 2) & eF_PV;
-	m_F = (loc & (eF_S | eF_X | eF_Y)) | ((loc == 0) ? eF_Z : 0) | parity | carry;
+	m_F = (byte & (eF_S | eF_X | eF_Y)) | ((byte == 0) ? eF_Z : 0) | parity | carry;
 	return 23;
 }
 
@@ -7588,7 +7664,10 @@ uint32 CZ80::ImplementSRAr(void)
 	//								2						8	(4,4)						2.00	
 	//
 	IncrementR(2);
-	uint8& reg = REGISTER_8BIT(m_pMemory[(++m_PC)++]);
+	++m_PC;
+	uint8 opcode;
+	Read(m_PC++, opcode);
+	uint8& reg = REGISTER_8BIT(opcode);
 	uint8 sign = (reg & eF_S);
 	uint8 carry = (reg & eF_C);
 	reg = (reg >> 1) | sign;
@@ -7620,15 +7699,17 @@ uint32 CZ80::ImplementSRA_HL_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	uint8& loc = m_pMemory[m_HL];
-	uint8 sign = (loc & eF_S);
-	uint8 carry = (loc & eF_C);
-	loc = (loc >> 1) | sign;
-	uint8 parity = loc;
+	uint8 byte;
+	Read(m_HL, byte);
+	uint8 sign = (byte & eF_S);
+	uint8 carry = (byte & eF_C);
+	byte = (byte >> 1) | sign;
+	Write(m_HL, byte);
+	uint8 parity = byte;
 	parity ^= parity >> 4;
 	parity &= 0xF;
 	parity = ((0x6996 >> parity) << 2) & eF_PV;
-	m_F = (loc & (eF_S | eF_X | eF_Y)) | ((loc == 0) ? eF_Z : 0) | parity | carry;
+	m_F = (byte & (eF_S | eF_X | eF_Y)) | ((byte == 0) ? eF_Z : 0) | parity | carry;
 	return 15;
 }
 
@@ -7656,16 +7737,20 @@ uint32 CZ80::ImplementSRA_IXd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	uint8& loc = m_pMemory[m_IX + static_cast<int16>(m_pMemory[m_PC])];
-	++++m_PC;
-	uint8 sign = (loc & eF_S);
-	uint8 carry = (loc & eF_C);
-	loc = (loc >> 1) | sign;
-	uint8 parity = loc;
+	int8 displacement;
+	Read(m_PC++, displacement);
+	++m_PC;
+	uint8 byte;
+	Read(m_IX + displacement, byte);
+	uint8 sign = (byte & eF_S);
+	uint8 carry = (byte & eF_C);
+	byte = (byte >> 1) | sign;
+	Write(m_IX + displacement, byte);
+	uint8 parity = byte;
 	parity ^= parity >> 4;
 	parity &= 0xF;
 	parity = ((0x6996 >> parity) << 2) & eF_PV;
-	m_F = (loc & (eF_S | eF_X | eF_Y)) | ((loc == 0) ? eF_Z : 0) | parity | carry;
+	m_F = (byte & (eF_S | eF_X | eF_Y)) | ((byte == 0) ? eF_Z : 0) | parity | carry;
 	return 23;
 }
 
@@ -7693,16 +7778,20 @@ uint32 CZ80::ImplementSRA_IYd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	uint8& loc = m_pMemory[m_IY + static_cast<int16>(m_pMemory[m_PC])];
-	++++m_PC;
-	uint8 sign = (loc & eF_S);
-	uint8 carry = (loc & eF_C);
-	loc = (loc >> 1) | sign;
-	uint8 parity = loc;
+	int8 displacement;
+	Read(m_PC++, displacement);
+	++m_PC;
+	uint8 byte;
+	Read(m_IY + displacement, byte);
+	uint8 sign = (byte & eF_S);
+	uint8 carry = (byte & eF_C);
+	byte = (byte >> 1) | sign;
+	Write(m_IY + displacement, byte);
+	uint8 parity = byte;
 	parity ^= parity >> 4;
 	parity &= 0xF;
 	parity = ((0x6996 >> parity) << 2) & eF_PV;
-	m_F = (loc & (eF_S | eF_X | eF_Y)) | ((loc == 0) ? eF_Z : 0) | parity | carry;
+	m_F = (byte & (eF_S | eF_X | eF_Y)) | ((byte == 0) ? eF_Z : 0) | parity | carry;
 	return 23;
 }
 
@@ -7724,7 +7813,10 @@ uint32 CZ80::ImplementSRLr(void)
 	//								2						8	(4,4)						2.00	
 	//
 	IncrementR(2);
-	uint8& reg = REGISTER_8BIT(m_pMemory[(++m_PC)++]);
+	++m_PC;
+	uint8 opcode;
+	Read(m_PC++, opcode);
+	uint8& reg = REGISTER_8BIT(opcode);
 	uint8 carry = (reg & eF_C);
 	reg = (reg >> 1);
 	uint8 parity = reg;
@@ -7754,14 +7846,16 @@ uint32 CZ80::ImplementSRL_HL_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	uint8& loc = m_pMemory[m_HL];
-	uint8 carry = (loc & eF_C);
-	loc = (loc >> 1);
-	uint8 parity = loc;
+	uint8 byte;
+	Read(m_HL, byte);
+	uint8 carry = (byte & eF_C);
+	byte = (byte >> 1);
+	Write(m_HL, byte);
+	uint8 parity = byte;
 	parity ^= parity >> 4;
 	parity &= 0xF;
 	parity = ((0x6996 >> parity) << 2) & eF_PV;
-	m_F = (loc & (eF_S | eF_X | eF_Y)) | ((loc == 0) ? eF_Z : 0) | parity | carry;
+	m_F = (byte & (eF_S | eF_X | eF_Y)) | ((byte == 0) ? eF_Z : 0) | parity | carry;
 	return 15;
 }
 
@@ -7789,15 +7883,19 @@ uint32 CZ80::ImplementSRL_IXd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	uint8& loc = m_pMemory[m_IX + static_cast<int16>(m_pMemory[m_PC])];
-	++++m_PC;
-	uint8 carry = (loc & eF_C);
-	loc = (loc >> 1);
-	uint8 parity = loc;
+	int8 displacement;
+	Read(m_PC++, displacement);
+	++m_PC;
+	uint8 byte;
+	Read(m_IX + displacement, byte);
+	uint8 carry = (byte & eF_C);
+	byte = (byte >> 1);
+	Write(m_IX + displacement, byte);
+	uint8 parity = byte;
 	parity ^= parity >> 4;
 	parity &= 0xF;
 	parity = ((0x6996 >> parity) << 2) & eF_PV;
-	m_F = (loc & (eF_S | eF_X | eF_Y)) | ((loc == 0) ? eF_Z : 0) | parity | carry;
+	m_F = (byte & (eF_S | eF_X | eF_Y)) | ((byte == 0) ? eF_Z : 0) | parity | carry;
 	return 23;
 }
 
@@ -7824,15 +7922,19 @@ uint32 CZ80::ImplementSRL_IYd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	uint8& loc = m_pMemory[m_IY + static_cast<int16>(m_pMemory[m_PC])];
-	++++m_PC;
-	uint8 carry = (loc & eF_C);
-	loc = (loc >> 1);
-	uint8 parity = loc;
+	int8 displacement;
+	Read(m_PC++, displacement);
+	++m_PC;
+	uint8 byte;
+	Read(m_IY + displacement, byte);
+	uint8 carry = (byte & eF_C);
+	byte = (byte >> 1);
+	Write(m_IY + displacement, byte);
+	uint8 parity = byte;
 	parity ^= parity >> 4;
 	parity &= 0xF;
 	parity = ((0x6996 >> parity) << 2) & eF_PV;
-	m_F = (loc & (eF_S | eF_X | eF_Y)) | ((loc == 0) ? eF_Z : 0) | parity | carry;
+	m_F = (byte & (eF_S | eF_X | eF_Y)) | ((byte == 0) ? eF_Z : 0) | parity | carry;
 	return 23;
 }
 
@@ -7857,9 +7959,12 @@ uint32 CZ80::ImplementRLD(void)
 	//
 	IncrementR(2);
 	++++m_PC;
+	uint8 byte;
+	Read(m_HL, byte);
 	uint8 origA = m_A;
-	m_A = (m_A & 0xF0) | ((m_pMemory[m_HL] & 0xF0) >> 4);
-	m_pMemory[m_HL] = (m_pMemory[m_HL] << 4) | (origA & 0x0F);
+	m_A = (m_A & 0xF0) | ((byte & 0xF0) >> 4);
+	byte = (byte << 4) | (origA & 0x0F);
+	Write(m_HL, byte);
 	uint8 parity = m_A;
 	parity ^= parity >> 4;
 	parity &= 0xF;
@@ -7890,9 +7995,12 @@ uint32 CZ80::ImplementRRD(void)
 	//
 	IncrementR(2);
 	++++m_PC;
+	uint8 byte;
+	Read(m_HL, byte);
 	uint8 origA = m_A;
-	m_A = (m_A & 0xF0) | (m_pMemory[m_HL] & 0x0F);
-	m_pMemory[m_HL] = (m_pMemory[m_HL] >> 4) | (origA & 0x0F);
+	m_A = (m_A & 0xF0) | (byte & 0x0F);
+	byte = (byte >> 4) | (origA & 0x0F);
+	Write(m_HL, byte);
 	uint8 parity = m_A;
 	parity ^= parity >> 4;
 	parity &= 0xF;
@@ -7935,9 +8043,11 @@ uint32 CZ80::ImplementBITbr(void)
 	//								2						8 (4,4)						2.00
 	//
 	IncrementR(2);
-	uint8 mask = 1 << ((m_pMemory[++m_PC] & 0x38) >> 3);
+	uint8 opcode;
+	Read(++m_PC, opcode);
 	++m_PC;
-	uint8& reg = REGISTER_8BIT(m_pMemory[m_PC]);
+	uint8 mask = 1 << ((opcode & 0x38) >> 3);
+	uint8& reg = REGISTER_8BIT(opcode);
 	m_F &= ~eF_Z;
 	m_F |= (reg & mask) ? eF_Z : 0;
 	return 8;
@@ -7961,11 +8071,13 @@ uint32 CZ80::ImplementBITb_HL_(void)
 	//								3						12 (4,4,4)				3.00
 	//
 	IncrementR(2);
-	uint8 mask = 1 << ((m_pMemory[++m_PC] & 0x38) >> 3);
+	uint8 opcode, byte;
+	Read(++m_PC, opcode);
 	++m_PC;
-	uint8& loc = m_pMemory[m_HL];
+	uint8 mask = 1 << ((opcode & 0x38) >> 3);
+	Read(m_HL, byte);
 	m_F &= ~eF_Z;
-	m_F |= (loc & mask) ? eF_Z : 0;
+	m_F |= (byte & mask) ? eF_Z : 0;
 	return 12;
 }
 
@@ -7992,11 +8104,14 @@ uint32 CZ80::ImplementBITb_IXd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	uint8& loc = m_pMemory[m_IX + static_cast<int16>(m_pMemory[m_PC])];
-	uint8 mask = 1 << ((m_pMemory[++m_PC] & 0x38) >> 3);
-	++m_PC;
+	int8 displacement;
+	Read(m_PC++, displacement);
+	uint8 opcode, byte;
+	Read(m_PC++, opcode);
+	uint8 mask = 1 << ((opcode & 0x38) >> 3);
+	Read(m_IX + displacement, byte);
 	m_F &= ~eF_Z;
-	m_F |= (loc & mask) ? eF_Z : 0;
+	m_F |= (byte & mask) ? eF_Z : 0;
 	return 20;
 }
 
@@ -8023,11 +8138,14 @@ uint32 CZ80::ImplementBITb_IYd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	uint8& loc = m_pMemory[m_IY + static_cast<int16>(m_pMemory[m_PC])];
-	uint8 mask = 1 << ((m_pMemory[++m_PC] & 0x38) >> 3);
-	++m_PC;
+	int8 displacement;
+	Read(m_PC++, displacement);
+	uint8 opcode, byte;
+	Read(m_PC++, opcode);
+	uint8 mask = 1 << ((opcode & 0x38) >> 3);
+	Read(m_IY + displacement, byte);
 	m_F &= ~eF_Z;
-	m_F |= (loc & mask) ? eF_Z : 0;
+	m_F |= (byte & mask) ? eF_Z : 0;
 	return 20;
 }
 
@@ -8058,9 +8176,11 @@ uint32 CZ80::ImplementSETbr(void)
 	//								2						8 (4,4)						2.00
 	//
 	IncrementR(2);
-	uint8 mask = 1 << ((m_pMemory[++m_PC] & 0x38) >> 3);
+	uint8 opcode;
+	Read(++m_PC, opcode);
 	++m_PC;
-	uint8& reg = REGISTER_8BIT(m_pMemory[m_PC]);
+	uint8 mask = 1 << ((opcode & 0x38) >> 3);
+	uint8& reg = REGISTER_8BIT(opcode);
 	reg |= mask;
 	return 8;
 }
@@ -8083,10 +8203,14 @@ uint32 CZ80::ImplementSETb_HL_(void)
 	//								3						12 (4,4,4)				3.00
 	//
 	IncrementR(2);
-	uint8 mask = 1 << ((m_pMemory[++m_PC] & 0x38) >> 3);
+	uint8 opcode;
+	Read(++m_PC, opcode);
 	++m_PC;
-	uint8& loc = m_pMemory[m_HL];
-	loc |= mask;
+	uint8 mask = 1 << ((opcode & 0x38) >> 3);
+	uint8 byte;
+	Read(m_HL, byte);
+	byte |= mask;
+	Write(m_HL, byte);
 	return 12;
 }
 
@@ -8113,10 +8237,15 @@ uint32 CZ80::ImplementSETb_IXd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	uint8& loc = m_pMemory[m_IX + static_cast<int16>(m_pMemory[m_PC])];
-	uint8 mask = 1 << ((m_pMemory[++m_PC] & 0x38) >> 3);
-	++m_PC;
-	loc |= mask;
+	int8 displacement;
+	Read(m_PC++, displacement);
+	uint8 opcode;
+	Read(m_PC++, opcode);
+	uint8 mask = 1 << ((opcode & 0x38) >> 3);
+	uint8 byte;
+	Read(m_IX + displacement, byte);
+	byte |= mask;
+	Write(m_IX + displacement, byte);
 	return 20;
 }
 
@@ -8143,10 +8272,15 @@ uint32 CZ80::ImplementSETb_IYd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	uint8& loc = m_pMemory[m_IY + static_cast<int16>(m_pMemory[m_PC])];
-	uint8 mask = 1 << ((m_pMemory[++m_PC] & 0x38) >> 3);
-	++m_PC;
-	loc |= mask;
+	int8 displacement;
+	Read(m_PC++, displacement);
+	uint8 opcode;
+	Read(m_PC++, opcode);
+	uint8 mask = 1 << ((opcode & 0x38) >> 3);
+	uint8 byte;
+	Read(m_IY + displacement, byte);
+	byte |= mask;
+	Write(m_IY + displacement, byte);
 	return 20;
 }
 
@@ -8177,9 +8311,11 @@ uint32 CZ80::ImplementRESbr(void)
 	//								2						8 (4,4)						2.00
 	//
 	IncrementR(2);
-	uint8 mask = 1 << ((m_pMemory[++m_PC] & 0x38) >> 3);
+	uint8 opcode;
+	Read(++m_PC, opcode);
 	++m_PC;
-	uint8& reg = REGISTER_8BIT(m_pMemory[m_PC]);
+	uint8 mask = 1 << ((opcode & 0x38) >> 3);
+	uint8& reg = REGISTER_8BIT(opcode);
 	reg &= ~mask;
 	return 8;
 }
@@ -8202,10 +8338,13 @@ uint32 CZ80::ImplementRESb_HL_(void)
 	//								3						12 (4,4,4)				3.00
 	//
 	IncrementR(2);
-	uint8 mask = 1 << ((m_pMemory[++m_PC] & 0x38) >> 3);
+	uint8 opcode, byte;
+	Read(++m_PC, opcode);
 	++m_PC;
-	uint8& loc = m_pMemory[m_HL];
-	loc &= ~mask;
+	uint8 mask = 1 << ((opcode & 0x38) >> 3);
+	Read(m_HL, byte);
+	byte &= ~mask;
+	Write(m_HL, byte);
 	return 12;
 }
 
@@ -8232,10 +8371,15 @@ uint32 CZ80::ImplementRESb_IXd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	uint8& loc = m_pMemory[m_IX + static_cast<int16>(m_pMemory[m_PC])];
-	uint8 mask = 1 << ((m_pMemory[++m_PC] & 0x38) >> 3);
-	++m_PC;
-	loc &= ~mask;
+	int8 displacement;
+	Read(m_PC++, displacement);
+	uint8 opcode;
+	Read(m_PC++, opcode);
+	uint8 mask = 1 << ((opcode & 0x38) >> 3);
+	uint8 byte;
+	Read(m_IX + displacement, byte);
+	byte &= ~mask;
+	Write(m_IX + displacement, byte);
 	return 20;
 }
 
@@ -8262,10 +8406,15 @@ uint32 CZ80::ImplementRESb_IYd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	uint8& loc = m_pMemory[m_IY + static_cast<int16>(m_pMemory[m_PC])];
-	uint8 mask = 1 << ((m_pMemory[++m_PC] & 0x38) >> 3);
-	++m_PC;
-	loc &= ~mask;
+	int8 displacement;
+	Read(m_PC++, displacement);
+	uint8 opcode;
+	Read(m_PC++, opcode);
+	uint8 mask = 1 << ((opcode & 0x38) >> 3);
+	uint8 byte;
+	Read(m_IY + displacement, byte);
+	byte &= ~mask;
+	Write(m_IY + displacement, byte);
 	return 20;
 }
 
@@ -8295,9 +8444,10 @@ uint32 CZ80::ImplementJPnn(void)
 	//								3						10 (4,3,3)				2.50
 	//
 	IncrementR(1);
+	Read(++m_PC, m_addresslo);
+	Read(++m_PC, m_addresshi);
 	++m_PC;
-	uint16 addr = m_pMemory[m_PC] + (static_cast<int16>(m_pMemory[m_PC + 1]) << 8);
-	m_PC = addr;
+	m_PC = m_address;
 	return 10;
 }
 
@@ -8322,8 +8472,14 @@ uint32 CZ80::ImplementJPccnn(void)
 	//
 	IncrementR(1);
 	uint8 cc = (m_pMemory[m_PC++] & 0x38) >> 3;
-	uint16 addr = m_pMemory[m_PC] + (static_cast<int16>(m_pMemory[m_PC + 1]) << 8);
-	m_PC = (IsConditionTrue(cc)) ? addr : m_PC + 2;
+	uint8 opcode;
+	Read(m_PC++, opcode);
+	Read(m_PC++, m_addresslo);
+	Read(m_PC++, m_addresshi);
+	if (IsConditionTrue((opcode & 0x38) >> 3))
+	{
+		m_PC = m_address;
+	}
 	return 10;
 }
 
@@ -8345,7 +8501,9 @@ uint32 CZ80::ImplementJRe(void)
 	//								3						12 (4,3,5)				3.00
 	//
 	IncrementR(1);
-	m_PC = (m_PC + 2) + static_cast<int8>(m_pMemory[m_PC + 1]);
+	int8 displacement;
+	Read(++m_PC, displacement);
+	m_PC += displacement + 1;
 	return 12;
 }
 
@@ -8370,15 +8528,16 @@ uint32 CZ80::ImplementJRCe(void)
 	//
 	IncrementR(1);
 	uint32 tstates = 0;
-	uint16 addr = (m_PC + 2) + static_cast<int8>(m_pMemory[m_PC + 1]);
+	int8 displacement;
+	Read(++m_PC, displacement);
+	++m_PC;
 	if (m_F & eF_C)
 	{
-		m_PC = addr;
+		m_PC += displacement;
 		tstates += 12;
 	}
 	else
 	{
-		m_PC += 2;
 		tstates += 7;
 	}
 	return tstates;
@@ -8405,15 +8564,16 @@ uint32 CZ80::ImplementJRNCe(void)
 	//
 	IncrementR(1);
 	uint32 tstates = 0;
-	uint16 addr = (m_PC + 2) + static_cast<int8>(m_pMemory[m_PC + 1]);
+	int8 displacement;
+	Read(++m_PC, displacement);
+	++m_PC;
 	if (m_F & eF_C)
 	{
-		m_PC += 2;
 		tstates += 7;
 	}
 	else
 	{
-		m_PC = addr;
+		m_PC += displacement;
 		tstates += 12;
 	}
 	return tstates;
@@ -8440,15 +8600,16 @@ uint32 CZ80::ImplementJRZe(void)
 	//
 	IncrementR(1);
 	uint32 tstates = 0;
-	uint16 addr = (m_PC + 2) + static_cast<int8>(m_pMemory[m_PC + 1]);
+	int8 displacement;
+	Read(++m_PC, displacement);
+	++m_PC;
 	if (m_F & eF_Z)
 	{
-		m_PC = addr;
+		m_PC += displacement;
 		tstates += 12;
 	}
 	else
 	{
-		m_PC += 2;
 		tstates += 7;
 	}
 	return tstates;
@@ -8475,15 +8636,16 @@ uint32 CZ80::ImplementJRNZe(void)
 	//
 	IncrementR(1);
 	uint32 tstates = 0;
-	uint16 addr = (m_PC + 2) + static_cast<int8>(m_pMemory[m_PC + 1]);
+	int8 displacement;
+	Read(++m_PC, displacement);
+	++m_PC;
 	if (m_F & eF_Z)
 	{
-		m_PC += 2;
 		tstates += 7;
 	}
 	else
 	{
-		m_PC = addr;
+		m_PC += displacement;
 		tstates += 12;
 	}
 	return tstates;
@@ -8572,15 +8734,16 @@ uint32 CZ80::ImplementDJNZe(void)
 	//
 	IncrementR(1);
 	uint32 tstates = 0;
-	uint16 addr = (m_PC + 2) + static_cast<int8>(m_pMemory[m_PC + 1]);
+	int8 displacement;
+	Read(++m_PC, displacement);
+	++m_PC;
 	if (--m_BC == 0)
 	{
-		m_PC += 2;
 		tstates += 8;
 	}
 	else
 	{
-		m_PC = addr;
+		m_PC += displacement;
 		tstates += 13;
 	}
 }
@@ -8611,11 +8774,12 @@ uint32 CZ80::ImplementCALLnn(void)
 	//								5						17 (4,3,4,3,3)		4.25
 	//
 	IncrementR(1);
-	uint16 addr = m_pMemory[m_PC + 1] + (static_cast<int16>(m_pMemory[m_PC + 2]) << 8);
-	m_PC += 3;
-	m_pMemory[--m_SP] = m_PCh;
-	m_pMemory[--m_SP] = m_PCl;
-	m_PC = addr;
+	Read(++m_PC, m_addresslo);
+	Read(++m_PC, m_addresshi);
+	++m_PC;
+	Write(--m_SP, m_PCh);
+	Write(--m_SP, m_PCl);
+	m_PC = m_address;
 	return 17;
 }
 
@@ -8640,15 +8804,16 @@ uint32 CZ80::ImplementCALLccnn(void)
 	//								3						10 (4,3,3)				2.50	cc is false
 	//
 	IncrementR(1);
-	uint8 cc = (m_pMemory[m_PC++] & 0x38) >> 3;
-	uint16 addr = m_pMemory[m_PC] + (static_cast<int16>(m_pMemory[m_PC + 1]) << 8);
+	uint8 opcode;
+	Read(m_PC++, opcode);
+	Read(++m_PC, m_addresslo);
+	Read(++m_PC, m_addresshi);
 	uint32 tstates = 0;
-	m_PC += 2;
-	if (IsConditionTrue(cc))
+	if (IsConditionTrue((opcode & 0x38) >> 3))
 	{
-		m_pMemory[--m_SP] = m_PCh;
-		m_pMemory[--m_SP] = m_PCl;
-		m_PC = addr;
+		Write(--m_SP, m_PCh);
+		Write(--m_SP, m_PCl);
+		m_PC = m_address;
 		tstates += 17;
 	}
 	else
@@ -8674,8 +8839,8 @@ uint32 CZ80::ImplementRET(void)
 	//								3						10 (4,3,3)				2.50
 	//
 	IncrementR(1);
-	m_PCl = m_pMemory[m_SP++];
-	m_PCh = m_pMemory[m_SP++];
+	Read(m_SP++, m_PCl);
+	Read(m_SP++, m_PCh);
 	return 10;
 }
 
@@ -8697,11 +8862,12 @@ uint32 CZ80::ImplementRETcc(void)
 	//
 	IncrementR(1);
 	uint32 tstates = 0;
-	uint8 cc = (m_pMemory[m_PC++] & 0x38) >> 3;
-	if (IsConditionTrue(cc))
+	uint8 opcode;
+	Read(++m_PC, opcode);
+	if (IsConditionTrue((opcode & 0x38) >> 3))
 	{
-		m_PCl = m_pMemory[m_SP++];
-		m_PCh = m_pMemory[m_SP++];
+		Read(m_SP++, m_PCl);
+		Read(m_SP++, m_PCh);
 		tstates += 11;
 	}
 	else
@@ -8730,8 +8896,8 @@ uint32 CZ80::ImplementRETI(void)
 	//								4						14 (4,4,3,3)			3.50
 	//
 	IncrementR(2);
-	++++m_PC;
-	// TODO: fix me
+	Read(m_SP++, m_PCl);
+	Read(m_SP++, m_PCh);
 	return 14;
 }
 
@@ -8753,8 +8919,8 @@ uint32 CZ80::ImplementRETN(void)
 	//								4						14 (4,4,3,3)			3.50
 	//
 	IncrementR(2);
-	m_PCl = m_pMemory[m_SP++];
-	m_PCh = m_pMemory[m_SP++];
+	Read(m_SP++, m_PCl);
+	Read(m_SP++, m_PCh);
 	return 14;
 }
 
@@ -8784,11 +8950,12 @@ uint32 CZ80::ImplementRSTp(void)
 	//								3						11 (5,3,3)				2.75
 	//
 	IncrementR(1);
-	uint8 t = (m_pMemory[m_PC++] & 0x38) >> 3;
-	m_pMemory[--m_SP] = m_PCh;
-	m_pMemory[--m_SP] = m_PCl;
+	uint8 opcode;
+	Read(m_PC++, opcode);
+	Write(--m_SP, m_PCh);
+	Write(--m_SP, m_PCl);
 	m_PCh = 0;
-	m_PCl = 8 * t;
+	m_PCl = 8 * ((opcode & 0x38) >> 3);
 	return 11;
 }
 
