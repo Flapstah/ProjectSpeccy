@@ -1152,6 +1152,7 @@ uint32 CZ80::Step(void)
 
 				default:
 					fprintf(stderr, "[Z80] Unhandled opcode CB %02X at address %04X\n", m_pMemory[m_PC + 1], m_PC);
+					m_enableBreakpoints = true;
 					HitBreakpoint("bad opcode");
 					return 0;
 					break;
@@ -1218,6 +1219,10 @@ uint32 CZ80::Step(void)
 
 					case 0x34:
 						return ImplementINC_IXd_();
+						break;
+
+					case 0x35:
+						return ImplementDEC_IXd_();
 						break;
 
 					case 0xE9:
@@ -1349,6 +1354,7 @@ uint32 CZ80::Step(void)
 
 							default:
 								fprintf(stderr, "[Z80] Unhandled opcode DD CB %02X at address %04X\n", m_pMemory[m_PC + 2], m_PC);
+								m_enableBreakpoints = true;
 								HitBreakpoint("bad opcode");
 								return 0;
 								break;
@@ -1356,6 +1362,7 @@ uint32 CZ80::Step(void)
 
 				default:
 					fprintf(stderr, "[Z80] Unhandled opcode DD %02X at address %04X\n", m_pMemory[m_PC + 1], m_PC);
+					m_enableBreakpoints = true;
 					HitBreakpoint("bad opcode");
 					return 0;
 					break;
@@ -1532,6 +1539,7 @@ uint32 CZ80::Step(void)
 
 				default:
 					fprintf(stderr, "[Z80] Unhandled opcode ED %02X at address %04X\n", m_pMemory[m_PC + 1], m_PC);
+					m_enableBreakpoints = true;
 					HitBreakpoint("bad opcode");
 					return 0;
 					break;
@@ -1578,6 +1586,10 @@ uint32 CZ80::Step(void)
 
 					case 0x34:
 						return ImplementINC_IYd_();
+						break;
+
+					case 0x35:
+						return ImplementDEC_IYd_();
 						break;
 
 					case 0xE9:
@@ -1709,6 +1721,7 @@ uint32 CZ80::Step(void)
 
 							default:
 								fprintf(stderr, "[Z80] Unhandled opcode FD CB %02X at address %04X\n", m_pMemory[m_PC + 2], m_PC);
+								m_enableBreakpoints = true;
 								HitBreakpoint("bad opcode");
 								return 0;
 								break;
@@ -1716,6 +1729,7 @@ uint32 CZ80::Step(void)
 
 				default:
 					fprintf(stderr, "[Z80] Unhandled opcode FD %02X at address %04X\n", m_pMemory[m_PC + 1], m_PC);
+					m_enableBreakpoints = true;
 					HitBreakpoint("bad opcode");
 					return 0;
 					break;
@@ -1740,6 +1754,7 @@ uint32 CZ80::Step(void)
 
 			default:
 				fprintf(stderr, "[Z80] Unhandled opcode %02X at address %04X\n", m_pMemory[m_PC], m_PC);
+				m_enableBreakpoints = true;
 				HitBreakpoint("bad opcode");
 				return 0;
 				break;
@@ -2458,6 +2473,7 @@ void CZ80::Decode(uint16& address, char* pMnemonic)
 
 				default:
 					fprintf(stderr, "[Z80] Error decoding unhandled opcode CB %02X at address %04X\n", m_pMemory[address + 1], address);
+					m_enableBreakpoints = true;
 					HitBreakpoint("bad opcode");
 					return;
 					break;
@@ -2520,6 +2536,10 @@ void CZ80::Decode(uint16& address, char* pMnemonic)
 
 					case 0x34:
 						DecodeINC_IXd_(address, pMnemonic);
+						break;
+
+					case 0x35:
+						DecodeDEC_IXd_(address, pMnemonic);
 						break;
 
 					case 0xE9:
@@ -2647,6 +2667,7 @@ void CZ80::Decode(uint16& address, char* pMnemonic)
 
 							default:
 								fprintf(stderr, "[Z80] Error decoding unhandled opcode DD CB %02X at address %04X\n", m_pMemory[address + 2], address);
+								m_enableBreakpoints = true;
 								HitBreakpoint("bad opcode");
 								return;
 								break;
@@ -2654,6 +2675,7 @@ void CZ80::Decode(uint16& address, char* pMnemonic)
 
 				default:
 					fprintf(stderr, "[Z80] Error decoding unhandled opcode DD %02X at address %04X\n", m_pMemory[address + 1], address);
+					m_enableBreakpoints = true;
 					HitBreakpoint("bad opcode");
 					return;
 					break;
@@ -2822,6 +2844,7 @@ void CZ80::Decode(uint16& address, char* pMnemonic)
 
 				default:
 					fprintf(stderr, "[Z80] Error decoding unhandled opcode ED %02X at address %04X\n", m_pMemory[address + 1], address);
+					m_enableBreakpoints = true;
 					HitBreakpoint("bad opcode");
 					return;
 					break;
@@ -2868,6 +2891,10 @@ void CZ80::Decode(uint16& address, char* pMnemonic)
 
 					case 0x34:
 						DecodeINC_IYd_(address, pMnemonic);
+						break;
+
+					case 0x35:
+						DecodeDEC_IYd_(address, pMnemonic);
 						break;
 
 					case 0xE9:
@@ -2995,6 +3022,7 @@ void CZ80::Decode(uint16& address, char* pMnemonic)
 
 							default:
 								fprintf(stderr, "[Z80] Error decoding unhandled opcode FD CB %02X at address %04X\n", m_pMemory[address + 2], address);
+								m_enableBreakpoints = true;
 								HitBreakpoint("bad opcode");
 								return;
 								break;
@@ -3002,6 +3030,7 @@ void CZ80::Decode(uint16& address, char* pMnemonic)
 
 				default:
 					fprintf(stderr, "[Z80] Error decoding unhandled opcode FD %02X at address %04X\n", m_pMemory[address + 1], address);
+					m_enableBreakpoints = true;
 					HitBreakpoint("bad opcode");
 					return;
 					break;
@@ -3026,6 +3055,7 @@ void CZ80::Decode(uint16& address, char* pMnemonic)
 
 			default:
 				fprintf(stderr, "[Z80] Error decoding unhandled opcode %02X at address %04X\n", m_pMemory[address], address);
+				m_enableBreakpoints = true;
 				HitBreakpoint("bad opcode");
 				return;
 				break;

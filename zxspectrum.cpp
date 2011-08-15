@@ -70,7 +70,7 @@ bool CZXSpectrum::Update(void)
 			DisplayHelp();
 		}
 
-		if (CKeyboard::IsKeyPressed('d'))
+		if (CKeyboard::IsKeyPressed('D'))
 		{
 			m_pZ80->SetEnableDebug(!m_pZ80->GetEnableDebug());
 		}
@@ -80,22 +80,22 @@ bool CZXSpectrum::Update(void)
 			m_pZ80->SetEnableUnattendedDebug(!m_pZ80->GetEnableUnattendedDebug());
 		}
 
-		if (CKeyboard::IsKeyPressed('s'))
+		if (CKeyboard::IsKeyPressed('S'))
 		{
 			m_pZ80->SetEnableOutputStatus(!m_pZ80->GetEnableOutputStatus());
 		}
 
-		if (CKeyboard::IsKeyPressed('b'))
+		if (CKeyboard::IsKeyPressed('B'))
 		{
 			m_pZ80->SetEnableBreakpoints(!m_pZ80->GetEnableBreakpoints());
 		}
 
-		if (CKeyboard::IsKeyPressed('f'))
+		if (CKeyboard::IsKeyPressed('F'))
 		{
 			m_pZ80->SetEnableProgramFlowBreakpoints(!m_pZ80->GetEnableProgramFlowBreakpoints());
 		}
 
-		bool updateZ80 = !m_pZ80->GetEnableDebug() || m_pZ80->GetEnableUnattendedDebug() || CKeyboard::IsKeyPressed(GLFW_KEY_F10);
+		bool updateZ80 = !m_pZ80->GetEnableDebug() || m_pZ80->GetEnableUnattendedDebug() || CKeyboard::IsKeyPressed(GLFW_KEY_SPACE);
 
 		if (updateZ80)
 		{
@@ -115,12 +115,12 @@ void CZXSpectrum::DisplayHelp(void) const
 {
 	fprintf(stderr, "[ZX Spectrum]: Help keys:\n");
 	fprintf(stderr, "[ZX Spectrum]:      [F1] Show help\n");
-	fprintf(stderr, "[ZX Spectrum]:      [d] Toggle debug mode\n");
+	fprintf(stderr, "[ZX Spectrum]:      [D] Toggle debug mode\n");
 	fprintf(stderr, "[ZX Spectrum]:      [F5] Toggle unattended debug mode\n");
-	fprintf(stderr, "[ZX Spectrum]:      [s] Toggle status output\n");
-	fprintf(stderr, "[ZX Spectrum]:      [b] Toggle enable break points\n");
-	fprintf(stderr, "[ZX Spectrum]:      [f] Toggle enable program flow break points\n");
-	fprintf(stderr, "[ZX Spectrum]:      [F10] Single step\n");
+	fprintf(stderr, "[ZX Spectrum]:      [S] Toggle status output\n");
+	fprintf(stderr, "[ZX Spectrum]:      [B] Toggle enable break points\n");
+	fprintf(stderr, "[ZX Spectrum]:      [F] Toggle enable program flow break points\n");
+	fprintf(stderr, "[ZX Spectrum]:      [SPACE] Single step\n");
 	fprintf(stderr, "[ZX Spectrum]:      [ESC] Quit\n");
 }
 
