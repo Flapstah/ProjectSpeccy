@@ -5,8 +5,7 @@
 
 //=============================================================================
 // TODO:
-// - need to implement breakpoint logic in HitBreakpoint() to ignore when
-// turned off
+// Flags don't work - CP H in ram test not jumping out
 //=============================================================================
 
 // Helper macros to determine 8 and 16 bit registers from opcodes
@@ -311,16 +310,19 @@ void CZ80::OutputCurrentInstruction(void)
 
 void CZ80::HitBreakpoint(const char* type)
 {
-	fprintf(stderr, "[Z80] Hit %s breakpoint at address %04X\n", type, m_PC);
-	if (GetEnableProgramFlowBreakpoints())
+	if (GetEnableBreakpoints())
 	{
-		m_enableUnattendedDebug = false;
+		fprintf(stderr, "[Z80] Hit %s breakpoint at address %04X\n", type, m_PC);
+		if (GetEnableProgramFlowBreakpoints())
+		{
+			m_enableUnattendedDebug = false;
+		}
+		else
+		{
+			OutputCurrentInstruction();
+		}
+		m_enableDebug = true;
 	}
-	else
-	{
-		OutputCurrentInstruction();
-	}
-	m_enableDebug = true;
 }
 
 //=============================================================================
