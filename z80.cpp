@@ -4638,7 +4638,7 @@ uint32 CZ80::ImplementCPI(void)
 	uint8 flag_calc = ((origA & _HL_ & !result) | (!origA & !_HL_ & result));
 	--m_BC;
 	m_F &= eF_C;
-	m_F |= (result & eF_S) | ((m_A == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((m_BC != 0) ? eF_PV : 0) | (m_A & (eF_X | eF_Y)) | eF_N;
+	m_F |= (result & eF_S) | ((result == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((m_BC != 0) ? eF_PV : 0) | (result & (eF_X | eF_Y)) | eF_N;
 	return 16;
 }
 
@@ -4676,7 +4676,7 @@ uint32 CZ80::ImplementCPIR(void)
 	} while ((--m_BC != 0) && (result != 0) && ((tstates += 5), true));
 	uint8 flag_calc = ((origA & _HL_ & !result) | (!origA & !_HL_ & result));
 	m_F &= eF_C;
-	m_F |= (result & eF_S) | ((m_A == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((m_BC != 0) ? eF_PV : 0) | (m_A & (eF_X | eF_Y)) | eF_N;
+	m_F |= (result & eF_S) | ((result == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((m_BC != 0) ? eF_PV : 0) | (result & (eF_X | eF_Y)) | eF_N;
 	return tstates;
 }
 
@@ -4706,7 +4706,7 @@ uint32 CZ80::ImplementCPD(void)
 	int8 half_result = (origA & 0x0F) - (_HL_ & 0x0F);
 	--m_BC;
 	m_F &= eF_C;
-	m_F |= (result & eF_S) | ((m_A == 0) ? eF_Z : 0) | ((half_result >> 3) & eF_H) | ((m_BC != 0) ? eF_PV : 0) | (m_A & (eF_X | eF_Y)) | eF_N;
+	m_F |= (result & eF_S) | ((result == 0) ? eF_Z : 0) | ((half_result >> 3) & eF_H) | ((m_BC != 0) ? eF_PV : 0) | (result & (eF_X | eF_Y)) | eF_N;
 	return 16;
 }
 
@@ -4745,7 +4745,7 @@ uint32 CZ80::ImplementCPDR(void)
 		tstates += 16;
 	} while ((--m_BC != 0) && (result != 0) && ((tstates += 5), true));
 	m_F &= eF_C;
-	m_F |= (result & eF_S) | ((m_A == 0) ? eF_Z : 0) | ((half_result >> 3) & eF_H) | ((m_BC != 0) ? eF_PV : 0) | (m_A & (eF_X | eF_Y)) | eF_N;
+	m_F |= (result & eF_S) | ((result == 0) ? eF_Z : 0) | ((half_result >> 3) & eF_H) | ((m_BC != 0) ? eF_PV : 0) | (result & (eF_X | eF_Y)) | eF_N;
 	return tstates;
 }
 
@@ -5824,7 +5824,7 @@ uint32 CZ80::ImplementCPr(void)
 	int8 origA = static_cast<int8>(m_A);
 	int8 result = origA - source;
 	uint8 flag_calc = ((origA & source & ~result) | (~origA & ~source & result));
-	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((flag_calc >> 5) & eF_PV) | ((flag_calc >> 7) & eF_C);
+	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((result == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((flag_calc >> 5) & eF_PV) | ((flag_calc >> 7) & eF_C);
 	return 4;
 }
 
@@ -5852,7 +5852,7 @@ uint32 CZ80::ImplementCPn(void)
 	int8 origA = static_cast<int8>(m_A);
 	int8 result = origA - source;
 	uint8 flag_calc = ((origA & source & ~result) | (~origA & ~source & result));
-	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((flag_calc >> 5) & eF_PV) | ((flag_calc >> 7) & eF_C);
+	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((result == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((flag_calc >> 5) & eF_PV) | ((flag_calc >> 7) & eF_C);
 	return 7;
 }
 
@@ -5878,7 +5878,7 @@ uint32 CZ80::ImplementCP_HL_(void)
 	int8 origA = static_cast<int8>(m_A);
 	int8 result = origA - source;
 	uint8 flag_calc = ((origA & source & ~result) | (~origA & ~source & result));
-	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((flag_calc >> 5) & eF_PV) | ((flag_calc >> 7) & eF_C);
+	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((result == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((flag_calc >> 5) & eF_PV) | ((flag_calc >> 7) & eF_C);
 	return 7;
 }
 
@@ -5910,7 +5910,7 @@ uint32 CZ80::ImplementCP_IXd_(void)
 	int8 origA = static_cast<int8>(m_A);
 	int8 result = origA - source;
 	uint8 flag_calc = ((origA & source & ~result) | (~origA & ~source & result));
-	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((flag_calc >> 5) & eF_PV) | ((flag_calc >> 7) & eF_C);
+	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((result == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((flag_calc >> 5) & eF_PV) | ((flag_calc >> 7) & eF_C);
 	return 19;
 }
 
@@ -5942,7 +5942,7 @@ uint32 CZ80::ImplementCP_IYd_(void)
 	int8 origA = static_cast<int8>(m_A);
 	int8 result = origA - source;
 	uint8 flag_calc = ((origA & source & ~result) | (~origA & ~source & result));
-	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((flag_calc >> 5) & eF_PV) | ((flag_calc >> 7) & eF_C);
+	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((result == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((flag_calc >> 5) & eF_PV) | ((flag_calc >> 7) & eF_C);
 	return 19;
 }
 
