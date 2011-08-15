@@ -1,11 +1,13 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "z80.h"
 
 //=============================================================================
 // TODO:
-// Flags don't work - CP H in ram test not jumping out
+// FD CB 01 is not being decoded - not a valid opcode though... CB 01 is so
+// maybe FD is from the previous instruction?  Investigate...
 //=============================================================================
 
 // Helper macros to determine 8 and 16 bit registers from opcodes
@@ -24,7 +26,7 @@
 //	each T State is assumed to be 0.25 microseconds, based on a 4MHz clock.
 //=============================================================================
 
-uint16 g_addressBreakpoint = 0x1219;
+uint16 g_addressBreakpoint = 0x1280;
 uint8 g_opcodeBreakpoint = 0x02;
 
 //=============================================================================
@@ -1152,8 +1154,8 @@ uint32 CZ80::Step(void)
 
 				default:
 					fprintf(stderr, "[Z80] Unhandled opcode CB %02X at address %04X\n", m_pMemory[m_PC + 1], m_PC);
-					m_enableBreakpoints = true;
 					HitBreakpoint("bad opcode");
+					exit(1);
 					return 0;
 					break;
 				};
@@ -1354,16 +1356,16 @@ uint32 CZ80::Step(void)
 
 							default:
 								fprintf(stderr, "[Z80] Unhandled opcode DD CB %02X at address %04X\n", m_pMemory[m_PC + 2], m_PC);
-								m_enableBreakpoints = true;
 								HitBreakpoint("bad opcode");
+								exit(1);
 								return 0;
 								break;
 						};
 
 				default:
 					fprintf(stderr, "[Z80] Unhandled opcode DD %02X at address %04X\n", m_pMemory[m_PC + 1], m_PC);
-					m_enableBreakpoints = true;
 					HitBreakpoint("bad opcode");
+					exit(1);
 					return 0;
 					break;
 				};
@@ -1539,8 +1541,8 @@ uint32 CZ80::Step(void)
 
 				default:
 					fprintf(stderr, "[Z80] Unhandled opcode ED %02X at address %04X\n", m_pMemory[m_PC + 1], m_PC);
-					m_enableBreakpoints = true;
 					HitBreakpoint("bad opcode");
+					exit(1);
 					return 0;
 					break;
 				};
@@ -1721,16 +1723,16 @@ uint32 CZ80::Step(void)
 
 							default:
 								fprintf(stderr, "[Z80] Unhandled opcode FD CB %02X at address %04X\n", m_pMemory[m_PC + 2], m_PC);
-								m_enableBreakpoints = true;
 								HitBreakpoint("bad opcode");
+								exit(1);
 								return 0;
 								break;
 						};
 
 				default:
 					fprintf(stderr, "[Z80] Unhandled opcode FD %02X at address %04X\n", m_pMemory[m_PC + 1], m_PC);
-					m_enableBreakpoints = true;
 					HitBreakpoint("bad opcode");
+					exit(1);
 					return 0;
 					break;
 				};
@@ -1754,8 +1756,8 @@ uint32 CZ80::Step(void)
 
 			default:
 				fprintf(stderr, "[Z80] Unhandled opcode %02X at address %04X\n", m_pMemory[m_PC], m_PC);
-				m_enableBreakpoints = true;
 				HitBreakpoint("bad opcode");
+				exit(1);
 				return 0;
 				break;
 		}
@@ -2473,8 +2475,8 @@ void CZ80::Decode(uint16& address, char* pMnemonic)
 
 				default:
 					fprintf(stderr, "[Z80] Error decoding unhandled opcode CB %02X at address %04X\n", m_pMemory[address + 1], address);
-					m_enableBreakpoints = true;
 					HitBreakpoint("bad opcode");
+					exit(1);
 					return;
 					break;
 				};
@@ -2667,16 +2669,16 @@ void CZ80::Decode(uint16& address, char* pMnemonic)
 
 							default:
 								fprintf(stderr, "[Z80] Error decoding unhandled opcode DD CB %02X at address %04X\n", m_pMemory[address + 2], address);
-								m_enableBreakpoints = true;
 								HitBreakpoint("bad opcode");
+								exit(1);
 								return;
 								break;
 						};
 
 				default:
 					fprintf(stderr, "[Z80] Error decoding unhandled opcode DD %02X at address %04X\n", m_pMemory[address + 1], address);
-					m_enableBreakpoints = true;
 					HitBreakpoint("bad opcode");
+					exit(1);
 					return;
 					break;
 				};
@@ -2844,8 +2846,8 @@ void CZ80::Decode(uint16& address, char* pMnemonic)
 
 				default:
 					fprintf(stderr, "[Z80] Error decoding unhandled opcode ED %02X at address %04X\n", m_pMemory[address + 1], address);
-					m_enableBreakpoints = true;
 					HitBreakpoint("bad opcode");
+					exit(1);
 					return;
 					break;
 				};
@@ -3022,16 +3024,16 @@ void CZ80::Decode(uint16& address, char* pMnemonic)
 
 							default:
 								fprintf(stderr, "[Z80] Error decoding unhandled opcode FD CB %02X at address %04X\n", m_pMemory[address + 2], address);
-								m_enableBreakpoints = true;
 								HitBreakpoint("bad opcode");
+								exit(1);
 								return;
 								break;
 						};
 
 				default:
 					fprintf(stderr, "[Z80] Error decoding unhandled opcode FD %02X at address %04X\n", m_pMemory[address + 1], address);
-					m_enableBreakpoints = true;
 					HitBreakpoint("bad opcode");
+					exit(1);
 					return;
 					break;
 				};
@@ -3055,8 +3057,8 @@ void CZ80::Decode(uint16& address, char* pMnemonic)
 
 			default:
 				fprintf(stderr, "[Z80] Error decoding unhandled opcode %02X at address %04X\n", m_pMemory[address], address);
-				m_enableBreakpoints = true;
 				HitBreakpoint("bad opcode");
+				exit(1);
 				return;
 				break;
 		}
@@ -6057,7 +6059,7 @@ uint32 CZ80::ImplementINC_IXd_(void)
 	int8 byte;
 	Read(m_IX + displacement, byte);
 	int8 orig = byte++;
-	Write(m_HL, byte);
+	Write(m_IX + displacement, byte);
 	m_F = (byte & (eF_S | eF_X | eF_Y)) | ((byte == 0) ? eF_Z : 0) | ((byte ^ orig) & eF_H) | ((byte == 0x7F) & eF_PV);
 	return 23;
 }
@@ -6088,7 +6090,7 @@ uint32 CZ80::ImplementINC_IYd_(void)
 	int8 byte;
 	Read(m_IY + displacement, byte);
 	int8 orig = byte++;
-	Write(m_HL, byte);
+	Write(m_IY + displacement, byte);
 	m_F = (byte & (eF_S | eF_X | eF_Y)) | ((byte == 0) ? eF_Z : 0) | ((byte ^ orig) & eF_H) | ((byte == 0x7F) & eF_PV);
 	return 23;
 }
@@ -6177,7 +6179,7 @@ uint32 CZ80::ImplementDEC_IXd_(void)
 	int8 byte;
 	Read(m_IX + displacement, byte);
 	int8 orig = byte--;
-	Write(m_HL, byte);
+	Write(m_IX + displacement, byte);
 	m_F = (byte & (eF_S | eF_X | eF_Y)) | ((byte == 0) ? eF_Z : 0) | ((byte ^ orig) & eF_H) | ((byte == 0x7F) & eF_PV);
 	return 23;
 }
@@ -6208,7 +6210,7 @@ uint32 CZ80::ImplementDEC_IYd_(void)
 	int8 byte;
 	Read(m_IY + displacement, byte);
 	int8 orig = byte--;
-	Write(m_HL, byte);
+	Write(m_IY + displacement, byte);
 	m_F = (byte & (eF_S | eF_X | eF_Y)) | ((byte == 0) ? eF_Z : 0) | ((byte ^ orig) & eF_H) | ((byte == 0x7F) & eF_PV);
 	return 23;
 }
@@ -10485,7 +10487,7 @@ void CZ80::DecodeBITbr(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeBITb_IXd_(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "BIT %d,(IX+%02X)", m_pMemory[address + 2], (m_pMemory[address + 3] >> 3) & 0x07);
+	sprintf(pMnemonic, "BIT %d,(IX+%02X)", (m_pMemory[address + 3] >> 3) & 0x07, m_pMemory[address + 2]);
 	address += 4;
 }
 
@@ -10493,7 +10495,7 @@ void CZ80::DecodeBITb_IXd_(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeBITb_IYd_(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "BIT %d,(IY+%02X)", m_pMemory[address + 2], (m_pMemory[address + 3] >> 3) & 0x07);
+	sprintf(pMnemonic, "BIT %d,(IY+%02X)", (m_pMemory[address + 3] >> 3) & 0x07, m_pMemory[address + 2]);
 	address += 4;
 }
 
@@ -10509,7 +10511,7 @@ void CZ80::DecodeSETbr(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeSETb_IXd_(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "SET %d,(IX+%02X)", m_pMemory[address + 2], (m_pMemory[address + 3] >> 3) & 0x07);
+	sprintf(pMnemonic, "SET %d,(IX+%02X)", (m_pMemory[address + 3] >> 3) & 0x07, m_pMemory[address + 2]);
 	address += 4;
 }
 
@@ -10517,7 +10519,7 @@ void CZ80::DecodeSETb_IXd_(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeSETb_IYd_(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "SET %d,(IY+%02X)", m_pMemory[address + 2], (m_pMemory[address + 3] >> 3) & 0x07);
+	sprintf(pMnemonic, "SET %d,(IY+%02X)", (m_pMemory[address + 3] >> 3) & 0x07, m_pMemory[address + 2]);
 	address += 4;
 }
 
@@ -10533,7 +10535,7 @@ void CZ80::DecodeRESbr(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeRESb_IXd_(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "RES %d,(IX+%02X)", m_pMemory[address + 2], (m_pMemory[address + 3] >> 3) & 0x07);
+	sprintf(pMnemonic, "RES %d,(IX+%02X)", (m_pMemory[address + 3] >> 3) & 0x07, m_pMemory[address + 2]);
 	address += 4;
 }
 
@@ -10541,7 +10543,7 @@ void CZ80::DecodeRESb_IXd_(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeRESb_IYd_(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "RES %d,(IY+%02X)", m_pMemory[address + 2], (m_pMemory[address + 3] >> 3) & 0x07);
+	sprintf(pMnemonic, "RES %d,(IY+%02X)", (m_pMemory[address + 3] >> 3) & 0x07, m_pMemory[address + 2]);
 	address += 4;
 }
 
