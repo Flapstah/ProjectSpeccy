@@ -24,7 +24,7 @@
 //	each T State is assumed to be 0.25 microseconds, based on a 4MHz clock.
 //=============================================================================
 
-uint16 g_addressBreakpoint = 0;
+uint16 g_addressBreakpoint = 0x1219;
 uint8 g_opcodeBreakpoint = 0x02;
 
 //=============================================================================
@@ -313,13 +313,10 @@ void CZ80::HitBreakpoint(const char* type)
 	if (GetEnableBreakpoints())
 	{
 		fprintf(stderr, "[Z80] Hit %s breakpoint at address %04X\n", type, m_PC);
+		OutputCurrentInstruction();
 		if (GetEnableProgramFlowBreakpoints())
 		{
 			m_enableUnattendedDebug = false;
-		}
-		else
-		{
-			OutputCurrentInstruction();
 		}
 		m_enableDebug = true;
 	}
@@ -6525,10 +6522,11 @@ uint32 CZ80::ImplementADDHLdd(void)
 	Read(m_PC++, opcode);
 	uint16 source = REGISTER_16BIT(opcode >> 4);
 	uint16 origHL = m_HL;
-	m_HL += source;
-	uint16 flag_calc = ((origHL & source & ~m_HL) | (~origHL & ~source & m_HL));
+	uint32 result = origHL + source;
+	uint16 resultH = (source & 0x0fff) + (origHL & 0x0fff);
+	m_HL = result & 0xffff;
 	m_F &= (eF_S | eF_Z | eF_PV);
-	m_F |= (((flag_calc & 0x8000) >> 15) & eF_C) | (((flag_calc & 0x0800) >> 7) & eF_H);
+	m_F |= (((result & 0x10000) >> 16) & eF_C) | (((resultH & 0x1000) >> 8) & eF_H);
 	return 11;
 }
 
@@ -6561,9 +6559,11 @@ uint32 CZ80::ImplementADCHLdd(void)
 	++m_PC;
 	uint16 source = REGISTER_16BIT(opcode >> 4) + (m_F & eF_C);
 	uint16 origHL = m_HL;
-	m_HL += source;
-	uint16 flag_calc = ((origHL & source & ~m_HL) | (~origHL & ~source & m_HL));
-	m_F = ((m_HL >> 8) & eF_S) | ((m_HL == 0) ? eF_Z : 0) | (((flag_calc & 0x8000) >> 15) & eF_C) | (((flag_calc & 0x0800) >> 7) & eF_H);
+	uint32 result = origHL + source;
+	uint16 resultH = (source & 0x0fff) + (origHL & 0x0fff);
+	m_HL = result & 0xffff;
+	// TODO: overflow flag
+	m_F = ((m_HL >> 8) & eF_S) | ((m_HL == 0) ? eF_Z : 0) | (((result & 0x10000) >> 16) & eF_C) | (((resultH & 0x1000) >> 8) & eF_H);
 	return 15;
 }
 
@@ -6596,9 +6596,11 @@ uint32 CZ80::ImplementSBCHLdd(void)
 	++m_PC;
 	uint16 source = REGISTER_16BIT(opcode >> 4) - (m_F & eF_C);
 	uint16 origHL = m_HL;
-	m_HL -= source;
-	uint16 flag_calc = ((origHL & source & ~m_HL) | (~origHL & ~source & m_HL));
-	m_F = ((m_HL >> 8) & eF_S) | ((m_HL == 0) ? eF_Z : 0) | eF_N | (((flag_calc & 0x8000) >> 15) & eF_C) | (((flag_calc & 0x0800) >> 7) & eF_H);
+	uint32 result = origHL - source;
+	uint16 resultH = (source & 0x0fff) - (origHL & 0x0fff);
+	m_HL = result & 0xffff;
+	// TODO: overflow flag
+	m_F = ((m_HL >> 8) & eF_S) | ((m_HL == 0) ? eF_Z : 0) | eF_N | (((result & 0x10000) >> 16) & eF_C) | (((resultH & 0x1000) >> 8) & eF_H);
 	return 15;
 }
 
@@ -6607,7 +6609,7 @@ uint32 CZ80::ImplementSBCHLdd(void)
 uint32 CZ80::ImplementADDIXdd(void)
 {
 	//
-	// Operation:	HL <- IX+dd
+	// Operation:	IX <- IX+dd
 	// Op Code:		ADD
 	// Operands:	IX, dd
 	//						+-+-+-+-+-+-+-+-+
@@ -6631,11 +6633,12 @@ uint32 CZ80::ImplementADDIXdd(void)
 	++m_PC;
 	opcode >>= 4;
 	uint16 source = (opcode == 2) ? m_IX : REGISTER_16BIT(opcode);
-	uint16 origHL = m_HL;
-	m_HL += source;
-	uint16 flag_calc = ((origHL & source & ~m_HL) | (~origHL & ~source & m_HL));
+	uint16 origIX = m_IX;
+	uint32 result = origIX + source;
+	uint16 resultH = (source & 0x0fff) + (origIX & 0x0fff);
+	m_IX = result & 0xffff;
 	m_F &= (eF_S | eF_Z | eF_PV);
-	m_F |= (((flag_calc & 0x8000) >> 15) & eF_C) | (((flag_calc & 0x0800) >> 7) & eF_H);
+	m_F |= (((result & 0x10000) >> 16) & eF_C) | (((resultH & 0x1000) >> 8) & eF_H);
 	return 15;
 }
 
@@ -6668,11 +6671,12 @@ uint32 CZ80::ImplementADDIYdd(void)
 	++m_PC;
 	opcode >>= 4;
 	uint16 source = (opcode == 2) ? m_IY : REGISTER_16BIT(opcode);
-	uint16 origHL = m_HL;
-	m_HL += source;
-	uint16 flag_calc = ((origHL & source & ~m_HL) | (~origHL & ~source & m_HL));
+	uint16 origIY = m_IY;
+	uint32 result = origIY + source;
+	uint16 resultH = (source & 0x0fff) + (origIY & 0x0fff);
+	m_IY = result & 0xffff;
 	m_F &= (eF_S | eF_Z | eF_PV);
-	m_F |= (((flag_calc & 0x8000) >> 15) & eF_C) | (((flag_calc & 0x0800) >> 7) & eF_H);
+	m_F |= (((result & 0x10000) >> 16) & eF_C) | (((resultH & 0x1000) >> 8) & eF_H);
 	return 15;
 }
 
@@ -9974,7 +9978,7 @@ void CZ80::DecodeCP_IYd_(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeINCr(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "INC %s", Get8BitRegisterString(m_pMemory[address++]));
+	sprintf(pMnemonic, "INC %s", Get8BitRegisterString(m_pMemory[address++] >> 3));
 }
 
 //=============================================================================
@@ -9997,7 +10001,7 @@ void CZ80::DecodeINC_IYd_(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeDECr(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "DEC %s", Get8BitRegisterString(m_pMemory[address++]));
+	sprintf(pMnemonic, "DEC %s", Get8BitRegisterString(m_pMemory[address++] >> 3));
 }
 
 //=============================================================================
@@ -10541,7 +10545,7 @@ void CZ80::DecodeJPccnn(uint16& address, char* pMnemonic)
 void CZ80::DecodeJRe(uint16& address, char* pMnemonic)
 {
 	address += 2;
-	sprintf(pMnemonic, "JR %04X", address + static_cast<int8>(m_pMemory[address + 1]));
+	sprintf(pMnemonic, "JR %04X", address + static_cast<int8>(m_pMemory[address - 1]));
 }
 
 //=============================================================================
@@ -10549,7 +10553,7 @@ void CZ80::DecodeJRe(uint16& address, char* pMnemonic)
 void CZ80::DecodeJRCe(uint16& address, char* pMnemonic)
 {
 	address += 2;
-	sprintf(pMnemonic, "JR C,%04X", address + static_cast<int8>(m_pMemory[address + 1]));
+	sprintf(pMnemonic, "JR C,%04X", address + static_cast<int8>(m_pMemory[address - 1]));
 }
 
 //=============================================================================
@@ -10557,7 +10561,7 @@ void CZ80::DecodeJRCe(uint16& address, char* pMnemonic)
 void CZ80::DecodeJRNCe(uint16& address, char* pMnemonic)
 {
 	address += 2;
-	sprintf(pMnemonic, "JR Z,%04X", address + static_cast<int8>(m_pMemory[address + 1]));
+	sprintf(pMnemonic, "JR NC,%04X", address + static_cast<int8>(m_pMemory[address - 1]));
 }
 
 //=============================================================================
@@ -10565,7 +10569,7 @@ void CZ80::DecodeJRNCe(uint16& address, char* pMnemonic)
 void CZ80::DecodeJRZe(uint16& address, char* pMnemonic)
 {
 	address += 2;
-	sprintf(pMnemonic, "JR Z,%04X", address + static_cast<int8>(m_pMemory[address + 1]));
+	sprintf(pMnemonic, "JR Z,%04X", address + static_cast<int8>(m_pMemory[address - 1]));
 }
 
 //=============================================================================
@@ -10573,7 +10577,7 @@ void CZ80::DecodeJRZe(uint16& address, char* pMnemonic)
 void CZ80::DecodeJRNZe(uint16& address, char* pMnemonic)
 {
 	address += 2;
-	sprintf(pMnemonic, "JR NZ,%04X", address + static_cast<int8>(m_pMemory[address + 1]));
+	sprintf(pMnemonic, "JR NZ,%04X", address + static_cast<int8>(m_pMemory[address - 1]));
 }
 
 //=============================================================================
@@ -10596,7 +10600,7 @@ void CZ80::DecodeJP_IX_(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeJP_IY_(uint16& address, char* pMnemonic)
 {
-	sprintf(pMnemonic, "JP (IX)");
+	sprintf(pMnemonic, "JP (IY)");
 	address += 2;
 }
 
@@ -10605,7 +10609,7 @@ void CZ80::DecodeJP_IY_(uint16& address, char* pMnemonic)
 void CZ80::DecodeDJNZe(uint16& address, char* pMnemonic)
 {
 	address += 2;
-	sprintf(pMnemonic, "DJNZ %04X", address + static_cast<int8>(m_pMemory[address + 1]));
+	sprintf(pMnemonic, "DJNZ %04X", address + static_cast<int8>(m_pMemory[address - 1]));
 }
 
 //=============================================================================
