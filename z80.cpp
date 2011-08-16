@@ -25,7 +25,7 @@
 //	each T State is assumed to be 0.25 microseconds, based on a 4MHz clock.
 //=============================================================================
 
-uint16 g_addressBreakpoint = 0x121C;
+uint16 g_addressBreakpoint = 0x0C0A;
 
 //=============================================================================
 
@@ -270,7 +270,7 @@ void CZ80::OutputStatus(void)
 	fprintf(stdout, "[Z80]        DE'=%04X DE=%04X D=%02X E=%02X\n", m_DEalt, m_DE, m_D, m_E);
 	fprintf(stdout, "[Z80]        HL'=%04X HL=%04X H=%02X L=%02X IX=%04X IY=%04X\n", m_HLalt, m_HL, m_H, m_L, m_IX, m_IY);
 	fprintf(stdout, "[Z80]        I=%02X R=%02X IM=%i IFF1=%i IFF2=%i\n", m_I, m_R, m_State.m_InterruptMode, m_State.m_IFF1, m_State.m_IFF2);
-	fprintf(stdout, "[Z80]        SP=%04X (%02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X)\n", m_SP, m_pMemory[m_SP], m_pMemory[m_SP - 1], m_pMemory[m_SP - 2], m_pMemory[m_SP - 3], m_pMemory[m_SP - 4], m_pMemory[m_SP - 5], m_pMemory[m_SP - 6], m_pMemory[m_SP - 7], m_pMemory[m_SP - 8], m_pMemory[m_SP - 9], m_pMemory[m_SP - 10], m_pMemory[m_SP - 11], m_pMemory[m_SP - 12], m_pMemory[m_SP - 13], m_pMemory[m_SP - 14], m_pMemory[m_SP - 15]);
+	fprintf(stdout, "[Z80]        SP=%04X (%02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X)\n", m_SP, m_pMemory[m_SP], m_pMemory[m_SP + 1], m_pMemory[m_SP + 2], m_pMemory[m_SP + 3], m_pMemory[m_SP + 4], m_pMemory[m_SP + 5], m_pMemory[m_SP + 6], m_pMemory[m_SP + 7], m_pMemory[m_SP + 8], m_pMemory[m_SP + 9], m_pMemory[m_SP + 10], m_pMemory[m_SP + 11], m_pMemory[m_SP + 12], m_pMemory[m_SP + 13], m_pMemory[m_SP + 14], m_pMemory[m_SP + 15]);
 	fprintf(stdout, "[Z80]        PC=%04X (%02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X)\n", m_PC, m_pMemory[m_PC], m_pMemory[m_PC + 1], m_pMemory[m_PC + 2], m_pMemory[m_PC + 3], m_pMemory[m_PC + 4], m_pMemory[m_PC + 5], m_pMemory[m_PC + 6], m_pMemory[m_PC + 7], m_pMemory[m_PC + 8], m_pMemory[m_PC + 9], m_pMemory[m_PC + 10], m_pMemory[m_PC + 11], m_pMemory[m_PC + 12], m_pMemory[m_PC + 13], m_pMemory[m_PC + 14], m_pMemory[m_PC + 15]);
 }
 
@@ -728,8 +728,11 @@ uint32 CZ80::Step(void)
 			case 0xC1: // POP BC
 			case 0xD1: // POP DE
 			case 0xE1: // POP HL
-			case 0xF1: // POP AF
 				return ImplementPOPqq();
+				break;
+
+			case 0xF1: // POP AF
+				return ImplementPOPAF();
 				break;
 
 			case 0xC2: // JP NZ,nn
@@ -785,8 +788,11 @@ uint32 CZ80::Step(void)
 			case 0xC5: // PUSH BC
 			case 0xD5: // PUSH DE
 			case 0xE5: // PUSH HL
-			case 0xF5: // PUSH AF
 				return ImplementPUSHqq();
+				break;
+
+			case 0xF5: // PUSH AF
+				return ImplementPUSHAF();
 				break;
 
 			case 0xC6:
@@ -1228,6 +1234,10 @@ uint32 CZ80::Step(void)
 						return ImplementDEC_IXd_();
 						break;
 
+					case 0x36:
+						return ImplementLD_IXd_n();
+						break;
+
 					case 0xE9:
 						if (GetEnableProgramFlowBreakpoints())
 						{
@@ -1352,7 +1362,7 @@ uint32 CZ80::Step(void)
 							case 0xEE: // SET 5,(IX+d)
 							case 0xF6: // SET 6,(IX+d)
 							case 0xFE: // SET 7,(IX+d)
-								return ImplementRESb_IXd_();
+								return ImplementSETb_IXd_();
 								break;
 
 							default:
@@ -1593,6 +1603,10 @@ uint32 CZ80::Step(void)
 						return ImplementDEC_IYd_();
 						break;
 
+					case 0x36:
+						return ImplementLD_IYd_n();
+						break;
+
 					case 0xE9:
 						if (GetEnableProgramFlowBreakpoints())
 						{
@@ -1717,7 +1731,7 @@ uint32 CZ80::Step(void)
 							case 0xEE: // SET 5,(IY+d)
 							case 0xF6: // SET 6,(IY+d)
 							case 0xFE: // SET 7,(IY+d)
-								return ImplementRESb_IYd_();
+								return ImplementSETb_IYd_();
 								break;
 
 							default:
@@ -2098,8 +2112,11 @@ void CZ80::Decode(uint16& address, char* pMnemonic)
 			case 0xC1: // POP BC
 			case 0xD1: // POP DE
 			case 0xE1: // POP HL
-			case 0xF1: // POP AF
 				DecodePOPqq(address, pMnemonic);
+				break;
+
+			case 0xF1: // POP AF
+				DecodePOPAF(address, pMnemonic);
 				break;
 
 			case 0xC2: // JP NZ,nn
@@ -2143,8 +2160,11 @@ void CZ80::Decode(uint16& address, char* pMnemonic)
 			case 0xC5: // PUSH BC
 			case 0xD5: // PUSH DE
 			case 0xE5: // PUSH HL
-			case 0xF5: // PUSH AF
 				DecodePUSHqq(address, pMnemonic);
+				break;
+
+			case 0xF5: // PUSH AF
+				DecodePUSHAF(address, pMnemonic);
 				break;
 
 			case 0xC6:
@@ -4205,7 +4225,7 @@ uint32 CZ80::ImplementPUSHqq(void)
 	//								BC					00
 	//								DE					01
 	//								HL					10
-	//								AF					11
+	//								AF					11 (see below)
 	//
 	//							M Cycles		T States					MHz E.T.
 	//								3						11 (5,3,3)				2.75
@@ -4215,6 +4235,33 @@ uint32 CZ80::ImplementPUSHqq(void)
 	Read(m_PC++, opcode);
 	Write(--m_SP, REGISTER_16BIT_HI(opcode >> 4));
 	Write(--m_SP, REGISTER_16BIT_LO(opcode >> 4));
+	return 11;
+}
+
+//=============================================================================
+
+uint32 CZ80::ImplementPUSHAF(void)
+{
+	//
+	// Operation:	(SP-2) <- F, (SP-1) <- A
+	// Op Code:		PUSH
+	// Operands:	qq
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|1|0|1|0|1| F5
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//						SP is mapped to 11
+	//						in all other opcodes
+	//						so special case for
+	//						AF is needed here.
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								3						11 (5,3,3)				2.75
+	//
+	IncrementR(1);
+	++m_PC;
+	Write(--m_SP, m_A);
+	Write(--m_SP, m_F);
 	return 11;
 }
 
@@ -4292,6 +4339,33 @@ uint32 CZ80::ImplementPOPqq(void)
 	Read(m_PC++, opcode);
 	Read(m_SP++, REGISTER_16BIT_LO(opcode >> 4));
 	Read(m_SP++, REGISTER_16BIT_HI(opcode >> 4));
+	return 10;
+}
+
+//=============================================================================
+
+uint32 CZ80::ImplementPOPAF(void)
+{
+	//
+	// Operation:	A <- (SP+1), F <- (SP)
+	// Op Code:		POP
+	// Operands:	qq
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|1|0|0|0|1| F1
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//						SP is mapped to 11
+	//						in all other opcodes
+	//						so special case for
+	//						AF is needed here.
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								3						10 (4,3,3)				2.75
+	//
+	IncrementR(1);
+	++m_PC;
+	Read(m_SP++, m_F);
+	Read(m_SP++, m_A);
 	return 10;
 }
 
@@ -4445,8 +4519,8 @@ uint32 CZ80::ImplementEX_SP_HL(void)
 	++m_PC;
 	Read(m_SP, m_addresslo);
 	Read(m_SP + 1, m_addresshi);
-	Write(m_SP++, m_L);
-	Write(m_SP++, m_H);
+	Write(m_SP + 1, m_H);
+	Write(m_SP, m_L);
 	m_HL = m_address;
 	return 19;
 }
@@ -8748,10 +8822,10 @@ uint32 CZ80::ImplementJP_IY_(void)
 uint32 CZ80::ImplementDJNZe(void)
 {
 	//
-	// Operation: if (BC - 1) == 0, continue
-	//						if (BC - 1) != 0, PC <- PC + e
+	// Operation: if (B - 1) == 0, continue
+	//						if (B - 1) != 0, PC <- PC + e
 	// Op Code:		DJNZ
-	// Operands:	BC, e
+	// Operands:	B, e
 	//						+-+-+-+-+-+-+-+-+
 	//						|0|0|0|1|0|0|0|0| 20
 	//						+-+-+-+-+-+-+-+-+
@@ -8759,15 +8833,15 @@ uint32 CZ80::ImplementDJNZe(void)
 	//						+-+-+-+-+-+-+-+-+
 	//
 	//							M Cycles		T States					MHz E.T.
-	//								2						8 (5,3)						2.00		BC != 0
-	//								3						13 (5,3,5)				3.25		BC == 0
+	//								2						8 (5,3)						2.00		B != 0
+	//								3						13 (5,3,5)				3.25		B == 0
 	//
 	IncrementR(1);
 	uint32 tstates = 0;
 	int8 displacement;
 	Read(++m_PC, displacement);
 	++m_PC;
-	if (--m_BC == 0)
+	if (--m_B == 0)
 	{
 		tstates += 8;
 	}
@@ -9588,6 +9662,14 @@ void CZ80::DecodePUSHqq(uint16& address, char* pMnemonic)
 
 //=============================================================================
 
+void CZ80::DecodePUSHAF(uint16& address, char* pMnemonic)
+{
+	sprintf(pMnemonic, "PUSH AF");
+	++address;
+}
+
+//=============================================================================
+
 void CZ80::DecodePUSHIX(uint16& address, char* pMnemonic)
 {
 	sprintf(pMnemonic, "PUSH IX");
@@ -9607,6 +9689,14 @@ void CZ80::DecodePUSHIY(uint16& address, char* pMnemonic)
 void CZ80::DecodePOPqq(uint16& address, char* pMnemonic)
 {
 	sprintf(pMnemonic, "POP %s", Get16BitRegisterString(m_pMemory[address] >> 4));
+	++address;
+}
+
+//=============================================================================
+
+void CZ80::DecodePOPAF(uint16& address, char* pMnemonic)
+{
+	sprintf(pMnemonic, "POP AF");
 	++address;
 }
 

@@ -90,9 +90,11 @@ class CZ80
 		uint32 ImplementLDSPIX(void);
 		uint32 ImplementLDSPIY(void);
 		uint32 ImplementPUSHqq(void);
+		uint32 ImplementPUSHAF(void);
 		uint32 ImplementPUSHIX(void);
 		uint32 ImplementPUSHIY(void);
 		uint32 ImplementPOPqq(void);
+		uint32 ImplementPOPAF(void);
 		uint32 ImplementPOPIX(void);
 		uint32 ImplementPOPIY(void);
 
@@ -345,9 +347,11 @@ class CZ80
 		void DecodeLDSPIX(uint16& address, char* pMnemonic);
 		void DecodeLDSPIY(uint16& address, char* pMnemonic);
 		void DecodePUSHqq(uint16& address, char* pMnemonic);
+		void DecodePUSHAF(uint16& address, char* pMnemonic);
 		void DecodePUSHIX(uint16& address, char* pMnemonic);
 		void DecodePUSHIY(uint16& address, char* pMnemonic);
 		void DecodePOPqq(uint16& address, char* pMnemonic);
+		void DecodePOPAF(uint16& address, char* pMnemonic);
 		void DecodePOPIX(uint16& address, char* pMnemonic);
 		void DecodePOPIY(uint16& address, char* pMnemonic);
 
