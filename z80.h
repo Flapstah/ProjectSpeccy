@@ -29,7 +29,7 @@ class CZ80
 
 	protected:
 		void OutputStatus(void);
-		void OutputCurrentInstruction(void);
+		void OutputInstruction(uint16 address);
 		void HitBreakpoint(const char* type);
 		void HandleIllegalOpcode(void);
 

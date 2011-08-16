@@ -25,7 +25,8 @@
 //	each T State is assumed to be 0.25 microseconds, based on a 4MHz clock.
 //=============================================================================
 
-uint16 g_addressBreakpoint = 0x0C0A;
+uint16 g_addressBreakpoint = 0;
+uint16 g_stackContentsBreakpoint = 0xDC62;
 
 //=============================================================================
 
@@ -135,31 +136,38 @@ float CZ80::SingleStep(void)
 {
 	if (GetEnableDebug() || GetEnableUnattendedDebug())
 	{
-		OutputCurrentInstruction();
-	}
+		OutputInstruction(m_PC);
 
-	uint16 prevPC = m_PC;
-//	fprintf(stderr, "PC = %04X", m_PC);
-	float microseconds_elapsed = static_cast<float>(Step()) * m_reciprocalClockSpeedMHz;
-
-	if (GetEnableDebug() || GetEnableUnattendedDebug())
-	{
 		if (GetEnableOutputStatus())
 		{
 			OutputStatus();
 		}
 	}
 
-	if ((prevPC < 0x386E) && (m_PC >= 0x386E))
-	{
-		fprintf(stderr, "[Z80] PC just jumped from %04X to %04X, an invalid ROM location\n", prevPC, m_PC);
-		HitBreakpoint("invalid ROM location");
-	}
-
 	if (GetEnableBreakpoints() && (m_PC == g_addressBreakpoint))
 	{
 		HitBreakpoint("address");
 	}
+
+	uint16 prevPC = m_PC;
+	float microseconds_elapsed = static_cast<float>(Step()) * m_reciprocalClockSpeedMHz;
+
+	if ((prevPC < 0x386E) && (m_PC >= 0x386E))
+	{
+		fprintf(stderr, "[Z80] PC just jumped from %04X to %04X, an invalid ROM location\n", prevPC, m_PC);
+		OutputInstruction(prevPC);
+		HitBreakpoint("invalid ROM location");
+		exit(EXIT_FAILURE);
+	}
+
+	m_address = g_stackContentsBreakpoint;
+	if (GetEnableBreakpoints() && (m_pMemory[m_SP] == m_addresslo) && (m_pMemory[m_SP + 1] == m_addresshi))
+	{
+		fprintf(stderr, "[Z80] %04X was just placed on the stack at address %04X\n", m_address, prevPC);
+		OutputInstruction(prevPC);
+		HitBreakpoint("stack contents");
+	}
+
 
 	return microseconds_elapsed;
 }
@@ -179,7 +187,7 @@ void CZ80::SetEnableDebug(bool set)
 	fprintf(stderr, "[Z80] Turning %s debug mode\n", (m_enableDebug) ? "on" : "off");
 	if (m_enableDebug)
 	{
-		OutputCurrentInstruction();
+		OutputInstruction(m_PC);
 		if (GetEnableOutputStatus())
 		{
 			OutputStatus();
@@ -264,8 +272,7 @@ void CZ80::SetEnableProgramFlowBreakpoints(bool set)
 void CZ80::OutputStatus(void)
 {
 	fprintf(stdout, "[Z80]        Registers:\n");
-	fprintf(stdout, "[Z80]        AF'=%04X AF=%04X A=%02X F=%02X  C  N  PV X  H  Y  Z  S\n", m_AFalt, m_AF, m_A, m_F);
-	fprintf(stdout, "[Z80]                                    %i  %i  %i  %i  %i  %i  %i  %i\n", (m_F & eF_C), (m_F & eF_N) >> 1, (m_F & eF_PV) >> 2, (m_F & eF_X) >> 3, (m_F & eF_H) >> 4, (m_F & eF_Y) >> 5, (m_F & eF_Z) >> 6, (m_F & eF_S) >> 7);
+	fprintf(stdout, "[Z80]        AF'=%04X AF=%04X A=%02X F=%02X  S:%i Z:%i Y:%i H:%i X:%i PV:%i N:%i C:%i \n", m_AFalt, m_AF, m_A, m_F, (m_F & eF_S) >> 7, (m_F & eF_Z) >> 6, (m_F & eF_Y) >> 5, (m_F & eF_H) >> 4, (m_F & eF_X) >> 3, (m_F & eF_PV) >> 2, (m_F & eF_N) >> 1, (m_F & eF_C));
 	fprintf(stdout, "[Z80]        BC'=%04X BC=%04X B=%02X C=%02X\n", m_BCalt, m_BC, m_B, m_C);
 	fprintf(stdout, "[Z80]        DE'=%04X DE=%04X D=%02X E=%02X\n", m_DEalt, m_DE, m_D, m_E);
 	fprintf(stdout, "[Z80]        HL'=%04X HL=%04X H=%02X L=%02X IX=%04X IY=%04X\n", m_HLalt, m_HL, m_H, m_L, m_IX, m_IY);
@@ -276,28 +283,28 @@ void CZ80::OutputStatus(void)
 
 //=============================================================================
 
-void CZ80::OutputCurrentInstruction(void)
+void CZ80::OutputInstruction(uint16 address)
 {
-	uint16 address = m_PC;
+	uint16 decodeAddress = address;
 	char buffer[64];
-	Decode(address, buffer);
-	fprintf(stdout, "[Z80] %04X : ", m_PC);
-	switch (address - m_PC)
+	Decode(decodeAddress, buffer);
+	fprintf(stdout, "[Z80] %04X : ", address);
+	switch (decodeAddress - address)
 	{
 		case 1:
-			fprintf(stdout, "%02X          : %s\n", m_pMemory[m_PC], buffer);
+			fprintf(stdout, "%02X          : %s\n", m_pMemory[address], buffer);
 			break;
 
 		case 2:
-			fprintf(stdout, "%02X %02X       : %s\n", m_pMemory[m_PC], m_pMemory[m_PC + 1], buffer);
+			fprintf(stdout, "%02X %02X       : %s\n", m_pMemory[address], m_pMemory[address + 1], buffer);
 			break;
 
 		case 3:
-			fprintf(stdout, "%02X %02X %02X    : %s\n", m_pMemory[m_PC], m_pMemory[m_PC + 1], m_pMemory[m_PC + 2], buffer);
+			fprintf(stdout, "%02X %02X %02X    : %s\n", m_pMemory[address], m_pMemory[address + 1], m_pMemory[address + 2], buffer);
 			break;
 
 		case 4:
-			fprintf(stdout, "%02X %02X %02X %02X : %s\n", m_pMemory[m_PC], m_pMemory[m_PC + 1], m_pMemory[m_PC + 2], m_pMemory[m_PC + 3], buffer);
+			fprintf(stdout, "%02X %02X %02X %02X : %s\n", m_pMemory[address], m_pMemory[address + 1], m_pMemory[address + 2], m_pMemory[address + 3], buffer);
 			break;
 	}
 }
@@ -309,7 +316,7 @@ void CZ80::HitBreakpoint(const char* type)
 	if (GetEnableBreakpoints())
 	{
 		fprintf(stderr, "[Z80] Hit %s breakpoint at address %04X\n", type, m_PC);
-		OutputCurrentInstruction();
+		OutputInstruction(m_PC);
 		if (GetEnableProgramFlowBreakpoints())
 		{
 			m_enableUnattendedDebug = false;
@@ -8153,7 +8160,7 @@ uint32 CZ80::ImplementBITbr(void)
 	uint8 mask = 1 << ((opcode & 0x38) >> 3);
 	uint8& reg = REGISTER_8BIT(opcode);
 	m_F &= ~eF_Z;
-	m_F |= (reg & mask) ? eF_Z : 0;
+	m_F |= (reg & mask) ? 0 : eF_Z;
 	return 8;
 }
 
@@ -8181,7 +8188,7 @@ uint32 CZ80::ImplementBITb_HL_(void)
 	uint8 mask = 1 << ((opcode & 0x38) >> 3);
 	Read(m_HL, byte);
 	m_F &= ~eF_Z;
-	m_F |= (byte & mask) ? eF_Z : 0;
+	m_F |= (byte & mask) ? 0 : eF_Z;
 	return 12;
 }
 
@@ -8215,7 +8222,7 @@ uint32 CZ80::ImplementBITb_IXd_(void)
 	uint8 mask = 1 << ((opcode & 0x38) >> 3);
 	Read(m_IX + displacement, byte);
 	m_F &= ~eF_Z;
-	m_F |= (byte & mask) ? eF_Z : 0;
+	m_F |= (byte & mask) ? 0 : eF_Z;
 	return 20;
 }
 
@@ -8249,7 +8256,7 @@ uint32 CZ80::ImplementBITb_IYd_(void)
 	uint8 mask = 1 << ((opcode & 0x38) >> 3);
 	Read(m_IY + displacement, byte);
 	m_F &= ~eF_Z;
-	m_F |= (byte & mask) ? eF_Z : 0;
+	m_F |= (byte & mask) ? 0 : eF_Z;
 	return 20;
 }
 
@@ -8575,7 +8582,6 @@ uint32 CZ80::ImplementJPccnn(void)
 	//								3						10 (4,3,3)				2.50
 	//
 	IncrementR(1);
-	uint8 cc = (m_pMemory[m_PC++] & 0x38) >> 3;
 	uint8 opcode;
 	Read(m_PC++, opcode);
 	Read(m_PC++, m_addresslo);
@@ -8909,9 +8915,10 @@ uint32 CZ80::ImplementCALLccnn(void)
 	//
 	IncrementR(1);
 	uint8 opcode;
-	Read(m_PC++, opcode);
+	Read(m_PC, opcode);
 	Read(++m_PC, m_addresslo);
 	Read(++m_PC, m_addresshi);
+	++m_PC;
 	uint32 tstates = 0;
 	if (IsConditionTrue((opcode & 0x38) >> 3))
 	{
