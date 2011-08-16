@@ -31,6 +31,7 @@ class CZ80
 		void OutputStatus(void);
 		void OutputCurrentInstruction(void);
 		void HitBreakpoint(const char* type);
+		void HandleIllegalOpcode(void);
 
 		uint32 Step(void);
 		void Decode(uint16& address, char* pMnemonic);
