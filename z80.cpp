@@ -6,7 +6,8 @@
 
 //=============================================================================
 // TODO:
-// Seems to get stuck in the ROM startup...
+// Think it's getting stuck printing the copyright message
+// - add debug output to IsConditionTrue to show condition tested and result
 //=============================================================================
 
 // Helper macros to determine 8 and 16 bit registers from opcodes
@@ -25,8 +26,10 @@
 //	each T State is assumed to be 0.25 microseconds, based on a 4MHz clock.
 //=============================================================================
 
-uint16 g_addressBreakpoint = 0;
+uint16 g_addressBreakpoint = 0x1615;//0x0C3B;
+uint16 g_dataBreakpoint = 0;//0x5C3B;
 uint16 g_stackContentsBreakpoint = 0xDC62;
+uint8 g_stackContentsBreakpointNumItems = 64;
 
 //=============================================================================
 
@@ -150,6 +153,7 @@ float CZ80::SingleStep(void)
 	}
 
 	uint16 prevPC = m_PC;
+	uint16 prevSP = m_SP;
 	float microseconds_elapsed = static_cast<float>(Step()) * m_reciprocalClockSpeedMHz;
 
 	if ((prevPC < 0x386E) && (m_PC >= 0x386E))
@@ -160,14 +164,42 @@ float CZ80::SingleStep(void)
 		exit(EXIT_FAILURE);
 	}
 
-	m_address = g_stackContentsBreakpoint;
-	if (GetEnableBreakpoints() && (m_pMemory[m_SP] == m_addresslo) && (m_pMemory[m_SP + 1] == m_addresshi))
+	if ((m_SP >= 0x5C00) && (m_SP <= 0x5CB5))
 	{
-		fprintf(stderr, "[Z80] %04X was just placed on the stack at address %04X\n", m_address, prevPC);
+		fprintf(stderr, "[Z80] SP just jumped into the system variables area (changed from %04X to %04X), at location %04X\n", prevSP, m_SP, prevPC);
 		OutputInstruction(prevPC);
-		HitBreakpoint("stack contents");
+		HitBreakpoint("SP corrupt");
 	}
 
+//	static uint16 origSP = 0;
+//	if ((origSP == 0) && (m_SP != 0))
+//	{
+//		origSP = m_SP;
+//	}
+
+//	m_address = g_stackContentsBreakpoint;
+//	if (GetEnableBreakpoints() && (origSP != 0))
+//	{
+//		uint16 offset;
+//		g_stackContentsBreakpointNumItems = (origSP - m_SP) >> 1;
+//		fprintf(stderr, "[Z80] Checking %d items from SP address %04X\n", g_stackContentsBreakpointNumItems, m_SP);
+//		if (g_stackContentsBreakpointNumItems > 20)
+//		{
+//			OutputInstruction(prevPC);
+//			HitBreakpoint("too many stack items");
+//		}
+//
+//		for (uint16 index = 0; index < g_stackContentsBreakpointNumItems; ++index)
+//		{
+//			offset = index << 1;
+//			if ((m_pMemory[m_SP + offset] == m_addresslo) && (m_pMemory[m_SP + offset + 1] == m_addresshi))
+//			{
+//				fprintf(stderr, "[Z80] %04X is now on the stack (offset %d) at address %04X\n", m_address, offset, prevPC);
+//				OutputInstruction(prevPC);
+//				HitBreakpoint("stack contents");
+//			}
+//		}
+//	}
 
 	return microseconds_elapsed;
 }
@@ -843,6 +875,7 @@ uint32 CZ80::Step(void)
 
 			case 0xD9:
 				return ImplementEXX();
+				break;
 
 			case 0xE9:
 				if (GetEnableProgramFlowBreakpoints())
@@ -2207,6 +2240,7 @@ void CZ80::Decode(uint16& address, char* pMnemonic)
 
 			case 0xD9:
 				DecodeEXX(address, pMnemonic);
+				break;
 
 			case 0xE9:
 				DecodeJP_HL_(address, pMnemonic);
@@ -2567,6 +2601,10 @@ void CZ80::Decode(uint16& address, char* pMnemonic)
 						DecodeDEC_IXd_(address, pMnemonic);
 						break;
 
+					case 0x36:
+						DecodeLD_IXd_n(address, pMnemonic);
+						break;
+
 					case 0xE9:
 						DecodeJP_IX_(address, pMnemonic);
 						break;
@@ -2920,6 +2958,10 @@ void CZ80::Decode(uint16& address, char* pMnemonic)
 						DecodeDEC_IYd_(address, pMnemonic);
 						break;
 
+					case 0x36:
+						DecodeLD_IYd_n(address, pMnemonic);
+						break;
+
 					case 0xE9:
 						DecodeJP_IY_(address, pMnemonic);
 						break;
@@ -3091,6 +3133,12 @@ bool CZ80::Write(uint16 address, uint8 byte)
 
 	if (address >= 0x4000)
 	{
+		if (GetEnableBreakpoints() && (address == g_dataBreakpoint))
+		{
+			fprintf(stderr, "[Z80] writing %02X to %04X\n", byte, address);
+			HitBreakpoint("data");
+		}
+
 		m_pMemory[address] = byte;
 	}
 	else
@@ -3920,7 +3968,8 @@ uint32 CZ80::ImplementLDHL_nn_(void)
 	Read(++m_PC, m_addresslo);
 	Read(++m_PC, m_addresshi);
 	++m_PC;
-	m_HL = m_address;
+	Read(m_address++, m_L);
+	Read(m_address, m_H);
 	return 16;
 }
 
