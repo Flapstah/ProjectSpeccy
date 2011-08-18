@@ -8627,14 +8627,24 @@ uint32 CZ80::ImplementJPccnn(void)
 	//						|n|n|n|n|n|n|n|n|
 	//						+-+-+-+-+-+-+-+-+
 	//
+	//						where ccc is any of:
+	//								NZ					000
+	//								Z						001
+	//								NC					010
+	//								C						011
+	//								PO					100
+	//								PE					101
+	//								P						101
+	//								M						111
+	//
 	//							M Cycles		T States					MHz E.T.
 	//								3						10 (4,3,3)				2.50
 	//
 	IncrementR(1);
 	uint8 opcode;
-	Read(m_PC++, opcode);
-	Read(m_PC++, m_addresslo);
-	Read(m_PC++, m_addresshi);
+	Read(m_PC, opcode);
+	Read(++m_PC, m_addresslo);
+	Read(++m_PC, m_addresshi);
 	if (IsConditionTrue((opcode & 0x38) >> 3))
 	{
 		m_PC = m_address;
@@ -8958,6 +8968,16 @@ uint32 CZ80::ImplementCALLccnn(void)
 	//						|n|n|n|n|n|n|n|n|
 	//						+-+-+-+-+-+-+-+-+
 	//
+	//						where ccc is any of:
+	//								NZ					000
+	//								Z						001
+	//								NC					010
+	//								C						011
+	//								PO					100
+	//								PE					101
+	//								P						101
+	//								M						111
+	//
 	//							M Cycles		T States					MHz E.T.
 	//								5						17 (4,3,4,3,3)		4.25	cc is true
 	//								3						10 (4,3,3)				2.50	cc is false
@@ -9016,6 +9036,16 @@ uint32 CZ80::ImplementRETcc(void)
 	//						|1|1|c|c|c|0|0|0|
 	//						+-+-+-+-+-+-+-+-+
 	//
+	//						where ccc is any of:
+	//								NZ					000
+	//								Z						001
+	//								NC					010
+	//								C						011
+	//								PO					100
+	//								PE					101
+	//								P						101
+	//								M						111
+	//
 	//							M Cycles		T States					MHz E.T.
 	//								3						11 (5,3,3)				2.75	cc is true
 	//								1						5									1.25	cc is false
@@ -9023,7 +9053,7 @@ uint32 CZ80::ImplementRETcc(void)
 	IncrementR(1);
 	uint32 tstates = 0;
 	uint8 opcode;
-	Read(++m_PC, opcode);
+	Read(m_PC++, opcode);
 	if (IsConditionTrue((opcode & 0x38) >> 3))
 	{
 		Read(m_SP++, m_PCl);
