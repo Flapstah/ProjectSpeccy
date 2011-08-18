@@ -6,8 +6,8 @@
 
 //=============================================================================
 // TODO:
-// Think it's getting stuck printing the copyright message
-// - add debug output to IsConditionTrue to show condition tested and result
+// Think it's getting stuck printing the copyright message (thinks printer in
+// use?)
 //=============================================================================
 
 // Helper macros to determine 8 and 16 bit registers from opcodes
@@ -26,8 +26,8 @@
 //	each T State is assumed to be 0.25 microseconds, based on a 4MHz clock.
 //=============================================================================
 
-uint16 g_addressBreakpoint = 0x1615;//0x0C3B;
-uint16 g_dataBreakpoint = 0;//0x5C3B;
+uint16 g_addressBreakpoint = 0x128E;
+uint16 g_dataBreakpoint = 0;//0x5C3B; // flags to set printer in use
 uint16 g_stackContentsBreakpoint = 0xDC62;
 uint8 g_stackContentsBreakpointNumItems = 64;
 
@@ -304,11 +304,13 @@ void CZ80::SetEnableProgramFlowBreakpoints(bool set)
 void CZ80::OutputStatus(void)
 {
 	fprintf(stdout, "[Z80]        Registers:\n");
-	fprintf(stdout, "[Z80]        AF'=%04X AF=%04X A=%02X F=%02X  S:%i Z:%i Y:%i H:%i X:%i PV:%i N:%i C:%i \n", m_AFalt, m_AF, m_A, m_F, (m_F & eF_S) >> 7, (m_F & eF_Z) >> 6, (m_F & eF_Y) >> 5, (m_F & eF_H) >> 4, (m_F & eF_X) >> 3, (m_F & eF_PV) >> 2, (m_F & eF_N) >> 1, (m_F & eF_C));
-	fprintf(stdout, "[Z80]        BC'=%04X BC=%04X B=%02X C=%02X\n", m_BCalt, m_BC, m_B, m_C);
-	fprintf(stdout, "[Z80]        DE'=%04X DE=%04X D=%02X E=%02X\n", m_DEalt, m_DE, m_D, m_E);
-	fprintf(stdout, "[Z80]        HL'=%04X HL=%04X H=%02X L=%02X IX=%04X IY=%04X\n", m_HLalt, m_HL, m_H, m_L, m_IX, m_IY);
-	fprintf(stdout, "[Z80]        I=%02X R=%02X IM=%i IFF1=%i IFF2=%i\n", m_I, m_R, m_State.m_InterruptMode, m_State.m_IFF1, m_State.m_IFF2);
+	fprintf(stdout, "[Z80]        AF'=%04X  AF=%04X  A=%02X  F=%02X  S:%i Z:%i Y:%i H:%i X:%i PV:%i N:%i C:%i \n", m_AFalt, m_AF, m_A, m_F, (m_F & eF_S) >> 7, (m_F & eF_Z) >> 6, (m_F & eF_Y) >> 5, (m_F & eF_H) >> 4, (m_F & eF_X) >> 3, (m_F & eF_PV) >> 2, (m_F & eF_N) >> 1, (m_F & eF_C));
+	fprintf(stdout, "[Z80]        BC'=%04X  BC=%04X  B=%02X  C=%02X  (%02X %02X %02X %02X %02X %02X %02X %02X)\n", m_BCalt, m_BC, m_B, m_C, m_pMemory[m_BC], m_pMemory[m_BC + 1], m_pMemory[m_BC + 2], m_pMemory[m_BC + 3], m_pMemory[m_BC + 4], m_pMemory[m_BC + 5], m_pMemory[m_BC + 6], m_pMemory[m_BC + 7]);
+	fprintf(stdout, "[Z80]        DE'=%04X  DE=%04X  D=%02X  E=%02X  (%02X %02X %02X %02X %02X %02X %02X %02X)\n", m_DEalt, m_DE, m_D, m_E, m_pMemory[m_DE], m_pMemory[m_DE + 1], m_pMemory[m_DE + 2], m_pMemory[m_DE + 3], m_pMemory[m_DE + 4], m_pMemory[m_DE + 5], m_pMemory[m_DE + 6], m_pMemory[m_DE + 7]);
+	fprintf(stdout, "[Z80]        HL'=%04X  HL=%04X  H=%02X  L=%02X  (%02X %02X %02X %02X %02X %02X %02X %02X)\n", m_HLalt, m_HL, m_H, m_L, m_pMemory[m_HL], m_pMemory[m_HL + 1], m_pMemory[m_HL + 2], m_pMemory[m_HL + 3], m_pMemory[m_HL + 4], m_pMemory[m_HL + 5], m_pMemory[m_HL + 6], m_pMemory[m_HL + 7]);
+	fprintf(stdout, "[Z80]        IX=%04X  (%02X %02X %02X %02X %02X %02X %02X *%02X* %02X %02X %02X %02X %02X %02X %02X)\n", m_IX, m_pMemory[m_IX - 7], m_pMemory[m_IX - 6], m_pMemory[m_IX - 5], m_pMemory[m_IX - 4], m_pMemory[m_IX - 3], m_pMemory[m_IX - 2], m_pMemory[m_IX - 1], m_pMemory[m_IX], m_pMemory[m_IX + 1], m_pMemory[m_IX + 2], m_pMemory[m_IX + 3], m_pMemory[m_IX + 4], m_pMemory[m_IX + 5], m_pMemory[m_IX + 6], m_pMemory[m_IX + 7]);
+	fprintf(stdout, "[Z80]        IY=%04X  (%02X %02X %02X %02X %02X %02X %02X *%02X* %02X %02X %02X %02X %02X %02X %02X)\n", m_IY, m_pMemory[m_IY - 7], m_pMemory[m_IY - 6], m_pMemory[m_IY - 5], m_pMemory[m_IY - 4], m_pMemory[m_IY - 3], m_pMemory[m_IY - 2], m_pMemory[m_IY - 1], m_pMemory[m_IY], m_pMemory[m_IY + 1], m_pMemory[m_IY + 2], m_pMemory[m_IY + 3], m_pMemory[m_IY + 4], m_pMemory[m_IY + 5], m_pMemory[m_IY + 6], m_pMemory[m_IY + 7]);
+	fprintf(stdout, "[Z80]        I=%02X  R=%02X  IM=%i  IFF1=%i  IFF2=%i\n", m_I, m_R, m_State.m_InterruptMode, m_State.m_IFF1, m_State.m_IFF2);
 	fprintf(stdout, "[Z80]        SP=%04X (%02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X)\n", m_SP, m_pMemory[m_SP], m_pMemory[m_SP + 1], m_pMemory[m_SP + 2], m_pMemory[m_SP + 3], m_pMemory[m_SP + 4], m_pMemory[m_SP + 5], m_pMemory[m_SP + 6], m_pMemory[m_SP + 7], m_pMemory[m_SP + 8], m_pMemory[m_SP + 9], m_pMemory[m_SP + 10], m_pMemory[m_SP + 11], m_pMemory[m_SP + 12], m_pMemory[m_SP + 13], m_pMemory[m_SP + 14], m_pMemory[m_SP + 15]);
 	fprintf(stdout, "[Z80]        PC=%04X (%02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X)\n", m_PC, m_pMemory[m_PC], m_pMemory[m_PC + 1], m_pMemory[m_PC + 2], m_pMemory[m_PC + 3], m_pMemory[m_PC + 4], m_pMemory[m_PC + 5], m_pMemory[m_PC + 6], m_pMemory[m_PC + 7], m_pMemory[m_PC + 8], m_pMemory[m_PC + 9], m_pMemory[m_PC + 10], m_pMemory[m_PC + 11], m_pMemory[m_PC + 12], m_pMemory[m_PC + 13], m_pMemory[m_PC + 14], m_pMemory[m_PC + 15]);
 }
