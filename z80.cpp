@@ -26,7 +26,7 @@
 //	each T State is assumed to be 0.25 microseconds, based on a 4MHz clock.
 //=============================================================================
 
-uint16 g_addressBreakpoint = 0x128E;
+uint16 g_addressBreakpoint = 0x09F7;
 uint16 g_dataBreakpoint = 0;//0x5C3B; // flags to set printer in use
 uint16 g_stackContentsBreakpoint = 0xDC62;
 uint8 g_stackContentsBreakpointNumItems = 64;
@@ -4942,7 +4942,7 @@ uint32 CZ80::ImplementADDAr(void)
 	int8 half_result = ((origA & 0x0F) + (source & 0x0F));
 	//uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	// TODO: overflow flag
-	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 1) & eF_C);
+	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 8) & eF_C);
 	return 4;
 }
 
@@ -4973,7 +4973,7 @@ uint32 CZ80::ImplementADDAn(void)
 	int8 half_result = ((origA & 0x0F) + (source & 0x0F));
 	//uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	// TODO: overflow flag
-	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 1) & eF_C);
+	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 8) & eF_C);
 	return 7;
 }
 
@@ -5002,7 +5002,7 @@ uint32 CZ80::ImplementADDA_HL_(void)
 	int8 half_result = ((origA & 0x0F) + (source & 0x0F));
 	//uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	// TODO: overflow flag
-	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 1) & eF_C);
+	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 8) & eF_C);
 	return 7;
 }
 
@@ -5036,7 +5036,7 @@ uint32 CZ80::ImplementADDA_IXd_(void)
 	int8 half_result = ((origA & 0x0F) + (source & 0x0F));
 	//uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	// TODO: overflow flag
-	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 1) & eF_C);
+	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 8) & eF_C);
 	return 19;
 }
 
@@ -5070,7 +5070,7 @@ uint32 CZ80::ImplementADDA_IYd_(void)
 	int8 half_result = ((origA & 0x0F) + (source & 0x0F));
 	//uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	// TODO: overflow flag
-	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 1) & eF_C);
+	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 8) & eF_C);
 	return 19;
 }
 
@@ -5108,7 +5108,7 @@ uint32 CZ80::ImplementADCAr(void)
 	int8 half_result = ((origA & 0x0F) + (source & 0x0F));
 	//uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	// TODO: overflow flag
-	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 1) & eF_C);
+	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 8) & eF_C);
 	return 4;
 }
 
@@ -5140,7 +5140,7 @@ uint32 CZ80::ImplementADCAn(void)
 	int8 half_result = ((origA & 0x0F) + (source & 0x0F));
 	//uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	// TODO: overflow flag
-	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 1) & eF_C);
+	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 8) & eF_C);
 	return 7;
 }
 
@@ -5170,7 +5170,7 @@ uint32 CZ80::ImplementADCA_HL_(void)
 	int8 half_result = ((origA & 0x0F) + (source & 0x0F));
 	//uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	// TODO: overflow flag
-	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 1) & eF_C);
+	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 8) & eF_C);
 	return 7;
 }
 
@@ -5205,7 +5205,7 @@ uint32 CZ80::ImplementADCA_IXd_(void)
 	int8 half_result = ((origA & 0x0F) + (source & 0x0F));
 	//uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	// TODO: overflow flag
-	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 1) & eF_C);
+	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 8) & eF_C);
 	return 19;
 }
 
@@ -5240,7 +5240,7 @@ uint32 CZ80::ImplementADCA_IYd_(void)
 	int8 half_result = ((origA & 0x0F) + (source & 0x0F));
 	//uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	// TODO: overflow flag
-	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 1) & eF_C);
+	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 8) & eF_C);
 	return 19;
 }
 
@@ -5278,7 +5278,7 @@ uint32 CZ80::ImplementSUBr(void)
 	int8 half_result = ((origA & 0x0F) + (source & 0x0F));
 	//uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	// TODO: overflow flag
-	m_F = (m_A & (eF_S | eF_X | eF_Y)) | eF_N | ((m_A == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 1) & eF_C);
+	m_F = (m_A & (eF_S | eF_X | eF_Y)) | eF_N | ((m_A == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 8) & eF_C);
 	return 4;
 }
 
@@ -5309,7 +5309,7 @@ uint32 CZ80::ImplementSUBn(void)
 	int8 half_result = ((origA & 0x0F) + (source & 0x0F));
 	//uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	// TODO: overflow flag
-	m_F = (m_A & (eF_S | eF_X | eF_Y)) | eF_N | ((m_A == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 1) & eF_C);
+	m_F = (m_A & (eF_S | eF_X | eF_Y)) | eF_N | ((m_A == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 8) & eF_C);
 	return 7;
 }
 
@@ -5338,7 +5338,7 @@ uint32 CZ80::ImplementSUB_HL_(void)
 	int8 half_result = ((origA & 0x0F) + (source & 0x0F));
 	//uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	// TODO: overflow flag
-	m_F = (m_A & (eF_S | eF_X | eF_Y)) | eF_N | ((m_A == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 1) & eF_C);
+	m_F = (m_A & (eF_S | eF_X | eF_Y)) | eF_N | ((m_A == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 8) & eF_C);
 	return 7;
 }
 
@@ -5372,7 +5372,7 @@ uint32 CZ80::ImplementSUB_IXd_(void)
 	int8 half_result = ((origA & 0x0F) + (source & 0x0F));
 	//uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	// TODO: overflow flag
-	m_F = (m_A & (eF_S | eF_X | eF_Y)) | eF_N | ((m_A == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 1) & eF_C);
+	m_F = (m_A & (eF_S | eF_X | eF_Y)) | eF_N | ((m_A == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 8) & eF_C);
 	return 19;
 }
 
@@ -5406,7 +5406,7 @@ uint32 CZ80::ImplementSUB_IYd_(void)
 	int8 half_result = ((origA & 0x0F) + (source & 0x0F));
 	//uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	// TODO: overflow flag
-	m_F = (m_A & (eF_S | eF_X | eF_Y)) | eF_N | ((m_A == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 1) & eF_C);
+	m_F = (m_A & (eF_S | eF_X | eF_Y)) | eF_N | ((m_A == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 8) & eF_C);
 	return 19;
 }
 
@@ -5444,7 +5444,7 @@ uint32 CZ80::ImplementSBCAr(void)
 	int8 half_result = ((origA & 0x0F) + (source & 0x0F));
 	//uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	// TODO: overflow flag
-	m_F = (m_A & (eF_S | eF_X | eF_Y)) | eF_N | ((m_A == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 1) & eF_C);
+	m_F = (m_A & (eF_S | eF_X | eF_Y)) | eF_N | ((m_A == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 8) & eF_C);
 	return 4;
 }
 
@@ -5476,7 +5476,7 @@ uint32 CZ80::ImplementSBCAn(void)
 	int8 half_result = ((origA & 0x0F) + (source & 0x0F));
 	//uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	// TODO: overflow flag
-	m_F = (m_A & (eF_S | eF_X | eF_Y)) | eF_N | ((m_A == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 1) & eF_C);
+	m_F = (m_A & (eF_S | eF_X | eF_Y)) | eF_N | ((m_A == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 8) & eF_C);
 	return 7;
 }
 
@@ -5506,7 +5506,7 @@ uint32 CZ80::ImplementSBCA_HL_(void)
 	int8 half_result = ((origA & 0x0F) + (source & 0x0F));
 	//uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	// TODO: overflow flag
-	m_F = (m_A & (eF_S | eF_X | eF_Y)) | eF_N | ((m_A == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 1) & eF_C);
+	m_F = (m_A & (eF_S | eF_X | eF_Y)) | eF_N | ((m_A == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 8) & eF_C);
 	return 7;
 }
 
@@ -5542,7 +5542,7 @@ uint32 CZ80::ImplementSBCA_IXd_(void)
 	int8 half_result = ((origA & 0x0F) + (source & 0x0F));
 	//uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	// TODO: overflow flag
-	m_F = (m_A & (eF_S | eF_X | eF_Y)) | eF_N | ((m_A == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 1) & eF_C);
+	m_F = (m_A & (eF_S | eF_X | eF_Y)) | eF_N | ((m_A == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 8) & eF_C);
 	return 19;
 }
 
@@ -5578,7 +5578,7 @@ uint32 CZ80::ImplementSBCA_IYd_(void)
 	int8 half_result = ((origA & 0x0F) + (source & 0x0F));
 	//uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	// TODO: overflow flag
-	m_F = (m_A & (eF_S | eF_X | eF_Y)) | eF_N | ((m_A == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 1) & eF_C);
+	m_F = (m_A & (eF_S | eF_X | eF_Y)) | eF_N | ((m_A == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 8) & eF_C);
 	return 19;
 }
 
@@ -6040,7 +6040,7 @@ uint32 CZ80::ImplementCPr(void)
 	int8 half_result = ((origA & 0x0F) + (source & 0x0F));
 	//uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	// TODO: overflow flag
-	m_F = (m_A & (eF_S | eF_X | eF_Y)) | eF_N | ((result == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 1) & eF_C);
+	m_F = (m_A & (eF_S | eF_X | eF_Y)) | eF_N | ((result == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 8) & eF_C);
 	return 4;
 }
 
@@ -6070,7 +6070,7 @@ uint32 CZ80::ImplementCPn(void)
 	int8 half_result = ((origA & 0x0F) + (source & 0x0F));
 	//uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	// TODO: overflow flag
-	m_F = (m_A & (eF_S | eF_X | eF_Y)) | eF_N | ((result == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 1) & eF_C);
+	m_F = (m_A & (eF_S | eF_X | eF_Y)) | eF_N | ((result == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 8) & eF_C);
 	return 7;
 }
 
@@ -6098,7 +6098,7 @@ uint32 CZ80::ImplementCP_HL_(void)
 	int8 half_result = ((origA & 0x0F) + (source & 0x0F));
 	//uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	// TODO: overflow flag
-	m_F = (m_A & (eF_S | eF_X | eF_Y)) | eF_N | ((result == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 1) & eF_C);
+	m_F = (m_A & (eF_S | eF_X | eF_Y)) | eF_N | ((result == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 8) & eF_C);
 	return 7;
 }
 
@@ -6132,7 +6132,7 @@ uint32 CZ80::ImplementCP_IXd_(void)
 	int8 half_result = ((origA & 0x0F) + (source & 0x0F));
 	//uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	// TODO: overflow flag
-	m_F = (m_A & (eF_S | eF_X | eF_Y)) | eF_N | ((result == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 1) & eF_C);
+	m_F = (m_A & (eF_S | eF_X | eF_Y)) | eF_N | ((result == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 8) & eF_C);
 	return 19;
 }
 
@@ -6166,7 +6166,7 @@ uint32 CZ80::ImplementCP_IYd_(void)
 	int8 half_result = ((origA & 0x0F) + (source & 0x0F));
 	//uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	// TODO: overflow flag
-	m_F = (m_A & (eF_S | eF_X | eF_Y)) | eF_N | ((result == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 1) & eF_C);
+	m_F = (m_A & (eF_S | eF_X | eF_Y)) | eF_N | ((result == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 8) & eF_C);
 	return 19;
 }
 
