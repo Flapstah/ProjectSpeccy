@@ -92,6 +92,7 @@ class CZXSpectrum : public IScreenMemory
 		uint8				m_shadowMemory[SC_48K_SPECTRUM];
 		CDisplay*		m_pDisplay;
 		CZ80*				m_pZ80;
+		double			m_time;
 
 	private:
 };

@@ -46,6 +46,7 @@ bool CZXSpectrum::Initialise(void)
 	m_pDisplay = new CDisplay(640, 480, "ZX Spectrum");
 	if (m_pDisplay != NULL)
 	{
+		m_time = glfwGetTime();
 		CKeyboard::Initialise();
 		if (m_pZ80 = new CZ80(m_memory, 4.0f))
 		{
@@ -99,11 +100,17 @@ bool CZXSpectrum::Update(void)
 
 		if (updateZ80)
 		{
-			m_pZ80->Update(10.0f);
+			double currentTime = glfwGetTime();
+			double elapsedTime = currentTime - m_time;
+			m_time = currentTime;
+
+			elapsedTime = (elapsedTime > (1.0/60.0)) ? (1.0/60.0) : elapsedTime;
+			m_pZ80->Update(static_cast<float>(elapsedTime * 1000.0));
 			UpdateScreen(&m_memory[SC_SCREEN_START_ADDRESS]);
 		}
 
 		ret = m_pDisplay->Update(this) && !CKeyboard::IsKeyPressed(GLFW_KEY_ESC);
+		glfwSleep(0.005);
 	}
 
 	return ret;
