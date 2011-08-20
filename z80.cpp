@@ -6,8 +6,7 @@
 
 //=============================================================================
 // TODO:
-// Think it's getting stuck printing the copyright message (thinks printer in
-// use?)
+// Input/output and interrupts
 //=============================================================================
 
 // Helper macros to determine 8 and 16 bit registers from opcodes
@@ -26,8 +25,8 @@
 //	each T State is assumed to be 0.25 microseconds, based on a 4MHz clock.
 //=============================================================================
 
-uint16 g_addressBreakpoint = 0x09F7;
-uint16 g_dataBreakpoint = 0;//0x5C3B; // flags to set printer in use
+uint16 g_addressBreakpoint = 0;
+uint16 g_dataBreakpoint = 0;
 uint16 g_stackContentsBreakpoint = 0xDC62;
 uint8 g_stackContentsBreakpointNumItems = 64;
 
@@ -4786,12 +4785,12 @@ uint32 CZ80::ImplementCPI(void)
 	++++m_PC;
 	uint8 _HL_;
 	Read(m_HL++, _HL_);
-	int8 origA = static_cast<int8>(m_A);
-	int8 result = origA - _HL_;
-	uint8 flag_calc = ((origA & _HL_ & !result) | (!origA & !_HL_ & result));
+	uint8 origA = m_A;
+	uint8 result = origA - _HL_;
+	uint8 half_result = (origA & 0x0F) - (_HL_ & 0x0F);
 	--m_BC;
 	m_F &= eF_C;
-	m_F |= (result & eF_S) | ((result == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((m_BC != 0) ? eF_PV : 0) | (result & (eF_X | eF_Y)) | eF_N;
+	m_F |= (result & eF_S) | ((result == 0) ? eF_Z : 0) | (half_result & eF_H) | ((m_BC != 0) ? eF_PV : 0) | (result & (eF_X | eF_Y)) | eF_N;
 	return 16;
 }
 
@@ -4818,18 +4817,19 @@ uint32 CZ80::ImplementCPIR(void)
 	//								4						16 (4,4,3,5)			4.00
 	//
 	++++m_PC;
-	int8 _HL_, origA, result;
+	uint8 _HL_, origA, half_result;
+	uint16 result;
 	uint32 tstates = 0;
 	do
 	{
 		Read(m_HL++, _HL_);
-		origA = static_cast<int8>(m_A);
+		origA = m_A;
 		result = origA - _HL_;
+		half_result = (origA & 0x0F) - (_HL_ & 0x0F);
 		tstates += 16;
 	} while ((--m_BC != 0) && (result != 0) && ((tstates += 5), true));
-	uint8 flag_calc = ((origA & _HL_ & !result) | (!origA & !_HL_ & result));
 	m_F &= eF_C;
-	m_F |= (result & eF_S) | ((result == 0) ? eF_Z : 0) | ((flag_calc << 1) & eF_H) | ((m_BC != 0) ? eF_PV : 0) | (result & (eF_X | eF_Y)) | eF_N;
+	m_F |= (result & eF_S) | ((result == 0) ? eF_Z : 0) | (half_result & eF_H) | ((m_BC != 0) ? eF_PV : 0) | (result & (eF_X | eF_Y)) | eF_N;
 	return tstates;
 }
 
@@ -4852,11 +4852,11 @@ uint32 CZ80::ImplementCPD(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	int8 _HL_;
+	uint8 _HL_;
 	Read(m_HL--, _HL_);
-	int8 origA = static_cast<int8>(m_A);
-	int8 result = origA - _HL_;
-	int8 half_result = (origA & 0x0F) - (_HL_ & 0x0F);
+	uint8 origA = m_A;
+	uint8 result = origA - _HL_;
+	uint8 half_result = (origA & 0x0F) - (_HL_ & 0x0F);
 	--m_BC;
 	m_F &= eF_C;
 	m_F |= (result & eF_S) | ((result == 0) ? eF_Z : 0) | (half_result & eF_H) | ((m_BC != 0) ? eF_PV : 0) | (result & (eF_X | eF_Y)) | eF_N;
@@ -4887,14 +4887,15 @@ uint32 CZ80::ImplementCPDR(void)
 	//
 	++++m_PC;
 	uint32 tstates = 0;
-	int8 _HL_, origA, result, half_result;
+	uint8 _HL_, origA, half_result;
+	uint16 result;
 	do
 	{
 		IncrementR(2);
 		Read(m_HL--, _HL_);
-		origA = static_cast<int8>(m_A);
+		origA = m_A;
 		result = origA - _HL_;
-		int8 half_result = (origA & 0x0F) - (_HL_ & 0x0F);
+		half_result = (origA & 0x0F) - (_HL_ & 0x0F);
 		tstates += 16;
 	} while ((--m_BC != 0) && (result != 0) && ((tstates += 5), true));
 	m_F &= eF_C;
@@ -4935,11 +4936,11 @@ uint32 CZ80::ImplementADDAr(void)
 	IncrementR(1);
 	uint8 opcode;
 	Read(m_PC++, opcode);
-	int8 source = REGISTER_8BIT(opcode);
-	int8 origA = static_cast<int8>(m_A);
-	int16 result = origA + source;
-	m_A = static_cast<uint8>(result & 0xFF);
-	int8 half_result = ((origA & 0x0F) + (source & 0x0F));
+	uint8 source = REGISTER_8BIT(opcode);
+	uint8 origA = m_A;
+	uint16 result = origA + source;
+	m_A = (result & 0xFF);
+	uint8 half_result = ((origA & 0x0F) + (source & 0x0F));
 	//uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	// TODO: overflow flag
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 8) & eF_C);
@@ -4964,13 +4965,13 @@ uint32 CZ80::ImplementADDAn(void)
 	//								2						7	(4,3)						1.75
 	//
 	IncrementR(1);
-	int8 source;
+	uint8 source;
 	Read(++m_PC, source);
 	++m_PC;
-	int8 origA = static_cast<int8>(m_A);
-	int16 result = origA + source;
-	m_A = static_cast<uint8>(result & 0xFF);
-	int8 half_result = ((origA & 0x0F) + (source & 0x0F));
+	uint8 origA = m_A;
+	uint16 result = origA + source;
+	m_A = (result & 0xFF);
+	uint8 half_result = ((origA & 0x0F) + (source & 0x0F));
 	//uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	// TODO: overflow flag
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 8) & eF_C);
@@ -4994,12 +4995,12 @@ uint32 CZ80::ImplementADDA_HL_(void)
 	//
 	IncrementR(1);
 	++m_PC;
-	int8 source;
+	uint8 source;
 	Read(m_HL, source);
-	int8 origA = static_cast<int8>(m_A);
-	int16 result = origA + source;
-	m_A = static_cast<uint8>(result & 0xFF);
-	int8 half_result = ((origA & 0x0F) + (source & 0x0F));
+	uint8 origA = m_A;
+	uint16 result = origA + source;
+	m_A = (result & 0xFF);
+	uint8 half_result = ((origA & 0x0F) + (source & 0x0F));
 	//uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	// TODO: overflow flag
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 8) & eF_C);
@@ -5027,13 +5028,13 @@ uint32 CZ80::ImplementADDA_IXd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	int8 source, displacement;
+	uint8 source, displacement;
 	Read(m_PC++, displacement);
 	Read(m_IX + displacement, source);
-	int8 origA = static_cast<int8>(m_A);
-	int16 result = origA + source;
-	m_A = static_cast<uint8>(result & 0xFF);
-	int8 half_result = ((origA & 0x0F) + (source & 0x0F));
+	uint8 origA = m_A;
+	uint16 result = origA + source;
+	m_A = (result & 0xFF);
+	uint8 half_result = ((origA & 0x0F) + (source & 0x0F));
 	//uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	// TODO: overflow flag
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 8) & eF_C);
@@ -5061,13 +5062,13 @@ uint32 CZ80::ImplementADDA_IYd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	int8 source, displacement;
+	uint8 source, displacement;
 	Read(m_PC++, displacement);
 	Read(m_IY + displacement, source);
-	int8 origA = static_cast<int8>(m_A);
-	int16 result = origA + source;
-	m_A = static_cast<uint8>(result & 0xFF);
-	int8 half_result = ((origA & 0x0F) + (source & 0x0F));
+	uint8 origA = m_A;
+	uint16 result = origA + source;
+	m_A = (result & 0xFF);
+	uint8 half_result = ((origA & 0x0F) + (source & 0x0F));
 	//uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	// TODO: overflow flag
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 8) & eF_C);
@@ -5099,13 +5100,13 @@ uint32 CZ80::ImplementADCAr(void)
 	//								A						111
 	//
 	IncrementR(1);
-	int8 opcode;
+	uint8 opcode;
 	Read(m_PC++, opcode);
-	int8 source = static_cast<int8>(REGISTER_8BIT(opcode)) + ((m_F & eF_C) ? 1 : 0);
-	int8 origA = static_cast<int8>(m_A);
-	int16 result = origA + source;
-	m_A = static_cast<uint8>(result & 0xFF);
-	int8 half_result = ((origA & 0x0F) + (source & 0x0F));
+	uint8 source = REGISTER_8BIT(opcode) + ((m_F & eF_C) ? 1 : 0);
+	uint8 origA = m_A;
+	uint16 result = origA + source;
+	m_A = (result & 0xFF);
+	uint8 half_result = ((origA & 0x0F) + (source & 0x0F));
 	//uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	// TODO: overflow flag
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 8) & eF_C);
@@ -5130,14 +5131,14 @@ uint32 CZ80::ImplementADCAn(void)
 	//								2						7	(4,3)						1.75
 	//
 	IncrementR(1);
-	int8 source;
+	uint8 source;
 	Read(++m_PC, source);
 	++m_PC;
 	source += (m_F & eF_C) ? 1 : 0;
-	int8 origA = static_cast<int8>(m_A);
-	int16 result = origA + source;
-	m_A = static_cast<uint8>(result & 0xFF);
-	int8 half_result = ((origA & 0x0F) + (source & 0x0F));
+	uint8 origA = m_A;
+	uint16 result = origA + source;
+	m_A = (result & 0xFF);
+	uint8 half_result = ((origA & 0x0F) + (source & 0x0F));
 	//uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	// TODO: overflow flag
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 8) & eF_C);
@@ -5161,13 +5162,13 @@ uint32 CZ80::ImplementADCA_HL_(void)
 	//
 	IncrementR(1);
 	++m_PC;
-	int8 source;
+	uint8 source;
 	Read(m_HL, source);
 	source += (m_F & eF_C) ? 1 : 0;
-	int8 origA = static_cast<int8>(m_A);
-	int16 result = origA + source;
-	m_A = static_cast<uint8>(result & 0xFF);
-	int8 half_result = ((origA & 0x0F) + (source & 0x0F));
+	uint8 origA = m_A;
+	uint16 result = origA + source;
+	m_A = (result & 0xFF);
+	uint8 half_result = ((origA & 0x0F) + (source & 0x0F));
 	//uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	// TODO: overflow flag
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 8) & eF_C);
@@ -5195,14 +5196,14 @@ uint32 CZ80::ImplementADCA_IXd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	int8 source, displacement;
+	uint8 source, displacement;
 	Read(m_PC++, displacement);
 	Read(m_IX + displacement, source);
 	source += (m_F & eF_C) ? 1 : 0;
-	int8 origA = static_cast<int8>(m_A);
-	int16 result = origA + source;
-	m_A = static_cast<uint8>(result & 0xFF);
-	int8 half_result = ((origA & 0x0F) + (source & 0x0F));
+	uint8 origA = m_A;
+	uint16 result = origA + source;
+	m_A = (result & 0xFF);
+	uint8 half_result = ((origA & 0x0F) + (source & 0x0F));
 	//uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	// TODO: overflow flag
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 8) & eF_C);
@@ -5230,14 +5231,14 @@ uint32 CZ80::ImplementADCA_IYd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	int8 source, displacement;
+	uint8 source, displacement;
 	Read(m_PC++, displacement);
 	Read(m_IY + displacement, source);
 	source += (m_F & eF_C) ? 1 : 0;
-	int8 origA = static_cast<int8>(m_A);
-	int16 result = origA + source;
-	m_A = static_cast<uint8>(result & 0xFF);
-	int8 half_result = ((origA & 0x0F) + (source & 0x0F));
+	uint8 origA = m_A;
+	uint16 result = origA + source;
+	m_A = (result & 0xFF);
+	uint8 half_result = ((origA & 0x0F) + (source & 0x0F));
 	//uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	// TODO: overflow flag
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 8) & eF_C);
@@ -5271,11 +5272,11 @@ uint32 CZ80::ImplementSUBr(void)
 	IncrementR(1);
 	uint8 opcode;
 	Read(m_PC++, opcode);
-	int8 source = static_cast<int8>(REGISTER_8BIT(opcode));
-	int8 origA = static_cast<int8>(m_A);
-	int16 result = origA - source;
-	m_A = static_cast<uint8>(result & 0xFF);
-	int8 half_result = ((origA & 0x0F) + (source & 0x0F));
+	uint8 source = REGISTER_8BIT(opcode);
+	uint8 origA = m_A;
+	uint16 result = origA - source;
+	m_A = (result & 0xFF);
+	uint8 half_result = ((origA & 0x0F) + (source & 0x0F));
 	//uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	// TODO: overflow flag
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | eF_N | ((m_A == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 8) & eF_C);
@@ -5300,13 +5301,13 @@ uint32 CZ80::ImplementSUBn(void)
 	//								2						7	(4,3)						1.75
 	//
 	IncrementR(1);
-	int8 source;
+	uint8 source;
 	Read(++m_PC, source);
 	++m_PC;
-	int8 origA = static_cast<int8>(m_A);
-	int16 result = origA - source;
-	m_A = static_cast<uint8>(result & 0xFF);
-	int8 half_result = ((origA & 0x0F) + (source & 0x0F));
+	uint8 origA = m_A;
+	uint16 result = origA - source;
+	m_A = (result & 0xFF);
+	uint8 half_result = ((origA & 0x0F) + (source & 0x0F));
 	//uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	// TODO: overflow flag
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | eF_N | ((m_A == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 8) & eF_C);
@@ -5330,12 +5331,12 @@ uint32 CZ80::ImplementSUB_HL_(void)
 	//
 	IncrementR(1);
 	++m_PC;
-	int8 source;
+	uint8 source;
 	Read(m_HL, source);
-	int8 origA = static_cast<int8>(m_A);
-	int16 result = origA - source;
-	m_A = static_cast<uint8>(result & 0xFF);
-	int8 half_result = ((origA & 0x0F) + (source & 0x0F));
+	uint8 origA = m_A;
+	uint16 result = origA - source;
+	m_A = (result & 0xFF);
+	uint8 half_result = ((origA & 0x0F) + (source & 0x0F));
 	//uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	// TODO: overflow flag
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | eF_N | ((m_A == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 8) & eF_C);
@@ -5363,13 +5364,13 @@ uint32 CZ80::ImplementSUB_IXd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	int8 source, displacement;
+	uint8 source, displacement;
 	Read(m_PC++, displacement);
 	Read(m_IX + displacement, source);
-	int8 origA = static_cast<int8>(m_A);
-	int16 result = origA - source;
-	m_A = static_cast<uint8>(result & 0xFF);
-	int8 half_result = ((origA & 0x0F) + (source & 0x0F));
+	uint8 origA = m_A;
+	uint16 result = origA - source;
+	m_A = (result & 0xFF);
+	uint8 half_result = ((origA & 0x0F) + (source & 0x0F));
 	//uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	// TODO: overflow flag
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | eF_N | ((m_A == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 8) & eF_C);
@@ -5397,13 +5398,13 @@ uint32 CZ80::ImplementSUB_IYd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	int8 source, displacement;
+	uint8 source, displacement;
 	Read(m_PC++, displacement);
 	Read(m_IX + displacement, source);
-	int8 origA = static_cast<int8>(m_A);
-	int16 result = origA - source;
-	m_A = static_cast<uint8>(result & 0xFF);
-	int8 half_result = ((origA & 0x0F) + (source & 0x0F));
+	uint8 origA = m_A;
+	uint16 result = origA - source;
+	m_A = (result & 0xFF);
+	uint8 half_result = ((origA & 0x0F) + (source & 0x0F));
 	//uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	// TODO: overflow flag
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | eF_N | ((m_A == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 8) & eF_C);
@@ -5437,11 +5438,11 @@ uint32 CZ80::ImplementSBCAr(void)
 	IncrementR(1);
 	uint8 opcode;
 	Read(m_PC++, opcode);
-	int8 source = static_cast<int8>(REGISTER_8BIT(opcode)) - (m_F & eF_C) ? 1 : 0;
-	int8 origA = static_cast<int8>(m_A);
-	int16 result = origA - source;
-	m_A = static_cast<uint8>(result & 0xFF);
-	int8 half_result = ((origA & 0x0F) + (source & 0x0F));
+	uint8 source = REGISTER_8BIT(opcode) - (m_F & eF_C) ? 1 : 0;
+	uint8 origA = m_A;
+	uint16 result = origA - source;
+	m_A = (result & 0xFF);
+	uint8 half_result = ((origA & 0x0F) + (source & 0x0F));
 	//uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	// TODO: overflow flag
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | eF_N | ((m_A == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 8) & eF_C);
@@ -5466,14 +5467,14 @@ uint32 CZ80::ImplementSBCAn(void)
 	//								2						7	(4,3)						1.75
 	//
 	IncrementR(1);
-	int8 source;
+	uint8 source;
 	Read(++m_PC, source);
 	++m_PC;
 	source -= (m_F & eF_C) ? 1 : 0;
-	int8 origA = static_cast<int8>(m_A);
-	int16 result = origA - source;
-	m_A = static_cast<uint8>(result & 0xFF);
-	int8 half_result = ((origA & 0x0F) + (source & 0x0F));
+	uint8 origA = m_A;
+	uint16 result = origA - source;
+	m_A = (result & 0xFF);
+	uint8 half_result = ((origA & 0x0F) + (source & 0x0F));
 	//uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	// TODO: overflow flag
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | eF_N | ((m_A == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 8) & eF_C);
@@ -5496,14 +5497,14 @@ uint32 CZ80::ImplementSBCA_HL_(void)
 	//								2						7	(4,3)						1.75
 	//
 	IncrementR(1);
-	int8 source;
+	uint8 source;
 	Read(m_HL, source);
 	++m_PC;
 	source -= (m_F & eF_C) ? 1 : 0;
-	int8 origA = static_cast<int8>(m_A);
-	int16 result = origA - source;
-	m_A = static_cast<uint8>(result & 0xFF);
-	int8 half_result = ((origA & 0x0F) + (source & 0x0F));
+	uint8 origA = m_A;
+	uint16 result = origA - source;
+	m_A = (result & 0xFF);
+	uint8 half_result = ((origA & 0x0F) + (source & 0x0F));
 	//uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	// TODO: overflow flag
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | eF_N | ((m_A == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 8) & eF_C);
@@ -5533,13 +5534,13 @@ uint32 CZ80::ImplementSBCA_IXd_(void)
 	++++m_PC;
 	int8 displacement;
 	Read(m_PC++, displacement);
-	int8 source;
+	uint8 source;
 	Read(m_IX + displacement, source);
 	source -= (m_F & eF_C) ? 1 : 0;
-	int8 origA = static_cast<int8>(m_A);
-	int16 result = origA - source;
-	m_A = static_cast<uint8>(result & 0xFF);
-	int8 half_result = ((origA & 0x0F) + (source & 0x0F));
+	uint8 origA = m_A;
+	uint16 result = origA - source;
+	m_A = (result & 0xFF);
+	uint8 half_result = ((origA & 0x0F) + (source & 0x0F));
 	//uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	// TODO: overflow flag
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | eF_N | ((m_A == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 8) & eF_C);
@@ -5569,13 +5570,13 @@ uint32 CZ80::ImplementSBCA_IYd_(void)
 	++++m_PC;
 	int8 displacement;
 	Read(m_PC++, displacement);
-	int8 source;
+	uint8 source;
 	Read(m_IY + displacement, source);
 	source -= (m_F & eF_C) ? 1 : 0;
-	int8 origA = static_cast<int8>(m_A);
-	int16 result = origA - source;
-	m_A = static_cast<uint8>(result & 0xFF);
-	int8 half_result = ((origA & 0x0F) + (source & 0x0F));
+	uint8 origA = m_A;
+	uint16 result = origA - source;
+	m_A = (result & 0xFF);
+	uint8 half_result = ((origA & 0x0F) + (source & 0x0F));
 	//uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	// TODO: overflow flag
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | eF_N | ((m_A == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 8) & eF_C);
@@ -6034,10 +6035,10 @@ uint32 CZ80::ImplementCPr(void)
 	IncrementR(1);
 	uint8 opcode;
 	Read(m_PC++, opcode);
-	int8 source = static_cast<int8>(REGISTER_8BIT(opcode));
-	int8 origA = static_cast<int8>(m_A);
-	int16 result = origA - source;
-	int8 half_result = ((origA & 0x0F) + (source & 0x0F));
+	uint8 source = REGISTER_8BIT(opcode);
+	uint8 origA = m_A;
+	uint16 result = origA - source;
+	uint8 half_result = ((origA & 0x0F) + (source & 0x0F));
 	//uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	// TODO: overflow flag
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | eF_N | ((result == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 8) & eF_C);
@@ -6062,12 +6063,12 @@ uint32 CZ80::ImplementCPn(void)
 	//								2						7	(4,3)						1.75
 	//
 	IncrementR(1);
-	int8 source;
+	uint8 source;
 	Read(++m_PC, source);
 	++m_PC;
-	int8 origA = static_cast<int8>(m_A);
-	int16 result = origA - source;
-	int8 half_result = ((origA & 0x0F) + (source & 0x0F));
+	uint8 origA = m_A;
+	uint16 result = origA - source;
+	uint8 half_result = ((origA & 0x0F) + (source & 0x0F));
 	//uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	// TODO: overflow flag
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | eF_N | ((result == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 8) & eF_C);
@@ -6091,11 +6092,11 @@ uint32 CZ80::ImplementCP_HL_(void)
 	//
 	IncrementR(1);
 	++m_PC;
-	int8 source;
+	uint8 source;
 	Read(m_HL, source);
-	int8 origA = static_cast<int8>(m_A);
-	int16 result = origA - source;
-	int8 half_result = ((origA & 0x0F) + (source & 0x0F));
+	uint8 origA = m_A;
+	uint16 result = origA - source;
+	uint8 half_result = ((origA & 0x0F) + (source & 0x0F));
 	//uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	// TODO: overflow flag
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | eF_N | ((result == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 8) & eF_C);
@@ -6125,11 +6126,11 @@ uint32 CZ80::ImplementCP_IXd_(void)
 	++++m_PC;
 	int8 displacement;
 	Read(m_PC++, displacement);
-	int8 source;
+	uint8 source;
 	Read(m_IX + displacement, source);
-	int8 origA = static_cast<int8>(m_A);
-	int16 result = origA - source;
-	int8 half_result = ((origA & 0x0F) + (source & 0x0F));
+	uint8 origA = m_A;
+	uint16 result = origA - source;
+	uint8 half_result = ((origA & 0x0F) + (source & 0x0F));
 	//uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	// TODO: overflow flag
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | eF_N | ((result == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 8) & eF_C);
@@ -6159,11 +6160,11 @@ uint32 CZ80::ImplementCP_IYd_(void)
 	++++m_PC;
 	int8 displacement;
 	Read(m_PC++, displacement);
-	int8 source;
+	uint8 source;
 	Read(m_IY + displacement, source);
-	int8 origA = static_cast<int8>(m_A);
-	int16 result = origA - source;
-	int8 half_result = ((origA & 0x0F) + (source & 0x0F));
+	uint8 origA = m_A;
+	uint16 result = origA - source;
+	uint8 half_result = ((origA & 0x0F) + (source & 0x0F));
 	//uint8 flag_calc = ((origA & source & ~m_A) | (~origA & ~source & m_A));
 	// TODO: overflow flag
 	m_F = (m_A & (eF_S | eF_X | eF_Y)) | eF_N | ((result == 0) ? eF_Z : 0) | (half_result & eF_H) | ((result >> 8) & eF_C);
@@ -6512,7 +6513,7 @@ uint32 CZ80::ImplementNEG(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	int8 origA = static_cast<int8>(m_A);
+	uint8 origA = m_A;
 	m_A = 0 - origA;
 	m_F = eF_N;
 	m_F |= (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | (m_A & ~origA & eF_H) | ((origA = 0x80) ? eF_PV : 0) | ((!origA) ? eF_C : 0);
