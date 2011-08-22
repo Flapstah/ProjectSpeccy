@@ -36,8 +36,8 @@ class CZ80
 		uint32 Step(void);
 		void Decode(uint16& address, char* pMnemonic);
 
-		bool Write(uint16 address, uint8 byte);
-		bool Read(uint16 address, uint8& byte);
+		bool WriteMemory(uint16 address, uint8 byte);
+		bool ReadMemory(uint16 address, uint8& byte);
 		
 		const char* Get8BitRegisterString(uint8 threeBits);
 		const char* Get16BitRegisterString(uint8 twoBits);
