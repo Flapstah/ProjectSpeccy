@@ -3161,6 +3161,20 @@ bool CZ80::ReadMemory(uint16 address, uint8& byte)
 
 //=============================================================================
 
+bool CZ80::WritePort(uint16 address, uint8 byte)
+{
+	return true;
+}
+
+//=============================================================================
+
+bool CZ80::ReadPort(uint16 address, uint8& byte)
+{
+	return true;
+}
+
+//=============================================================================
+
 const char* CZ80::Get8BitRegisterString(uint8 threeBits)
 {
 	switch (threeBits & 0x07)
@@ -9240,8 +9254,10 @@ uint32 CZ80::ImplementINA_n_(void)
 	//								3						11 (4,3,4)				2.75
 	//
 	IncrementR(2);
-	++++m_PC;
-	// TODO: fix me
+	m_addresshi = m_A;
+	ReadMemory(++m_PC, m_addresslo);
+	++m_PC;
+	ReadPort(m_address, m_A);
 	return 11;
 }
 
@@ -9273,8 +9289,12 @@ uint32 CZ80::ImplementINr_C_(void)
 	//								3						12 (4,4,4)				3.00
 	//
 	IncrementR(2);
-	++++m_PC;
-	// TODO: fix me
+	uint8 opcode;
+	ReadMemory(++m_PC, opcode);
+	++m_PC;
+	m_addresshi = m_B;
+	m_addresslo = m_C;
+	ReadPort(m_address, REGISTER_8BIT(opcode >> 3));
 	return 12;
 }
 
@@ -9297,7 +9317,13 @@ uint32 CZ80::ImplementINI(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	// TODO: fix me
+	m_addresshi = m_B;
+	m_addresslo = m_C;
+	uint8 data;
+	ReadPort(m_address, data);
+	WriteMemory(m_HL, data);
+	--m_B;
+	++m_HL;
 	return 16;
 }
 

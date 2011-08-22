@@ -38,6 +38,8 @@ class CZ80
 
 		bool WriteMemory(uint16 address, uint8 byte);
 		bool ReadMemory(uint16 address, uint8& byte);
+		bool WritePort(uint16 address, uint8 byte);
+		bool ReadPort(uint16 address, uint8& byte);
 		
 		const char* Get8BitRegisterString(uint8 threeBits);
 		const char* Get16BitRegisterString(uint8 twoBits);
