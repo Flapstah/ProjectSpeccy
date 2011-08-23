@@ -9321,9 +9321,8 @@ uint32 CZ80::ImplementINI(void)
 	m_addresslo = m_C;
 	uint8 data;
 	ReadPort(m_address, data);
-	WriteMemory(m_HL, data);
+	WriteMemory(m_HL++, data);
 	--m_B;
-	++m_HL;
 	return 16;
 }
 
@@ -9345,10 +9344,19 @@ uint32 CZ80::ImplementINIR(void)
 	//								5						21 (4,5,3,4,5)		5.25		B != 0
 	//								4						16 (4,5,3,4)			4.00		B == 0
 	//
-	IncrementR(2);
+	uint32 tstates = 0;
+	uint8 data;
 	++++m_PC;
-	// TODO: fix me
-	return 16;
+	do
+	{
+		IncrementR(2);
+		m_addresshi = m_B;
+		m_addresslo = m_C;
+		ReadPort(m_address, data);
+		WriteMemory(m_HL++, data);
+		tstates += 16;
+	} while ((--m_B != 0) && ((tstates += 5), true));
+	return tstates;
 }
 
 //=============================================================================
@@ -9370,7 +9378,12 @@ uint32 CZ80::ImplementIND(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	// TODO: fix me
+	m_addresshi = m_B;
+	m_addresslo = m_C;
+	uint8 data;
+	ReadPort(m_address, data);
+	WriteMemory(m_HL--, data);
+	--m_B;
 	return 16;
 }
 
@@ -9379,23 +9392,32 @@ uint32 CZ80::ImplementIND(void)
 uint32 CZ80::ImplementINDR(void)
 {
 	//
-	// Operation:	(HL) <- (C), B <- B - 1, HL <- HL 1 1
+	// Operation:	(HL) <- (C), B <- B - 1, HL <- HL - 1
 	// Op Code:		INI
 	// Operands:	A, (n)
 	//						+-+-+-+-+-+-+-+-+
 	//						|1|1|1|0|1|1|0|1| ED
 	//						+-+-+-+-+-+-+-+-+
 	//						|1|0|1|1|0|0|1|0| BA
-	//						+-+-+-+-+-+-+-+-+
+	//						+-+-+-+-+-+-+-+-+x
 	//
 	//							M Cycles		T States					MHz E.T.
 	//								5						21 (4,5,3,4,5)		5.25		B != 0
 	//								4						16 (4,5,3,4)			4.00		B == 0
 	//
-	IncrementR(2);
+	uint32 tstates = 0;
+	uint8 data;
 	++++m_PC;
-	// TODO: fix me
-	return 16;
+	do
+	{
+		IncrementR(2);
+		m_addresshi = m_B;
+		m_addresslo = m_C;
+		ReadPort(m_address, data);
+		WriteMemory(m_HL--, data);
+		tstates += 16;
+	} while ((--m_B != 0) && ((tstates += 5), true));
+	return tstates;
 }
 
 //=============================================================================
@@ -9415,9 +9437,10 @@ uint32 CZ80::ImplementOUT_n_A(void)
 	//							M Cycles		T States					MHz E.T.
 	//								3						11 (4,3,4)				2.75
 	//
-	IncrementR(2);
-	++++m_PC;
-	// TODO: fix me
+	m_addresshi = m_A;
+	ReadMemory(++m_PC, m_addresslo);
+	++m_PC;
+	WritePort(m_address, m_A);
 	return 11;
 }
 
@@ -9430,7 +9453,7 @@ uint32 CZ80::ImplementOUT_C_r(void)
 	// Op Code:		OUT
 	// Operands:	(C), r
 	//						+-+-+-+-+-+-+-+-+
-	//						|1|1|1|0|1|1|0|1| ED
+	//						|1x|1|1|0|1|1|0|1| ED
 	//						+-+-+-+-+-+-+-+-+
 	//						|0|1|r|r|r|0|0|1|
 	//						+-+-+-+-+-+-+-+-+
@@ -9449,8 +9472,12 @@ uint32 CZ80::ImplementOUT_C_r(void)
 	//								3						12 (4,4,4)				3.00
 	//
 	IncrementR(2);
-	++++m_PC;
-	// TODO: fix me
+	uint8 opcode;
+	ReadMemory(++m_PC, opcode);
+	++m_PC;
+	m_addresshi = m_B;
+	m_addresslo = m_C;
+	WritePort(m_address, REGISTER_8BIT(opcode >> 3));
 	return 12;
 }
 
@@ -9473,7 +9500,12 @@ uint32 CZ80::ImplementOUTI(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	// TODO: fix me
+	m_addresshi = m_B;
+	m_addresslo = m_C;
+	uint8 data;
+	ReadMemory(m_HL++, data);
+	WritePort(m_address, data);
+	--m_B;
 	return 16;
 }
 
@@ -9495,10 +9527,19 @@ uint32 CZ80::ImplementOTIR(void)
 	//								5						21 (4,5,3,4,5)		5.25		B != 0
 	//								4						16 (4,5,3,4)			4.00		B == 0
 	//
-	IncrementR(2);
+	uint32 tstates = 0;
+	uint8 data;
 	++++m_PC;
-	// TODO: fix me
-	return 16;
+	do
+	{
+		IncrementR(2);
+		m_addresshi = m_B;
+		m_addresslo = m_C;
+		ReadMemory(m_HL++, data);
+		WritePort(m_address, data);
+		tstates += 16;
+	} while ((--m_B != 0) && ((tstates += 5), true));
+	return tstates;
 }
 
 //=============================================================================
@@ -9520,7 +9561,12 @@ uint32 CZ80::ImplementOUTD(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	// TODO: fix me
+	m_addresshi = m_B;
+	m_addresslo = m_C;
+	uint8 data;
+	ReadMemory(m_HL--, data);
+	WritePort(m_address, data);
+	--m_B;
 	return 16;
 }
 
@@ -9542,10 +9588,19 @@ uint32 CZ80::ImplementOTDR(void)
 	//								5						21 (4,5,3,4,5)		5.25		B != 0
 	//								4						16 (4,5,3,4)			4.00		B == 0
 	//
-	IncrementR(2);
+	uint32 tstates = 0;
+	uint8 data;
 	++++m_PC;
-	// TODO: fix me
-	return 16;
+	do
+	{
+		IncrementR(2);
+		m_addresshi = m_B;
+		m_addresslo = m_C;
+		ReadMemory(m_HL--, data);
+		WritePort(m_address, data);
+		tstates += 16;
+	} while ((--m_B != 0) && ((tstates += 5), true));
+	return tstates;
 }
 
 //=============================================================================
