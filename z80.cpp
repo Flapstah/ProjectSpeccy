@@ -111,24 +111,44 @@ void CZ80::Reset(void)
 float CZ80::Update(float milliseconds)
 {
 	float microseconds_available = milliseconds * 1000.0f;
+	float tstates_available = microseconds_available / m_reciprocalClockSpeedMHz;
 
 	if (GetEnableDebug() || GetEnableUnattendedDebug())
 	{
 		// TODO: Interrupts need servicing here, I think
-		microseconds_available -= SingleStep();
+		tstates_available -= SingleStep();
 	}
 	else
 	{
-		while (microseconds_available > 1.0f)
+		switch (m_State.m_InterruptMode)
 		{
-			// TODO: Interrupts need servicing here, I think
-			microseconds_available -= SingleStep();
+			case 0:
+				break;
+			case 1:
+				WriteMemory(--m_SP, m_PCh);
+				WriteMemory(--m_SP, m_PCl);
+				m_PC = 0x0038;
+				tstates_available -= 13; // RST (11) + 2
+				break;
+			case 2:
+				break;
+			default:
+				m_enableDebug = true;
+				HitBreakpoint("illegal interrupt mode");
+				break;
+		}
+
+		// TODO: Interrupts need servicing here, I think
+		while (tstates_available >= 4.0f)
+		{
+			tstates_available -= SingleStep();
 	
 			if (GetEnableDebug())
 				break;
 		}
 	}
 
+	microseconds_available = tstates_available * m_reciprocalClockSpeedMHz;
 	return microseconds_available / 1000.0f;
 }
 
