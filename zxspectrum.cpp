@@ -66,6 +66,7 @@ bool CZXSpectrum::Update(void)
 
 	if ((m_pZ80 != NULL) && (m_pDisplay != NULL))
 	{
+		/*
 		if (CKeyboard::IsKeyPressed(GLFW_KEY_F1))
 		{
 			DisplayHelp();
@@ -95,6 +96,7 @@ bool CZXSpectrum::Update(void)
 		{
 			m_pZ80->SetEnableProgramFlowBreakpoints(!m_pZ80->GetEnableProgramFlowBreakpoints());
 		}
+		*/
 
 		bool updateZ80 = !m_pZ80->GetEnableDebug() || m_pZ80->GetEnableUnattendedDebug() || CKeyboard::IsKeyPressed(GLFW_KEY_SPACE);
 
