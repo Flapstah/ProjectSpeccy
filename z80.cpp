@@ -1484,6 +1484,7 @@ uint32 CZ80::Step(void)
 					case 0x53: // LD (nn),DE
 					case 0x73: // LD (nn),SP
 						return ImplementLD_nn_dd();
+						break;
 
 					case 0x44:
 						return ImplementNEG();
@@ -2807,6 +2808,7 @@ void CZ80::Decode(uint16& address, char* pMnemonic)
 					case 0x53: // LD (nn),DE
 					case 0x73: // LD (nn),SP
 						DecodeLD_nn_dd(address, pMnemonic);
+						break;
 
 					case 0x44:
 						DecodeNEG(address, pMnemonic);
@@ -3025,6 +3027,7 @@ void CZ80::Decode(uint16& address, char* pMnemonic)
 
 					case 0x96:
 						DecodeSUB_IYd_(address, pMnemonic);
+						break;
 
 					case 0xA6:
 						DecodeAND_IYd_(address, pMnemonic);
