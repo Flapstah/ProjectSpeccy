@@ -210,9 +210,9 @@ bool CZXSpectrum::LoadROM(const char* fileName)
 void CZXSpectrum::UpdateScreen(const uint8* pScreenMemory)
 {
 	// swizzle into texture
-	for (uint8 y = 0; y < SC_PIXEL_SCREEN_HEIGHT; ++y)
+	for (uint32 y = 0; y < SC_PIXEL_SCREEN_HEIGHT; ++y)
 	{
-		for (uint16 x = 0; x < SC_PIXEL_SCREEN_WIDTH; ++x)
+		for (uint32 x = 0; x < SC_PIXEL_SCREEN_WIDTH; ++x)
 		{
 			uint32 attrOffset = AttributeByteIndex(x, y);
 			uint8 ink = (pScreenMemory[attrOffset] & 0x07) >> 0;
@@ -231,7 +231,13 @@ void CZXSpectrum::UpdateScreen(const uint8* pScreenMemory)
 			if (ink & 0x04) inkRGB |= 0x0000FF00;
 			inkRGB &= bright;
 
-			uint32 colour = (pScreenMemory[PixelByteIndex(x, y)] & (1 << (7 - (x & 0x07)))) ? inkRGB : paperRGB;
+			bool pixel = (pScreenMemory[PixelByteIndex(x, y)] & (1 << (7 - (x & 0x07))));
+			if (flash && (static_cast<uint32>(m_time) & 0x0001))
+			{
+				pixel = !pixel;
+			}
+
+			uint32 colour = pixel ? inkRGB : paperRGB;
 			m_videoMemory[x + (y * SC_PIXEL_SCREEN_WIDTH)] = colour;
 		}
 	}
