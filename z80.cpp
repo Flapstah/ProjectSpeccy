@@ -13,6 +13,8 @@
 // When pressing ENTER after a statement (e.g. PRINT "p"), execution jumps off
 // into RAM after an indirect RET from 0x33A1 (from the calculator?)
 // Need to trace exectuion of a statement...
+//  - PRINT on it's own does not hit 0x1FCD which is the ROM PRINT routine...
+//  - what happens when pressing enter? 0x1024 seems to be the address in ROM..
 //=============================================================================
 
 // Helper macros to determine 8 and 16 bit registers from opcodes
@@ -31,7 +33,7 @@
 //	each T State is assumed to be 0.25 microseconds, based on a 4MHz clock.
 //=============================================================================
 
-uint16 g_addressBreakpoint = 0;
+uint16 g_addressBreakpoint = 0x1024;
 uint16 g_dataBreakpoint = 0;
 uint16 g_stackContentsBreakpoint = 0xDC62;
 uint8 g_stackContentsBreakpointNumItems = 64;
