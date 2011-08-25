@@ -10,7 +10,9 @@
 
 //=============================================================================
 // TODO:
-// Input/output and interrupts
+// When pressing ENTER after a statement (e.g. PRINT "p"), execution jumps off
+// into RAM after an indirect RET from 0x33A1 (from the calculator?)
+// Need to trace exectuion of a statement...
 //=============================================================================
 
 // Helper macros to determine 8 and 16 bit registers from opcodes
@@ -1222,7 +1224,7 @@ uint32 CZ80::Step(void)
 					case 0xEE: // SET 5,(HL)
 					case 0xF6: // SET 6,(HL)
 					case 0xFE: // SET 7,(HL)
-						return ImplementRESb_HL_();
+						return ImplementSETb_HL_();
 						break;
 
 				default:
@@ -2750,7 +2752,7 @@ void CZ80::Decode(uint16& address, char* pMnemonic)
 							case 0xEE: // SET 5,(IX+d)
 							case 0xF6: // SET 6,(IX+d)
 							case 0xFE: // SET 7,(IX+d)
-								DecodeRESb_IXd_(address, pMnemonic);
+								DecodeSETb_IXd_(address, pMnemonic);
 								break;
 
 							default:
@@ -3107,7 +3109,7 @@ void CZ80::Decode(uint16& address, char* pMnemonic)
 							case 0xEE: // SET 5,(IY+d)
 							case 0xF6: // SET 6,(IY+d)
 							case 0xFE: // SET 7,(IY+d)
-								DecodeRESb_IYd_(address, pMnemonic);
+								DecodeSETb_IYd_(address, pMnemonic);
 								break;
 
 							default:
