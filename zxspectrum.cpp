@@ -66,15 +66,19 @@ bool CZXSpectrum::Update(void)
 
 	if ((m_pZ80 != NULL) && (m_pDisplay != NULL))
 	{
-		/*
 		if (CKeyboard::IsKeyPressed(GLFW_KEY_F1))
 		{
 			DisplayHelp();
 		}
 
-		if (CKeyboard::IsKeyPressed('D'))
+		if (CKeyboard::IsKeyPressed(GLFW_KEY_F2))
 		{
 			m_pZ80->SetEnableDebug(!m_pZ80->GetEnableDebug());
+		}
+
+		if (CKeyboard::IsKeyPressed(GLFW_KEY_F3))
+		{
+			m_pZ80->SetEnableOutputStatus(!m_pZ80->GetEnableOutputStatus());
 		}
 
 		if (CKeyboard::IsKeyPressed(GLFW_KEY_F5))
@@ -82,23 +86,17 @@ bool CZXSpectrum::Update(void)
 			m_pZ80->SetEnableUnattendedDebug(!m_pZ80->GetEnableUnattendedDebug());
 		}
 
-		if (CKeyboard::IsKeyPressed('S'))
-		{
-			m_pZ80->SetEnableOutputStatus(!m_pZ80->GetEnableOutputStatus());
-		}
-
-		if (CKeyboard::IsKeyPressed('B'))
+		if (CKeyboard::IsKeyPressed(GLFW_KEY_F7))
 		{
 			m_pZ80->SetEnableBreakpoints(!m_pZ80->GetEnableBreakpoints());
 		}
 
-		if (CKeyboard::IsKeyPressed('F'))
+		if (CKeyboard::IsKeyPressed(GLFW_KEY_F8))
 		{
 			m_pZ80->SetEnableProgramFlowBreakpoints(!m_pZ80->GetEnableProgramFlowBreakpoints());
 		}
-		*/
 
-		bool updateZ80 = !m_pZ80->GetEnableDebug() || m_pZ80->GetEnableUnattendedDebug() || CKeyboard::IsKeyPressed(GLFW_KEY_SPACE);
+		bool updateZ80 = !m_pZ80->GetEnableDebug() || m_pZ80->GetEnableUnattendedDebug() || CKeyboard::IsKeyPressed(GLFW_KEY_F10);
 
 		if (updateZ80)
 		{
@@ -123,13 +121,13 @@ bool CZXSpectrum::Update(void)
 void CZXSpectrum::DisplayHelp(void) const
 {
 	fprintf(stderr, "[ZX Spectrum]: Help keys:\n");
-	fprintf(stderr, "[ZX Spectrum]:      [F1] Show help\n");
-	fprintf(stderr, "[ZX Spectrum]:      [D] Toggle debug mode\n");
-	fprintf(stderr, "[ZX Spectrum]:      [F5] Toggle unattended debug mode\n");
-	fprintf(stderr, "[ZX Spectrum]:      [S] Toggle status output\n");
-	fprintf(stderr, "[ZX Spectrum]:      [B] Toggle enable break points\n");
-	fprintf(stderr, "[ZX Spectrum]:      [F] Toggle enable program flow break points\n");
-	fprintf(stderr, "[ZX Spectrum]:      [SPACE] Single step\n");
+	fprintf(stderr, "[ZX Spectrum]:      [F1]  Show help\n");
+	fprintf(stderr, "[ZX Spectrum]:      [F2]  Toggle debug mode\n");
+	fprintf(stderr, "[ZX Spectrum]:      [F3]  Toggle status output\n");
+	fprintf(stderr, "[ZX Spectrum]:      [F5]  Toggle unattended debug mode\n");
+	fprintf(stderr, "[ZX Spectrum]:      [F7]  Toggle enable break points\n");
+	fprintf(stderr, "[ZX Spectrum]:      [F8]  Toggle enable program flow break points\n");
+	fprintf(stderr, "[ZX Spectrum]:      [F10] Single step\n");
 	fprintf(stderr, "[ZX Spectrum]:      [ESC] Quit\n");
 }
 

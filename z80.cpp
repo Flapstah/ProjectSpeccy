@@ -73,13 +73,11 @@ CZ80::CZ80(uint8* pMemory, float clockSpeedMHz)
 	, m_pMemory(pMemory)
 	, m_clockSpeedMHz(clockSpeedMHz)
 	, m_reciprocalClockSpeedMHz(1.0f / clockSpeedMHz)
-// TEMP
-//#if defined(NDEBUG)
+#if defined(NDEBUG)
 	, m_enableDebug(false)
-//#else
-//	, m_enableDebug(true)
-//#endif // defined(NDEBUG)
-// TEMP
+#else
+	, m_enableDebug(true)
+#endif // defined(NDEBUG)
 	, m_enableUnattendedDebug(false)
 	, m_enableOutputStatus(false)
 	, m_enableBreakpoints(false)
