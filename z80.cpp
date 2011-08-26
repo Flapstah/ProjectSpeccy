@@ -15,6 +15,8 @@
 // Need to trace exectuion of a statement...
 //  - PRINT on it's own does not hit 0x1FCD which is the ROM PRINT routine...
 //  - what happens when pressing enter? 0x1024 seems to be the address in ROM..
+// Tracing the ROM routines for parsing the edit buffer indicate that P/V flag
+// is being tested - need to implement this
 //=============================================================================
 
 // Helper macros to determine 8 and 16 bit registers from opcodes
@@ -166,12 +168,12 @@ float CZ80::SingleStep(void)
 {
 	if (GetEnableDebug() || GetEnableUnattendedDebug())
 	{
-		OutputInstruction(m_PC);
-
 		if (GetEnableOutputStatus())
 		{
 			OutputStatus();
 		}
+
+		OutputInstruction(m_PC);
 	}
 
 	if (GetEnableBreakpoints() && (m_PC == g_addressBreakpoint))
