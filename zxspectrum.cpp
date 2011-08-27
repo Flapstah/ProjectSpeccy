@@ -232,7 +232,9 @@ void CZXSpectrum::UpdateScreen(const uint8* pScreenMemory)
 			inkRGB &= bright;
 
 			bool pixel = (pScreenMemory[PixelByteIndex(x, y)] & (1 << (7 - (x & 0x07))));
-			if (flash && (static_cast<uint32>(m_time) & 0x0001))
+			// Flash attribute swaps ink and paper every 32 frames on a real Speccy
+			// So as a rough test I need to flash every 32/50 of a second...
+			if (flash && (static_cast<uint32>(m_time * 50.0f / 32.0f) & 0x0001))
 			{
 				pixel = !pixel;
 			}
