@@ -5224,7 +5224,7 @@ uint32 CZ80::ImplementADCAr(void)
 	IncrementR(1);
 	uint8 opcode;
 	ReadMemory(m_PC++, opcode);
-	uint8 source = REGISTER_8BIT(opcode) + ((m_F & eF_C) ? 1 : 0);
+	uint8 source = REGISTER_8BIT(opcode) + (m_F & eF_C);
 	uint8 origA = m_A;
 	uint16 result = origA + source;
 	m_A = (result & 0xFF);
@@ -5256,7 +5256,7 @@ uint32 CZ80::ImplementADCAn(void)
 	uint8 source;
 	ReadMemory(++m_PC, source);
 	++m_PC;
-	source += (m_F & eF_C) ? 1 : 0;
+	source += (m_F & eF_C);
 	uint8 origA = m_A;
 	uint16 result = origA + source;
 	m_A = (result & 0xFF);
@@ -5286,7 +5286,7 @@ uint32 CZ80::ImplementADCA_HL_(void)
 	++m_PC;
 	uint8 source;
 	ReadMemory(m_HL, source);
-	source += (m_F & eF_C) ? 1 : 0;
+	source += (m_F & eF_C);
 	uint8 origA = m_A;
 	uint16 result = origA + source;
 	m_A = (result & 0xFF);
@@ -5321,7 +5321,7 @@ uint32 CZ80::ImplementADCA_IXd_(void)
 	uint8 source, displacement;
 	ReadMemory(m_PC++, displacement);
 	ReadMemory(m_IX + displacement, source);
-	source += (m_F & eF_C) ? 1 : 0;
+	source += (m_F & eF_C);
 	uint8 origA = m_A;
 	uint16 result = origA + source;
 	m_A = (result & 0xFF);
@@ -5356,7 +5356,7 @@ uint32 CZ80::ImplementADCA_IYd_(void)
 	uint8 source, displacement;
 	ReadMemory(m_PC++, displacement);
 	ReadMemory(m_IY + displacement, source);
-	source += (m_F & eF_C) ? 1 : 0;
+	source += (m_F & eF_C);
 	uint8 origA = m_A;
 	uint16 result = origA + source;
 	m_A = (result & 0xFF);
@@ -5560,7 +5560,7 @@ uint32 CZ80::ImplementSBCAr(void)
 	IncrementR(1);
 	uint8 opcode;
 	ReadMemory(m_PC++, opcode);
-	uint8 source = REGISTER_8BIT(opcode) - (m_F & eF_C) ? 1 : 0;
+	uint8 source = REGISTER_8BIT(opcode) - (m_F & eF_C);
 	uint8 origA = m_A;
 	uint16 result = origA - source;
 	m_A = (result & 0xFF);
@@ -5592,7 +5592,7 @@ uint32 CZ80::ImplementSBCAn(void)
 	uint8 source;
 	ReadMemory(++m_PC, source);
 	++m_PC;
-	source -= (m_F & eF_C) ? 1 : 0;
+	source -= (m_F & eF_C);
 	uint8 origA = m_A;
 	uint16 result = origA - source;
 	m_A = (result & 0xFF);
@@ -5622,7 +5622,7 @@ uint32 CZ80::ImplementSBCA_HL_(void)
 	uint8 source;
 	ReadMemory(m_HL, source);
 	++m_PC;
-	source -= (m_F & eF_C) ? 1 : 0;
+	source -= (m_F & eF_C);
 	uint8 origA = m_A;
 	uint16 result = origA - source;
 	m_A = (result & 0xFF);
@@ -5658,7 +5658,7 @@ uint32 CZ80::ImplementSBCA_IXd_(void)
 	ReadMemory(m_PC++, *(reinterpret_cast<uint8*>(&displacement)));
 	uint8 source;
 	ReadMemory(m_IX + displacement, source);
-	source -= (m_F & eF_C) ? 1 : 0;
+	source -= (m_F & eF_C);
 	uint8 origA = m_A;
 	uint16 result = origA - source;
 	m_A = (result & 0xFF);
@@ -5694,7 +5694,7 @@ uint32 CZ80::ImplementSBCA_IYd_(void)
 	ReadMemory(m_PC++, *(reinterpret_cast<uint8*>(&displacement)));
 	uint8 source;
 	ReadMemory(m_IY + displacement, source);
-	source -= (m_F & eF_C) ? 1 : 0;
+	source -= (m_F & eF_C);
 	uint8 origA = m_A;
 	uint16 result = origA - source;
 	m_A = (result & 0xFF);
