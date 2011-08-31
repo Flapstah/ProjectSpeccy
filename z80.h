@@ -37,6 +37,7 @@ class CZ80
 		void Decode(uint16& address, char* pMnemonic);
 		uint8 HandleArithmeticAddFlags(uint16 source1, uint16 source2);
 		uint8 HandleArithmeticSubtractFlags(uint16 source1, uint16 source2);
+		void HandleLogicalFlags(uint8 source);
 
 		bool WriteMemory(uint16 address, uint8 byte);
 		bool ReadMemory(uint16 address, uint8& byte);
