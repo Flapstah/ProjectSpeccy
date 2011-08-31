@@ -6215,8 +6215,7 @@ uint32 CZ80::ImplementINCr(void)
 	uint8 opcode;
 	ReadMemory(m_PC++, opcode);
 	int8& reg = *reinterpret_cast<int8*>(&REGISTER_8BIT(opcode >> 3));
-	int8 orig = reg++;	
-	m_F = (reg & (eF_S | eF_X | eF_Y)) | ((reg == 0) ? eF_Z : 0) | ((reg ^ orig) & eF_H) | ((orig == 0x7F) ? eF_PV : 0);
+	reg = HandleArithmeticAddFlags(reg, 1);
 	return 4;
 }
 
@@ -6239,9 +6238,8 @@ uint32 CZ80::ImplementINC_HL_(void)
 	++m_PC;
 	uint8 byte;
 	ReadMemory(m_HL, byte);
-	uint8 orig = byte++;
+	byte = HandleArithmeticAddFlags(byte, 1);
 	WriteMemory(m_HL, byte);
-	m_F = (byte & (eF_S | eF_X | eF_Y)) | ((byte == 0) ? eF_Z : 0) | ((byte ^ orig) & eF_H) | ((orig == 0x7F) ? eF_PV : 0);
 	return 11;
 }
 
@@ -6270,9 +6268,8 @@ uint32 CZ80::ImplementINC_IXd_(void)
 	ReadMemory(m_PC++, *(reinterpret_cast<uint8*>(&displacement)));
 	uint8 byte;
 	ReadMemory(m_IX + displacement, byte);
-	uint8 orig = byte++;
+	byte = HandleArithmeticAddFlags(byte, 1);
 	WriteMemory(m_IX + displacement, byte);
-	m_F = (byte & (eF_S | eF_X | eF_Y)) | ((byte == 0) ? eF_Z : 0) | ((byte ^ orig) & eF_H) | ((orig == 0x7F) ? eF_PV : 0);
 	return 23;
 }
 
@@ -6301,9 +6298,8 @@ uint32 CZ80::ImplementINC_IYd_(void)
 	ReadMemory(m_PC++, *(reinterpret_cast<uint8*>(&displacement)));
 	uint8 byte;
 	ReadMemory(m_IY + displacement, byte);
-	uint8 orig = byte++;
+	byte = HandleArithmeticAddFlags(byte, 1);
 	WriteMemory(m_IY + displacement, byte);
-	m_F = (byte & (eF_S | eF_X | eF_Y)) | ((byte == 0) ? eF_Z : 0) | ((byte ^ orig) & eF_H) | ((orig == 0x7F) ? eF_PV : 0);
 	return 23;
 }
 
@@ -6335,8 +6331,7 @@ uint32 CZ80::ImplementDECr(void)
 	uint8 opcode;
 	ReadMemory(m_PC++, opcode);
 	int8& reg = *reinterpret_cast<int8*>(&REGISTER_8BIT(opcode >> 3));
-	int8 orig = reg--;	
-	m_F = (reg & (eF_S | eF_X | eF_Y | eF_N)) | ((reg == 0) ? eF_Z : 0) | ((reg ^ orig) & eF_H) | ((orig == 0x7F) ? eF_PV : 0);
+	reg = HandleArithmeticSubtractFlags(reg, 1);
 	return 4;
 }
 
@@ -6359,9 +6354,8 @@ uint32 CZ80::ImplementDEC_HL_(void)
 	++m_PC;
 	uint8 byte;
 	ReadMemory(m_HL, byte);
-	uint8 orig = byte--;
+	byte = HandleArithmeticSubtractFlags(byte, 1);
 	WriteMemory(m_HL, byte);
-	m_F = (byte & (eF_S | eF_X | eF_Y)) | ((byte == 0) ? eF_Z : 0) | ((byte ^ orig) & eF_H) | ((orig == 0x7F) ? eF_PV : 0);
 	return 11;
 }
 
@@ -6390,9 +6384,8 @@ uint32 CZ80::ImplementDEC_IXd_(void)
 	ReadMemory(m_PC++, *(reinterpret_cast<uint8*>(&displacement)));
 	uint8 byte;
 	ReadMemory(m_IX + displacement, byte);
-	uint8 orig = byte--;
+	byte = HandleArithmeticSubtractFlags(byte, 1);
 	WriteMemory(m_IX + displacement, byte);
-	m_F = (byte & (eF_S | eF_X | eF_Y)) | ((byte == 0) ? eF_Z : 0) | ((byte ^ orig) & eF_H) | ((orig == 0x7F) ? eF_PV : 0);
 	return 23;
 }
 
@@ -6421,9 +6414,8 @@ uint32 CZ80::ImplementDEC_IYd_(void)
 	ReadMemory(m_PC++, *(reinterpret_cast<uint8*>(&displacement)));
 	uint8 byte;
 	ReadMemory(m_IY + displacement, byte);
-	uint8 orig = byte--;
+	byte = HandleArithmeticSubtractFlags(byte, 1);
 	WriteMemory(m_IY + displacement, byte);
-	m_F = (byte & (eF_S | eF_X | eF_Y)) | ((byte == 0) ? eF_Z : 0) | ((byte ^ orig) & eF_H) | ((orig == 0x7F) ? eF_PV : 0);
 	return 23;
 }
 
