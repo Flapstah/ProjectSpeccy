@@ -35,8 +35,8 @@
 //	each T State is assumed to be 0.25 microseconds, based on a 4MHz clock.
 //=============================================================================
 
-uint16 g_addressBreakpoint = 0x1024;
-uint16 g_dataBreakpoint = 0;
+uint16 g_addressBreakpoint = 0x1024; // ED_ENTER
+uint16 g_dataBreakpoint = 0x5C3A; // ERR_NR
 uint16 g_stackContentsBreakpoint = 0xDC62;
 uint8 g_stackContentsBreakpointNumItems = 64;
 
