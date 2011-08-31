@@ -36,7 +36,7 @@
 //=============================================================================
 
 uint16 g_addressBreakpoint = 0x1024; // ED_ENTER
-uint16 g_dataBreakpoint = 0x5C3A; // ERR_NR
+uint16 g_dataBreakpoint = 0; //0x5C3A; // ERR_NR
 uint16 g_stackContentsBreakpoint = 0xDC62;
 uint8 g_stackContentsBreakpointNumItems = 64;
 
@@ -174,6 +174,7 @@ float CZ80::SingleStep(void)
 		}
 
 		OutputInstruction(m_PC);
+		fprintf(stdout, "----------------------------------------------------------------\n");
 	}
 
 	if (GetEnableBreakpoints() && (m_PC == g_addressBreakpoint))
@@ -3195,7 +3196,7 @@ void CZ80::HandleLogicalFlags(uint8 source)
 	source ^= source >> 4;
 	source &= 0xF;
 	uint8 parity = ((0x6996 >> source) << 2);
-	m_F = (source & (eF_S | eF_Y | eF_X)) | ((source == 0) ? eF_Z : 0) | eF_H | (parity & eF_PV);
+	m_F = (source & (eF_S | eF_Y | eF_X)) | ((source == 0) ? eF_Z : 0) | eF_H | (~parity & eF_PV);
 }
 
 //=============================================================================
@@ -6473,7 +6474,7 @@ uint32 CZ80::ImplementDAA(void)
 	m_A = adjustedA;
 	adjustedA ^= adjustedA >> 4;
 	adjustedA &= 0xF;
-	uint8 parity = ((0x6996 >> adjustedA) << 2) & eF_PV;
+	uint8 parity = ~((0x6996 >> adjustedA) << 2) & eF_PV;
 	m_F &= eF_N;
 	m_F |= (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | parity | carry;
 	return 4;
@@ -7188,7 +7189,7 @@ uint32 CZ80::ImplementRLCr(void)
 	uint8 parity = reg;
 	parity ^= parity >> 4;
 	parity &= 0xF;
-	parity = ((0x6996 >> parity) << 2) & eF_PV;
+	parity = ~((0x6996 >> parity) << 2) & eF_PV;
 	m_F = (reg & (eF_S | eF_X | eF_Y)) | ((reg == 0) ? eF_Z : 0) | parity | carry;
 	return 8;
 }
@@ -7221,7 +7222,7 @@ uint32 CZ80::ImplementRLC_HL_(void)
 	uint8 parity = byte;
 	parity ^= parity >> 4;
 	parity &= 0xF;
-	parity = ((0x6996 >> parity) << 2) & eF_PV;
+	parity = ~((0x6996 >> parity) << 2) & eF_PV;
 	m_F = (byte & (eF_S | eF_X | eF_Y)) | ((byte == 0) ? eF_Z : 0) | parity | carry;
 	return 15;
 }
@@ -7261,7 +7262,7 @@ uint32 CZ80::ImplementRLC_IXd_(void)
 	uint8 parity = byte;
 	parity ^= parity >> 4;
 	parity &= 0xF;
-	parity = ((0x6996 >> parity) << 2) & eF_PV;
+	parity = ~((0x6996 >> parity) << 2) & eF_PV;
 	m_F = (byte & (eF_S | eF_X | eF_Y)) | ((byte == 0) ? eF_Z : 0) | parity | carry;
 	return 23;
 }
@@ -7301,7 +7302,7 @@ uint32 CZ80::ImplementRLC_IYd_(void)
 	uint8 parity = byte;
 	parity ^= parity >> 4;
 	parity &= 0xF;
-	parity = ((0x6996 >> parity) << 2) & eF_PV;
+	parity = ~((0x6996 >> parity) << 2) & eF_PV;
 	m_F = (byte & (eF_S | eF_X | eF_Y)) | ((byte == 0) ? eF_Z : 0) | parity | carry;
 	return 23;
 }
@@ -7334,7 +7335,7 @@ uint32 CZ80::ImplementRLr(void)
 	uint8 parity = reg;
 	parity ^= parity >> 4;
 	parity &= 0xF;
-	parity = ((0x6996 >> parity) << 2) & eF_PV;
+	parity = ~((0x6996 >> parity) << 2) & eF_PV;
 	m_F = (reg & (eF_S | eF_X | eF_Y)) | ((reg == 0) ? eF_Z : 0) | parity | carry;
 	return 8;
 }
@@ -7367,7 +7368,7 @@ uint32 CZ80::ImplementRL_HL_(void)
 	uint8 parity = byte;
 	parity ^= parity >> 4;
 	parity &= 0xF;
-	parity = ((0x6996 >> parity) << 2) & eF_PV;
+	parity = ~((0x6996 >> parity) << 2) & eF_PV;
 	m_F = (byte & (eF_S | eF_X | eF_Y)) | ((byte == 0) ? eF_Z : 0) | parity | carry;
 	return 15;
 }
@@ -7407,7 +7408,7 @@ uint32 CZ80::ImplementRL_IXd_(void)
 	uint8 parity = byte;
 	parity ^= parity >> 4;
 	parity &= 0xF;
-	parity = ((0x6996 >> parity) << 2) & eF_PV;
+	parity = ~((0x6996 >> parity) << 2) & eF_PV;
 	m_F = (byte & (eF_S | eF_X | eF_Y)) | ((byte == 0) ? eF_Z : 0) | parity | carry;
 	return 23;
 }
@@ -7448,7 +7449,7 @@ uint32 CZ80::ImplementRL_IYd_(void)
 	uint8 parity = byte;
 	parity ^= parity >> 4;
 	parity &= 0xF;
-	parity = ((0x6996 >> parity) << 2) & eF_PV;
+	parity = ~((0x6996 >> parity) << 2) & eF_PV;
 	m_F = (byte & (eF_S | eF_X | eF_Y)) | ((byte == 0) ? eF_Z : 0) | parity | carry;
 	return 23;
 }
@@ -7481,7 +7482,7 @@ uint32 CZ80::ImplementRRCr(void)
 	uint8 parity = reg;
 	parity ^= parity >> 4;
 	parity &= 0xF;
-	parity = ((0x6996 >> parity) << 2) & eF_PV;
+	parity = ~((0x6996 >> parity) << 2) & eF_PV;
 	m_F = (reg & (eF_S | eF_X | eF_Y)) | ((reg == 0) ? eF_Z : 0) | parity | carry;
 	return 8;
 }
@@ -7514,7 +7515,7 @@ uint32 CZ80::ImplementRRC_HL_(void)
 	uint8 parity = byte;
 	parity ^= parity >> 4;
 	parity &= 0xF;
-	parity = ((0x6996 >> parity) << 2) & eF_PV;
+	parity = ~((0x6996 >> parity) << 2) & eF_PV;
 	m_F = (byte & (eF_S | eF_X | eF_Y)) | ((byte == 0) ? eF_Z : 0) | parity | carry;
 	return 15;
 }
@@ -7554,7 +7555,7 @@ uint32 CZ80::ImplementRRC_IXd_(void)
 	uint8 parity = byte;
 	parity ^= parity >> 4;
 	parity &= 0xF;
-	parity = ((0x6996 >> parity) << 2) & eF_PV;
+	parity = ~((0x6996 >> parity) << 2) & eF_PV;
 	m_F = (byte & (eF_S | eF_X | eF_Y)) | ((byte == 0) ? eF_Z : 0) | parity | carry;
 	return 23;
 }
@@ -7594,7 +7595,7 @@ uint32 CZ80::ImplementRRC_IYd_(void)
 	uint8 parity = byte;
 	parity ^= parity >> 4;
 	parity &= 0xF;
-	parity = ((0x6996 >> parity) << 2) & eF_PV;
+	parity = ~((0x6996 >> parity) << 2) & eF_PV;
 	m_F = (byte & (eF_S | eF_X | eF_Y)) | ((byte == 0) ? eF_Z : 0) | parity | carry;
 	return 23;
 }
@@ -7627,7 +7628,7 @@ uint32 CZ80::ImplementRRr(void)
 	uint8 parity = reg;
 	parity ^= parity >> 4;
 	parity &= 0xF;
-	parity = ((0x6996 >> parity) << 2) & eF_PV;
+	parity = ~((0x6996 >> parity) << 2) & eF_PV;
 	m_F = (reg & (eF_S | eF_X | eF_Y)) | ((reg == 0) ? eF_Z : 0) | parity | carry;
 	return 8;
 }
@@ -7660,7 +7661,7 @@ uint32 CZ80::ImplementRR_HL_(void)
 	uint8 parity = byte;
 	parity ^= parity >> 4;
 	parity &= 0xF;
-	parity = ((0x6996 >> parity) << 2) & eF_PV;
+	parity = ~((0x6996 >> parity) << 2) & eF_PV;
 	m_F = (byte & (eF_S | eF_X | eF_Y)) | ((byte == 0) ? eF_Z : 0) | parity | carry;
 	return 15;
 }
@@ -7700,7 +7701,7 @@ uint32 CZ80::ImplementRR_IXd_(void)
 	uint8 parity = byte;
 	parity ^= parity >> 4;
 	parity &= 0xF;
-	parity = ((0x6996 >> parity) << 2) & eF_PV;
+	parity = ~((0x6996 >> parity) << 2) & eF_PV;
 	m_F = (byte & (eF_S | eF_X | eF_Y)) | ((byte == 0) ? eF_Z : 0) | parity | carry;
 	return 23;
 }
@@ -7740,7 +7741,7 @@ uint32 CZ80::ImplementRR_IYd_(void)
 	uint8 parity = byte;
 	parity ^= parity >> 4;
 	parity &= 0xF;
-	parity = ((0x6996 >> parity) << 2) & eF_PV;
+	parity = ~((0x6996 >> parity) << 2) & eF_PV;
 	m_F = (byte & (eF_S | eF_X | eF_Y)) | ((byte == 0) ? eF_Z : 0) | parity | carry;
 	return 23;
 }
@@ -7772,7 +7773,7 @@ uint32 CZ80::ImplementSLAr(void)
 	uint8 parity = reg;
 	parity ^= parity >> 4;
 	parity &= 0xF;
-	parity = ((0x6996 >> parity) << 2) & eF_PV;
+	parity = ~((0x6996 >> parity) << 2) & eF_PV;
 	m_F = (reg & (eF_S | eF_X | eF_Y)) | ((reg == 0) ? eF_Z : 0) | parity | carry;
 	return 8;
 }
@@ -7804,7 +7805,7 @@ uint32 CZ80::ImplementSLA_HL_(void)
 	uint8 parity = byte;
 	parity ^= parity >> 4;
 	parity &= 0xF;
-	parity = ((0x6996 >> parity) << 2) & eF_PV;
+	parity = ~((0x6996 >> parity) << 2) & eF_PV;
 	m_F = (byte & (eF_S | eF_X | eF_Y)) | ((byte == 0) ? eF_Z : 0) | parity | carry;
 	return 15;
 }
@@ -7843,7 +7844,7 @@ uint32 CZ80::ImplementSLA_IXd_(void)
 	uint8 parity = byte;
 	parity ^= parity >> 4;
 	parity &= 0xF;
-	parity = ((0x6996 >> parity) << 2) & eF_PV;
+	parity = ~((0x6996 >> parity) << 2) & eF_PV;
 	m_F = (byte & (eF_S | eF_X | eF_Y)) | ((byte == 0) ? eF_Z : 0) | parity | carry;
 	return 23;
 }
@@ -7882,7 +7883,7 @@ uint32 CZ80::ImplementSLA_IYd_(void)
 	uint8 parity = byte;
 	parity ^= parity >> 4;
 	parity &= 0xF;
-	parity = ((0x6996 >> parity) << 2) & eF_PV;
+	parity = ~((0x6996 >> parity) << 2) & eF_PV;
 	m_F = (byte & (eF_S | eF_X | eF_Y)) | ((byte == 0) ? eF_Z : 0) | parity | carry;
 	return 23;
 }
@@ -7916,7 +7917,7 @@ uint32 CZ80::ImplementSRAr(void)
 	uint8 parity = reg;
 	parity ^= parity >> 4;
 	parity &= 0xF;
-	parity = ((0x6996 >> parity) << 2) & eF_PV;
+	parity = ~((0x6996 >> parity) << 2) & eF_PV;
 	m_F = (reg & (eF_S | eF_X | eF_Y)) | ((reg == 0) ? eF_Z : 0) | parity | carry;
 	return 8;
 }
@@ -7950,7 +7951,7 @@ uint32 CZ80::ImplementSRA_HL_(void)
 	uint8 parity = byte;
 	parity ^= parity >> 4;
 	parity &= 0xF;
-	parity = ((0x6996 >> parity) << 2) & eF_PV;
+	parity = ~((0x6996 >> parity) << 2) & eF_PV;
 	m_F = (byte & (eF_S | eF_X | eF_Y)) | ((byte == 0) ? eF_Z : 0) | parity | carry;
 	return 15;
 }
@@ -7991,7 +7992,7 @@ uint32 CZ80::ImplementSRA_IXd_(void)
 	uint8 parity = byte;
 	parity ^= parity >> 4;
 	parity &= 0xF;
-	parity = ((0x6996 >> parity) << 2) & eF_PV;
+	parity = ~((0x6996 >> parity) << 2) & eF_PV;
 	m_F = (byte & (eF_S | eF_X | eF_Y)) | ((byte == 0) ? eF_Z : 0) | parity | carry;
 	return 23;
 }
@@ -8032,7 +8033,7 @@ uint32 CZ80::ImplementSRA_IYd_(void)
 	uint8 parity = byte;
 	parity ^= parity >> 4;
 	parity &= 0xF;
-	parity = ((0x6996 >> parity) << 2) & eF_PV;
+	parity = ~((0x6996 >> parity) << 2) & eF_PV;
 	m_F = (byte & (eF_S | eF_X | eF_Y)) | ((byte == 0) ? eF_Z : 0) | parity | carry;
 	return 23;
 }
@@ -8064,7 +8065,7 @@ uint32 CZ80::ImplementSRLr(void)
 	uint8 parity = reg;
 	parity ^= parity >> 4;
 	parity &= 0xF;
-	parity = ((0x6996 >> parity) << 2) & eF_PV;
+	parity = ~((0x6996 >> parity) << 2) & eF_PV;
 	m_F = (reg & (eF_S | eF_X | eF_Y)) | ((reg == 0) ? eF_Z : 0) | parity | carry;
 	return 8;
 }
@@ -8096,7 +8097,7 @@ uint32 CZ80::ImplementSRL_HL_(void)
 	uint8 parity = byte;
 	parity ^= parity >> 4;
 	parity &= 0xF;
-	parity = ((0x6996 >> parity) << 2) & eF_PV;
+	parity = ~((0x6996 >> parity) << 2) & eF_PV;
 	m_F = (byte & (eF_S | eF_X | eF_Y)) | ((byte == 0) ? eF_Z : 0) | parity | carry;
 	return 15;
 }
@@ -8136,7 +8137,7 @@ uint32 CZ80::ImplementSRL_IXd_(void)
 	uint8 parity = byte;
 	parity ^= parity >> 4;
 	parity &= 0xF;
-	parity = ((0x6996 >> parity) << 2) & eF_PV;
+	parity = ~((0x6996 >> parity) << 2) & eF_PV;
 	m_F = (byte & (eF_S | eF_X | eF_Y)) | ((byte == 0) ? eF_Z : 0) | parity | carry;
 	return 23;
 }
@@ -8175,7 +8176,7 @@ uint32 CZ80::ImplementSRL_IYd_(void)
 	uint8 parity = byte;
 	parity ^= parity >> 4;
 	parity &= 0xF;
-	parity = ((0x6996 >> parity) << 2) & eF_PV;
+	parity = ~((0x6996 >> parity) << 2) & eF_PV;
 	m_F = (byte & (eF_S | eF_X | eF_Y)) | ((byte == 0) ? eF_Z : 0) | parity | carry;
 	return 23;
 }
@@ -8210,7 +8211,7 @@ uint32 CZ80::ImplementRLD(void)
 	uint8 parity = m_A;
 	parity ^= parity >> 4;
 	parity &= 0xF;
-	parity = ((0x6996 >> parity) << 2) & eF_PV;
+	parity = ~((0x6996 >> parity) << 2) & eF_PV;
 	m_F &= eF_C;
 	m_F |= (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | parity;
 	return 18;
@@ -8246,7 +8247,7 @@ uint32 CZ80::ImplementRRD(void)
 	uint8 parity = m_A;
 	parity ^= parity >> 4;
 	parity &= 0xF;
-	parity = ((0x6996 >> parity) << 2) & eF_PV;
+	parity = ~((0x6996 >> parity) << 2) & eF_PV;
 	m_F &= eF_C;
 	m_F |= (m_A & (eF_S | eF_X | eF_Y)) | ((m_A == 0) ? eF_Z : 0) | parity;
 	return 18;
@@ -10877,7 +10878,7 @@ void CZ80::DecodeJPnn(uint16& address, char* pMnemonic)
 {
 	uint16 addr = m_pMemory[address + 1] + (static_cast<int16>(m_pMemory[address + 2]) << 8);
 	address += 3;
-	sprintf(pMnemonic, "JP %04X", addr);
+	sprintf(pMnemonic, "JP $%04X", addr);
 }
 
 //=============================================================================
@@ -10887,7 +10888,7 @@ void CZ80::DecodeJPccnn(uint16& address, char* pMnemonic)
 	uint8 cc = (m_pMemory[address++] & 0x38) >> 3;
 	uint16 addr = m_pMemory[address] + (static_cast<int16>(m_pMemory[address + 1]) << 8);
 	address += 2;
-	sprintf(pMnemonic, "JP %s,%04X", GetConditionString(cc), addr);
+	sprintf(pMnemonic, "JP %s,$%04X", GetConditionString(cc), addr);
 }
 
 //=============================================================================
@@ -10895,7 +10896,7 @@ void CZ80::DecodeJPccnn(uint16& address, char* pMnemonic)
 void CZ80::DecodeJRe(uint16& address, char* pMnemonic)
 {
 	address += 2;
-	sprintf(pMnemonic, "JR %04X", address + static_cast<int8>(m_pMemory[address - 1]));
+	sprintf(pMnemonic, "JR $%04X", address + static_cast<int8>(m_pMemory[address - 1]));
 }
 
 //=============================================================================
@@ -10903,7 +10904,7 @@ void CZ80::DecodeJRe(uint16& address, char* pMnemonic)
 void CZ80::DecodeJRCe(uint16& address, char* pMnemonic)
 {
 	address += 2;
-	sprintf(pMnemonic, "JR C,%04X", address + static_cast<int8>(m_pMemory[address - 1]));
+	sprintf(pMnemonic, "JR C,$%04X", address + static_cast<int8>(m_pMemory[address - 1]));
 }
 
 //=============================================================================
@@ -10911,7 +10912,7 @@ void CZ80::DecodeJRCe(uint16& address, char* pMnemonic)
 void CZ80::DecodeJRNCe(uint16& address, char* pMnemonic)
 {
 	address += 2;
-	sprintf(pMnemonic, "JR NC,%04X", address + static_cast<int8>(m_pMemory[address - 1]));
+	sprintf(pMnemonic, "JR NC,$%04X", address + static_cast<int8>(m_pMemory[address - 1]));
 }
 
 //=============================================================================
@@ -10919,7 +10920,7 @@ void CZ80::DecodeJRNCe(uint16& address, char* pMnemonic)
 void CZ80::DecodeJRZe(uint16& address, char* pMnemonic)
 {
 	address += 2;
-	sprintf(pMnemonic, "JR Z,%04X", address + static_cast<int8>(m_pMemory[address - 1]));
+	sprintf(pMnemonic, "JR Z,$%04X", address + static_cast<int8>(m_pMemory[address - 1]));
 }
 
 //=============================================================================
@@ -10927,7 +10928,7 @@ void CZ80::DecodeJRZe(uint16& address, char* pMnemonic)
 void CZ80::DecodeJRNZe(uint16& address, char* pMnemonic)
 {
 	address += 2;
-	sprintf(pMnemonic, "JR NZ,%04X", address + static_cast<int8>(m_pMemory[address - 1]));
+	sprintf(pMnemonic, "JR NZ,$%04X", address + static_cast<int8>(m_pMemory[address - 1]));
 }
 
 //=============================================================================
@@ -10959,7 +10960,7 @@ void CZ80::DecodeJP_IY_(uint16& address, char* pMnemonic)
 void CZ80::DecodeDJNZe(uint16& address, char* pMnemonic)
 {
 	address += 2;
-	sprintf(pMnemonic, "DJNZ %04X", address + static_cast<int8>(m_pMemory[address - 1]));
+	sprintf(pMnemonic, "DJNZ $%04X", address + static_cast<int8>(m_pMemory[address - 1]));
 }
 
 //=============================================================================
@@ -10973,7 +10974,7 @@ void CZ80::DecodeDJNZe(uint16& address, char* pMnemonic)
 void CZ80::DecodeCALLnn(uint16& address, char* pMnemonic)
 {
 	uint16 addr = m_pMemory[address + 1] + (static_cast<int16>(m_pMemory[address + 2]) << 8);
-	sprintf(pMnemonic, "CALL %04X", addr);
+	sprintf(pMnemonic, "CALL $%04X", addr);
 	address += 3;
 }
 
@@ -10983,7 +10984,7 @@ void CZ80::DecodeCALLccnn(uint16& address, char* pMnemonic)
 {
 	uint8 cc = (m_pMemory[address] & 0x38) >> 3;
 	uint16 addr = m_pMemory[address + 1] + (static_cast<int16>(m_pMemory[address + 2]) << 8);
-	sprintf(pMnemonic, "CALL %s,%04X", GetConditionString(cc), addr);
+	sprintf(pMnemonic, "CALL %s,$%04X", GetConditionString(cc), addr);
 	address += 3;
 }
 
@@ -11023,8 +11024,8 @@ void CZ80::DecodeRETN(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeRSTp(uint16& address, char* pMnemonic)
 {
-	uint8 t = (m_pMemory[address++] & 0x38) >> 3;
-	sprintf(pMnemonic, "RST %i", t);
+	uint8 t = ((m_pMemory[address++] & 0x38) >> 3) * 8;
+	sprintf(pMnemonic, "RST $%i", t);
 }
 
 //=============================================================================
