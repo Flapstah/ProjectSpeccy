@@ -10,13 +10,7 @@
 
 //=============================================================================
 // TODO:
-// When pressing ENTER after a statement (e.g. PRINT "p"), execution jumps off
-// into RAM after an indirect RET from 0x33A1 (from the calculator?)
-// Need to trace exectuion of a statement...
-//  - PRINT on it's own does not hit 0x1FCD which is the ROM PRINT routine...
-//  - what happens when pressing enter? 0x1024 seems to be the address in ROM..
-// Tracing the ROM routines for parsing the edit buffer indicate that P/V flag
-// is being tested - need to implement this
+// Work out why delete and cursor keys don't work
 //=============================================================================
 
 // Helper macros to determine 8 and 16 bit registers from opcodes
@@ -35,7 +29,7 @@
 //	each T State is assumed to be 0.25 microseconds, based on a 4MHz clock.
 //=============================================================================
 
-uint16 g_addressBreakpoint = 0x1024; // ED_ENTER
+uint16 g_addressBreakpoint = 0x09F4; // PRINT-OUT // 0x0A23; // PO-BACK-1 // 0x1024; // ED_ENTER
 uint16 g_dataBreakpoint = 0; //0x5C3A; // ERR_NR
 uint16 g_stackContentsBreakpoint = 0xDC62;
 uint8 g_stackContentsBreakpointNumItems = 64;
@@ -135,6 +129,11 @@ float CZ80::Update(float milliseconds)
 			case 0:
 				break;
 			case 1:
+				if (m_pMemory[m_PC] == 0x76)
+				{
+					++m_PC;
+				}
+
 				WriteMemory(--m_SP, m_PCh);
 				WriteMemory(--m_SP, m_PCl);
 				m_PC = 0x0038;
@@ -148,7 +147,6 @@ float CZ80::Update(float milliseconds)
 				break;
 		}
 
-		// TODO: Interrupts need servicing here, I think
 		while (tstates_available >= 4.0f)
 		{
 			tstates_available -= SingleStep();
@@ -5700,6 +5698,7 @@ uint32 CZ80::ImplementAND_HL_(void)
 	//								2						7	(4,3)						1.75
 	//
 	IncrementR(1);
+	++m_PC;
 	uint8 byte;
 	ReadMemory(m_HL, byte);
 	m_A &= byte;
@@ -8726,9 +8725,9 @@ uint32 CZ80::ImplementJPccnn(void)
 	//
 	IncrementR(1);
 	uint8 opcode;
-	ReadMemory(m_PC, opcode);
-	ReadMemory(++m_PC, m_addresslo);
-	ReadMemory(++m_PC, m_addresshi);
+	ReadMemory(m_PC++, opcode);
+	ReadMemory(m_PC++, m_addresslo);
+	ReadMemory(m_PC++, m_addresshi);
 	if (IsConditionTrue((opcode & 0x38) >> 3))
 	{
 		m_PC = m_address;
