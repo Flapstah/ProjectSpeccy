@@ -391,19 +391,19 @@ void CZ80::OutputInstruction(uint16 address)
 	switch (decodeAddress - address)
 	{
 		case 1:
-			fprintf(stdout, "%02X                     %s\n", m_pMemory[address], buffer);
+			fprintf(stdout, "%02X                      %s\n", m_pMemory[address], buffer);
 			break;
 
 		case 2:
-			fprintf(stdout, "%02X %02X                  %s\n", m_pMemory[address], m_pMemory[address + 1], buffer);
+			fprintf(stdout, "%02X %02X                   %s\n", m_pMemory[address], m_pMemory[address + 1], buffer);
 			break;
 
 		case 3:
-			fprintf(stdout, "%02X %02X %02X               %s\n", m_pMemory[address], m_pMemory[address + 1], m_pMemory[address + 2], buffer);
+			fprintf(stdout, "%02X %02X %02X                %s\n", m_pMemory[address], m_pMemory[address + 1], m_pMemory[address + 2], buffer);
 			break;
 
 		case 4:
-			fprintf(stdout, "%02X %02X %02X %02X            %s\n", m_pMemory[address], m_pMemory[address + 1], m_pMemory[address + 2], m_pMemory[address + 3], buffer);
+			fprintf(stdout, "%02X %02X %02X %02X             %s\n", m_pMemory[address], m_pMemory[address + 1], m_pMemory[address + 2], m_pMemory[address + 3], buffer);
 			break;
 	}
 #endif
