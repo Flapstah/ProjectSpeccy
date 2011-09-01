@@ -3193,9 +3193,10 @@ uint8 CZ80::HandleArithmeticSubtractFlags(uint16 source1, uint16 source2)
 
 void CZ80::HandleLogicalFlags(uint8 source)
 {
-	source ^= source >> 4;
-	source &= 0xF;
-	uint8 parity = ((0x6996 >> source) << 2);
+	uint8 parity = source;
+	parity ^= parity >> 4;
+	parity &= 0xF;
+	parity = ((0x6996 >> parity) << 2);
 	m_F = (source & (eF_S | eF_Y | eF_X)) | ((source == 0) ? eF_Z : 0) | eF_H | (~parity & eF_PV);
 }
 
@@ -6485,7 +6486,7 @@ uint32 CZ80::ImplementDAA(void)
 uint32 CZ80::ImplementCPL(void)
 {
 	//
-	// Operation:	A
+	// Operation:	A <- ~A
 	// Op Code:		CPL
 	// Operands:	A
 	//						+-+-+-+-+-+-+-+-+
@@ -6508,7 +6509,7 @@ uint32 CZ80::ImplementCPL(void)
 uint32 CZ80::ImplementNEG(void)
 {
 	//
-	// Operation:	A
+	// Operation:	A <- 0-A
 	// Op Code:		NEG
 	// Operands:	A
 	//						+-+-+-+-+-+-+-+-+
@@ -10878,7 +10879,7 @@ void CZ80::DecodeJPnn(uint16& address, char* pMnemonic)
 {
 	uint16 addr = m_pMemory[address + 1] + (static_cast<int16>(m_pMemory[address + 2]) << 8);
 	address += 3;
-	sprintf(pMnemonic, "JP $%04X", addr);
+	sprintf(pMnemonic, "JP %04X", addr);
 }
 
 //=============================================================================
@@ -10888,7 +10889,7 @@ void CZ80::DecodeJPccnn(uint16& address, char* pMnemonic)
 	uint8 cc = (m_pMemory[address++] & 0x38) >> 3;
 	uint16 addr = m_pMemory[address] + (static_cast<int16>(m_pMemory[address + 1]) << 8);
 	address += 2;
-	sprintf(pMnemonic, "JP %s,$%04X", GetConditionString(cc), addr);
+	sprintf(pMnemonic, "JP %s,%04X", GetConditionString(cc), addr);
 }
 
 //=============================================================================
@@ -10896,7 +10897,7 @@ void CZ80::DecodeJPccnn(uint16& address, char* pMnemonic)
 void CZ80::DecodeJRe(uint16& address, char* pMnemonic)
 {
 	address += 2;
-	sprintf(pMnemonic, "JR $%04X", address + static_cast<int8>(m_pMemory[address - 1]));
+	sprintf(pMnemonic, "JR %04X", address + static_cast<int8>(m_pMemory[address - 1]));
 }
 
 //=============================================================================
@@ -10904,7 +10905,7 @@ void CZ80::DecodeJRe(uint16& address, char* pMnemonic)
 void CZ80::DecodeJRCe(uint16& address, char* pMnemonic)
 {
 	address += 2;
-	sprintf(pMnemonic, "JR C,$%04X", address + static_cast<int8>(m_pMemory[address - 1]));
+	sprintf(pMnemonic, "JR C,%04X", address + static_cast<int8>(m_pMemory[address - 1]));
 }
 
 //=============================================================================
@@ -10912,7 +10913,7 @@ void CZ80::DecodeJRCe(uint16& address, char* pMnemonic)
 void CZ80::DecodeJRNCe(uint16& address, char* pMnemonic)
 {
 	address += 2;
-	sprintf(pMnemonic, "JR NC,$%04X", address + static_cast<int8>(m_pMemory[address - 1]));
+	sprintf(pMnemonic, "JR NC,%04X", address + static_cast<int8>(m_pMemory[address - 1]));
 }
 
 //=============================================================================
@@ -10920,7 +10921,7 @@ void CZ80::DecodeJRNCe(uint16& address, char* pMnemonic)
 void CZ80::DecodeJRZe(uint16& address, char* pMnemonic)
 {
 	address += 2;
-	sprintf(pMnemonic, "JR Z,$%04X", address + static_cast<int8>(m_pMemory[address - 1]));
+	sprintf(pMnemonic, "JR Z,%04X", address + static_cast<int8>(m_pMemory[address - 1]));
 }
 
 //=============================================================================
@@ -10928,7 +10929,7 @@ void CZ80::DecodeJRZe(uint16& address, char* pMnemonic)
 void CZ80::DecodeJRNZe(uint16& address, char* pMnemonic)
 {
 	address += 2;
-	sprintf(pMnemonic, "JR NZ,$%04X", address + static_cast<int8>(m_pMemory[address - 1]));
+	sprintf(pMnemonic, "JR NZ,%04X", address + static_cast<int8>(m_pMemory[address - 1]));
 }
 
 //=============================================================================
@@ -10960,7 +10961,7 @@ void CZ80::DecodeJP_IY_(uint16& address, char* pMnemonic)
 void CZ80::DecodeDJNZe(uint16& address, char* pMnemonic)
 {
 	address += 2;
-	sprintf(pMnemonic, "DJNZ $%04X", address + static_cast<int8>(m_pMemory[address - 1]));
+	sprintf(pMnemonic, "DJNZ %04X", address + static_cast<int8>(m_pMemory[address - 1]));
 }
 
 //=============================================================================
@@ -10974,7 +10975,7 @@ void CZ80::DecodeDJNZe(uint16& address, char* pMnemonic)
 void CZ80::DecodeCALLnn(uint16& address, char* pMnemonic)
 {
 	uint16 addr = m_pMemory[address + 1] + (static_cast<int16>(m_pMemory[address + 2]) << 8);
-	sprintf(pMnemonic, "CALL $%04X", addr);
+	sprintf(pMnemonic, "CALL %04X", addr);
 	address += 3;
 }
 
@@ -10984,7 +10985,7 @@ void CZ80::DecodeCALLccnn(uint16& address, char* pMnemonic)
 {
 	uint8 cc = (m_pMemory[address] & 0x38) >> 3;
 	uint16 addr = m_pMemory[address + 1] + (static_cast<int16>(m_pMemory[address + 2]) << 8);
-	sprintf(pMnemonic, "CALL %s,$%04X", GetConditionString(cc), addr);
+	sprintf(pMnemonic, "CALL %s,%04X", GetConditionString(cc), addr);
 	address += 3;
 }
 
@@ -11024,8 +11025,8 @@ void CZ80::DecodeRETN(uint16& address, char* pMnemonic)
 
 void CZ80::DecodeRSTp(uint16& address, char* pMnemonic)
 {
-	uint8 t = ((m_pMemory[address++] & 0x38) >> 3) * 8;
-	sprintf(pMnemonic, "RST $%i", t);
+	uint8 location = ((m_pMemory[address++] & 0x38) >> 3) * 8;
+	sprintf(pMnemonic, "RST $%02X", location);
 }
 
 //=============================================================================
