@@ -7110,8 +7110,8 @@ uint32 CZ80::ImplementRLCA(void)
 	++m_PC;
 	uint8 carry = (m_A & eF_S) >> 7;
 	m_A = (m_A << 1) | carry;
-	m_F &= ~(eF_S | eF_Z | eF_PV);
-	m_F |= carry;
+	m_F &= (eF_S | eF_Z | eF_PV);
+	m_F |= (m_A & (eF_X | eF_Y)) | carry;
 	return 4;
 }
 
@@ -7135,8 +7135,8 @@ uint32 CZ80::ImplementRLA(void)
 	++m_PC;
 	uint8 carry = (m_A & eF_S) >> 7;
 	m_A = (m_A << 1) | (m_F & eF_C);
-	m_F &= ~(eF_S | eF_Z | eF_PV);
-	m_F |= carry;
+	m_F &= (eF_S | eF_Z | eF_PV);
+	m_F |= (m_A & (eF_X | eF_Y)) | carry;
 	return 4;
 }
 
@@ -7160,8 +7160,8 @@ uint32 CZ80::ImplementRRCA(void)
 	++m_PC;
 	uint8 carry = (m_A & eF_C);
 	m_A = (m_A >> 1) | (carry << 7);
-	m_F &= ~(eF_S | eF_Z | eF_PV);
-	m_F |= carry;
+	m_F &= (eF_S | eF_Z | eF_PV);
+	m_F |= (m_A & (eF_X | eF_Y)) | carry;
 	return 4;
 }
 
@@ -7185,8 +7185,8 @@ uint32 CZ80::ImplementRRA(void)
 	++m_PC;
 	uint8 carry = (m_A & eF_C);
 	m_A = (m_A >> 1) | ((m_F & eF_C) << 7);
-	m_F &= ~(eF_S | eF_Z | eF_PV);
-	m_F |= carry;
+	m_F &= (eF_S | eF_Z | eF_PV);
+	m_F |= (m_A & (eF_X | eF_Y)) | carry;
 	return 4;
 }
 
