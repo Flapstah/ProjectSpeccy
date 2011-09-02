@@ -4855,7 +4855,10 @@ uint32 CZ80::ImplementLDI(void)
 	ReadMemory(m_HL++, byte);
 	WriteMemory(m_DE++, byte);
 	--m_BC;
+	// From The Undocumented Z80:
+	byte += m_A;
 	m_F &= (eF_S | eF_Z | eF_C);
+	m_F |= (byte & eF_X) | ((byte << 4) & eF_Y);
 	m_F |= (m_BC != 0) ? eF_PV : 0;
 	return 16;
 }
@@ -4882,17 +4885,12 @@ uint32 CZ80::ImplementLDIR(void)
 	//							M Cycles		T States					MHz E.T.
 	//								4						16 (4,4,3,5)			4.00
 	//
-	++++m_PC;
-	uint32 tstates = 0;
-	uint8 byte;
-	do
+	uint32 tstates = ImplementLDI();
+	if (m_BC != 0)
 	{
-		IncrementR(2);
-		ReadMemory(m_HL++, byte);
-		WriteMemory(m_DE++, byte);
-		tstates += 16;
-	} while ((--m_BC != 0) && ((tstates += 5), true));
-	m_F &= (eF_S | eF_Z | eF_C);
+		tstates += 5;
+		----m_PC;
+	}
 	return tstates;
 }
 
@@ -4919,7 +4917,10 @@ uint32 CZ80::ImplementLDD(void)
 	ReadMemory(m_HL--, byte);
 	WriteMemory(m_DE--, byte);
 	--m_BC;
+	// From The Undocumented Z80:
+	byte += m_A;
 	m_F &= (eF_S | eF_Z | eF_C);
+	m_F |= (byte & eF_X) | ((byte << 4) & eF_Y);
 	m_F |= (m_BC != 0) ? eF_PV : 0;
 	return 16;
 }
@@ -4946,17 +4947,12 @@ uint32 CZ80::ImplementLDDR(void)
 	//							M Cycles		T States					MHz E.T.
 	//								4						16 (4,4,3,5)			4.00
 	//
-	++++m_PC;
-	uint32 tstates = 0;
-	uint8 byte;
-	do
+	uint32 tstates = ImplementLDD();
+	if (m_BC != 0)
 	{
-		IncrementR(2);
-		ReadMemory(m_HL--, byte);
-		WriteMemory(m_DE--, byte);
-		tstates += 16;
-	} while ((--m_BC != 0) && ((tstates += 5), true));
-	m_F &= (eF_S | eF_Z | eF_C);
+		tstates += 5;
+		----m_PC;
+	}
 	return tstates;
 }
 
@@ -4985,8 +4981,12 @@ uint32 CZ80::ImplementCPI(void)
 	uint8 result = origA - _HL_;
 	uint8 half_result = (origA & 0x0F) - (_HL_ & 0x0F);
 	--m_BC;
+	// From The Undocumented Z80:
+	uint8 origF = m_F;
+	HandleArithmeticSubtractFlags(m_A, _HL_);
+	uint8 byte = m_A - _HL_ - ((m_F & eF_H) >> 4);
 	m_F &= eF_C;
-	m_F |= (result & eF_S) | ((result == 0) ? eF_Z : 0) | (half_result & eF_H) | ((m_BC != 0) ? eF_PV : 0) | (result & (eF_X | eF_Y)) | eF_N;
+	m_F |= (byte & eF_X) | ((byte << 4) & eF_Y) | (origF & eF_C);
 	return 16;
 }
 
@@ -5012,20 +5012,12 @@ uint32 CZ80::ImplementCPIR(void)
 	//							M Cycles		T States					MHz E.T.
 	//								4						16 (4,4,3,5)			4.00
 	//
-	++++m_PC;
-	uint8 _HL_, origA, half_result;
-	uint16 result;
-	uint32 tstates = 0;
-	do
+	uint32 tstates = ImplementCPI();
+	if (m_BC != 0)
 	{
-		ReadMemory(m_HL++, _HL_);
-		origA = m_A;
-		result = origA - _HL_;
-		half_result = (origA & 0x0F) - (_HL_ & 0x0F);
-		tstates += 16;
-	} while ((--m_BC != 0) && (result != 0) && ((tstates += 5), true));
-	m_F &= eF_C;
-	m_F |= (result & eF_S) | ((result == 0) ? eF_Z : 0) | (half_result & eF_H) | ((m_BC != 0) ? eF_PV : 0) | (result & (eF_X | eF_Y)) | eF_N;
+		tstates += 5;
+		----m_PC;
+	}
 	return tstates;
 }
 
@@ -5054,8 +5046,12 @@ uint32 CZ80::ImplementCPD(void)
 	uint8 result = origA - _HL_;
 	uint8 half_result = (origA & 0x0F) - (_HL_ & 0x0F);
 	--m_BC;
+	// From The Undocumented Z80:
+	uint8 origF = m_F;
+	HandleArithmeticSubtractFlags(m_A, _HL_);
+	uint8 byte = m_A - _HL_ - ((m_F & eF_H) >> 4);
 	m_F &= eF_C;
-	m_F |= (result & eF_S) | ((result == 0) ? eF_Z : 0) | (half_result & eF_H) | ((m_BC != 0) ? eF_PV : 0) | (result & (eF_X | eF_Y)) | eF_N;
+	m_F |= (byte & eF_X) | ((byte << 4) & eF_Y) | (origF & eF_C);
 	return 16;
 }
 
@@ -5081,21 +5077,12 @@ uint32 CZ80::ImplementCPDR(void)
 	//							M Cycles		T States					MHz E.T.
 	//								4						16 (4,4,3,5)			4.00
 	//
-	++++m_PC;
-	uint32 tstates = 0;
-	uint8 _HL_, origA, half_result;
-	uint16 result;
-	do
+	uint32 tstates = ImplementCPD();
+	if (m_BC != 0)
 	{
-		IncrementR(2);
-		ReadMemory(m_HL--, _HL_);
-		origA = m_A;
-		result = origA - _HL_;
-		half_result = (origA & 0x0F) - (_HL_ & 0x0F);
-		tstates += 16;
-	} while ((--m_BC != 0) && (result != 0) && ((tstates += 5), true));
-	m_F &= eF_C;
-	m_F |= (result & eF_S) | ((result == 0) ? eF_Z : 0) | (half_result & eF_H) | ((m_BC != 0) ? eF_PV : 0) | (result & (eF_X | eF_Y)) | eF_N;
+		tstates += 5;
+		----m_PC;
+	}
 	return tstates;
 }
 
