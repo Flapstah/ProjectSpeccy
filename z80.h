@@ -38,6 +38,8 @@ class CZ80
 		uint8 HandleArithmeticAddFlags(uint16 source1, uint16 source2);
 		uint8 HandleArithmeticSubtractFlags(uint16 source1, uint16 source2);
 		void HandleLogicalFlags(uint8 source);
+		uint16 Handle16BitArithmeticAddFlags(uint32 source1, uint32 source2);
+		uint16 Handle16BitArithmeticSubtractFlags(uint32 source1, uint32 source2);
 
 		bool WriteMemory(uint16 address, uint8 byte);
 		bool ReadMemory(uint16 address, uint8& byte);

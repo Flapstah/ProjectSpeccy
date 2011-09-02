@@ -3235,6 +3235,32 @@ void CZ80::HandleLogicalFlags(uint8 source)
 
 //=============================================================================
 
+uint16 CZ80::Handle16BitArithmeticAddFlags(uint32 source1, uint32 source2)
+{
+	uint32 result = source1 + source2;
+	uint32 half = (source1 & 0x0FFF) + (source2 & 0x0FFF) >> 8;
+	uint32 overflow = ((source1 & source2 & ~result) | (~source1 & ~source2 & result)) >> 13;
+
+	m_F = ((result >> 8) & (eF_S | eF_X | eF_Y)) | ((result == 0) ? eF_Z : 0) | (half & eF_H) | (overflow & eF_PV) | ((result >> 16) & eF_C);
+
+	return (result & 0xFFFF);
+}
+
+//=============================================================================
+
+uint16 CZ80::Handle16BitArithmeticSubtractFlags(uint32 source1, uint32 source2)
+{
+	uint32 result = source1 - source2;
+	uint32 half = (source1 & 0x0FFF) - (source2 & 0x0FFF) >> 8;
+	uint32 overflow = ((source1 & ~source2 & ~result) | (~source1 & source2 & result)) >> 13;
+
+	m_F = ((result >> 8) & (eF_S | eF_X | eF_Y)) | ((result == 0) ? eF_Z : 0) | (half & eF_H) | (overflow & eF_PV) | eF_N | ((result >> 16) & eF_C);
+
+	return (result & 0xFFFF);
+}
+
+//=============================================================================
+
 bool CZ80::WriteMemory(uint16 address, uint8 byte)
 {
 	bool success = true;
@@ -6774,7 +6800,7 @@ uint32 CZ80::ImplementADDHLdd(void)
 	//								BC					00
 	//								DE					01
 	//								HL					10
-	//								AF					11
+	//								SP					11
 	//
 	//							M Cycles		T States					MHz E.T.
 	//								3						11 (4,4,3)				2.75
@@ -6783,12 +6809,10 @@ uint32 CZ80::ImplementADDHLdd(void)
 	uint8 opcode;
 	ReadMemory(m_PC++, opcode);
 	uint16 source = REGISTER_16BIT(opcode >> 4);
-	uint16 origHL = m_HL;
-	uint32 result = origHL + source;
-	uint16 resultH = (source & 0x0fff) + (origHL & 0x0fff);
-	m_HL = result & 0xffff;
-	m_F &= (eF_S | eF_Z | eF_PV);
-	m_F |= (((result & 0x10000) >> 16) & eF_C) | (((resultH & 0x1000) >> 8) & eF_H);
+	uint8 origF = m_F;
+	m_HL = Handle16BitArithmeticAddFlags(m_HL, source);
+	m_F &= ~(eF_S | eF_Z | eF_PV);
+	m_F |= (origF & (eF_S | eF_Z | eF_PV));
 	return 11;
 }
 
@@ -6820,12 +6844,7 @@ uint32 CZ80::ImplementADCHLdd(void)
 	ReadMemory(++m_PC, opcode);
 	++m_PC;
 	uint16 source = REGISTER_16BIT(opcode >> 4) + (m_F & eF_C);
-	uint16 origHL = m_HL;
-	uint32 result = origHL + source;
-	uint16 resultH = (source & 0x0fff) + (origHL & 0x0fff);
-	m_HL = result & 0xffff;
-	uint16 overflow = ((origHL & source & ~result) | (~origHL & ~source & result)) >> 13;
-	m_F = ((m_HL >> 8) & eF_S) | ((m_HL == 0) ? eF_Z : 0) | (((result & 0x10000) >> 16) & eF_C) | (((resultH & 0x1000) >> 8) & eF_H) | (overflow & eF_PV);
+	m_HL = Handle16BitArithmeticAddFlags(m_HL, source);
 	return 15;
 }
 
@@ -6857,12 +6876,7 @@ uint32 CZ80::ImplementSBCHLdd(void)
 	ReadMemory(++m_PC, opcode);
 	++m_PC;
 	uint16 source = REGISTER_16BIT(opcode >> 4) - (m_F & eF_C);
-	uint16 origHL = m_HL;
-	uint32 result = origHL - source;
-	uint16 resultH = (source & 0x0fff) - (origHL & 0x0fff);
-	m_HL = result & 0xffff;
-	uint16 overflow = ((origHL & ~source & ~result) | (~origHL & source & result)) >> 13;
-	m_F = ((m_HL >> 8) & eF_S) | ((m_HL == 0) ? eF_Z : 0) | eF_N | (((result & 0x10000) >> 16) & eF_C) | (((resultH & 0x1000) >> 8) & eF_H) | (overflow & eF_PV);
+	m_HL = Handle16BitArithmeticSubtractFlags(m_HL, source);
 	return 15;
 }
 
@@ -6895,12 +6909,10 @@ uint32 CZ80::ImplementADDIXdd(void)
 	++m_PC;
 	opcode >>= 4;
 	uint16 source = (opcode == 2) ? m_IX : REGISTER_16BIT(opcode);
-	uint16 origIX = m_IX;
-	uint32 result = origIX + source;
-	uint16 resultH = (source & 0x0fff) + (origIX & 0x0fff);
-	m_IX = result & 0xffff;
-	m_F &= (eF_S | eF_Z | eF_PV);
-	m_F |= (((result & 0x10000) >> 16) & eF_C) | (((resultH & 0x1000) >> 8) & eF_H);
+	uint8 origF = m_F;
+	m_IX = Handle16BitArithmeticAddFlags(m_IX, source);
+	m_F &= ~(eF_S | eF_Z | eF_PV);
+	m_F |= (origF & (eF_S | eF_Z | eF_PV));
 	return 15;
 }
 
@@ -6909,7 +6921,7 @@ uint32 CZ80::ImplementADDIXdd(void)
 uint32 CZ80::ImplementADDIYdd(void)
 {
 	//
-	// Operation:	HL <- IY+dd
+	// Operation:	IY <- IY+dd
 	// Op Code:		ADD
 	// Operands:	IY, dd
 	//						+-+-+-+-+-+-+-+-+
@@ -6933,12 +6945,10 @@ uint32 CZ80::ImplementADDIYdd(void)
 	++m_PC;
 	opcode >>= 4;
 	uint16 source = (opcode == 2) ? m_IY : REGISTER_16BIT(opcode);
-	uint16 origIY = m_IY;
-	uint32 result = origIY + source;
-	uint16 resultH = (source & 0x0fff) + (origIY & 0x0fff);
-	m_IY = result & 0xffff;
-	m_F &= (eF_S | eF_Z | eF_PV);
-	m_F |= (((result & 0x10000) >> 16) & eF_C) | (((resultH & 0x1000) >> 8) & eF_H);
+	uint8 origF = m_F;
+	m_IY = Handle16BitArithmeticAddFlags(m_IY, source);
+	m_F &= ~(eF_S | eF_Z | eF_PV);
+	m_F |= (origF & (eF_S | eF_Z | eF_PV));
 	return 15;
 }
 
@@ -10450,7 +10460,7 @@ void CZ80::DecodeSBCHLdd(uint16& address, char* pMnemonic)
 void CZ80::DecodeADDIXdd(uint16& address, char* pMnemonic)
 {
 	uint8 opcode = m_pMemory[++address] >> 4;
-	sprintf(pMnemonic, "ADD HL,%s", (opcode == 2) ? "IX" : Get16BitRegisterString(m_pMemory[address] >> 4));
+	sprintf(pMnemonic, "ADD IX,%s", (opcode == 2) ? "IX" : Get16BitRegisterString(m_pMemory[address] >> 4));
 	++address;
 }
 
@@ -10459,7 +10469,7 @@ void CZ80::DecodeADDIXdd(uint16& address, char* pMnemonic)
 void CZ80::DecodeADDIYdd(uint16& address, char* pMnemonic)
 {
 	uint8 opcode = m_pMemory[++address] >> 4;
-	sprintf(pMnemonic, "ADD HL,%s", (opcode == 2) ? "IY" : Get16BitRegisterString(m_pMemory[address] >> 4));
+	sprintf(pMnemonic, "ADD IY,%s", (opcode == 2) ? "IY" : Get16BitRegisterString(m_pMemory[address] >> 4));
 	++address;
 }
 
