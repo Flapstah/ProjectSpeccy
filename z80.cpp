@@ -8230,9 +8230,9 @@ uint32 CZ80::ImplementBITbr(void)
 	ReadMemory(++m_PC, opcode);
 	++m_PC;
 	uint8 mask = 1 << ((opcode & 0x38) >> 3);
-	uint8& reg = REGISTER_8BIT(opcode);
-	m_F &= ~eF_Z;
-	m_F |= (reg & mask) ? 0 : eF_Z;
+	uint8 origF = m_F;
+	HandleLogicalFlags(REGISTER_8BIT(opcode) & mask);
+	m_F |= (eF_H | (origF & eF_C));
 	return 8;
 }
 
@@ -8259,8 +8259,9 @@ uint32 CZ80::ImplementBITb_HL_(void)
 	++m_PC;
 	uint8 mask = 1 << ((opcode & 0x38) >> 3);
 	ReadMemory(m_HL, byte);
-	m_F &= ~eF_Z;
-	m_F |= (byte & mask) ? 0 : eF_Z;
+	uint8 origF = m_F;
+	HandleLogicalFlags(byte & mask);
+	m_F |= (eF_H | (origF & eF_C));
 	return 12;
 }
 
@@ -8293,8 +8294,9 @@ uint32 CZ80::ImplementBITb_IXd_(void)
 	ReadMemory(m_PC++, opcode);
 	uint8 mask = 1 << ((opcode & 0x38) >> 3);
 	ReadMemory(m_IX + displacement, byte);
-	m_F &= ~eF_Z;
-	m_F |= (byte & mask) ? 0 : eF_Z;
+	uint8 origF = m_F;
+	HandleLogicalFlags(byte & mask);
+	m_F |= (eF_H | (origF & eF_C));
 	return 20;
 }
 
@@ -8327,8 +8329,9 @@ uint32 CZ80::ImplementBITb_IYd_(void)
 	ReadMemory(m_PC++, opcode);
 	uint8 mask = 1 << ((opcode & 0x38) >> 3);
 	ReadMemory(m_IY + displacement, byte);
-	m_F &= ~eF_Z;
-	m_F |= (byte & mask) ? 0 : eF_Z;
+	uint8 origF = m_F;
+	HandleLogicalFlags(byte & mask);
+	m_F |= (eF_H | (origF & eF_C));
 	return 20;
 }
 
