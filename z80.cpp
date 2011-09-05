@@ -6538,24 +6538,24 @@ uint32 CZ80::ImplementDAA(void)
 	{
 		if ((m_F & eF_H) || ((m_A & 0x0F) > 9))
 		{
-			adjustedA -= 0x06;
-		}
-		if ((m_F & eF_C) || ((m_A & 0xF0) > 9))
-		{
-			adjustedA -= 0x60;
-			carry = (m_F & eF_C);
-		}
-	}
-	else
-	{
-		if ((m_F & eF_H) || ((m_A & 0x0F) > 9))
-		{
 			adjustedA += 0x06;
 		}
 		if ((m_F & eF_C) || ((m_A & 0xF0) > 9))
 		{
 			adjustedA += 0x60;
 			carry = eF_C;
+		}
+	}
+	else
+	{
+		if ((m_F & eF_H) || ((m_A & 0x0F) > 9))
+		{
+			adjustedA -= 0x06;
+		}
+		if ((m_F & eF_C) || ((m_A & 0xF0) > 9))
+		{
+			adjustedA -= 0x60;
+			carry = (m_F & eF_C);
 		}
 	}
 
