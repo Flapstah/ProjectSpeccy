@@ -6551,7 +6551,6 @@ uint32 CZ80::ImplementDAA(void)
 		if ((m_F & eF_C) || ((m_A & 0xF0) > 9))
 		{
 			adjustedA += 0x60;
-			carry = eF_C;
 		}
 	}
 	else
@@ -6563,7 +6562,6 @@ uint32 CZ80::ImplementDAA(void)
 		if ((m_F & eF_C) || ((m_A & 0xF0) > 9))
 		{
 			adjustedA -= 0x60;
-			carry = (m_F & eF_C);
 		}
 	}
 
