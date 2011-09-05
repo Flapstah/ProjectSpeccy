@@ -9699,7 +9699,7 @@ void CZ80::DecodeLDA_DE_(uint16& address, char* pMnemonic)
 void CZ80::DecodeLDA_nn_(uint16& address, char* pMnemonic)
 {
 	sprintf(pMnemonic, "LD A,(%02X%02X)", m_pMemory[address + 2], m_pMemory[address + 1]);
-	++address;
+	address += 3;
 }
 
 //=============================================================================
