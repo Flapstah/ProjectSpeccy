@@ -5568,7 +5568,7 @@ uint32 CZ80::ImplementSBCAr(void)
 	IncrementR(1);
 	uint8 opcode;
 	ReadMemory(m_PC++, opcode);
-	uint8 source = REGISTER_8BIT(opcode) - (m_F & eF_C);
+	uint8 source = REGISTER_8BIT(opcode) + (m_F & eF_C);
 	m_A = HandleArithmeticSubtractFlags(m_A, source);
 	return 4;
 }
@@ -5594,7 +5594,7 @@ uint32 CZ80::ImplementSBCAn(void)
 	uint8 source;
 	ReadMemory(++m_PC, source);
 	++m_PC;
-	source -= (m_F & eF_C);
+	source += (m_F & eF_C);
 	m_A = HandleArithmeticSubtractFlags(m_A, source);
 	return 7;
 }
@@ -5618,7 +5618,7 @@ uint32 CZ80::ImplementSBCA_HL_(void)
 	uint8 source;
 	ReadMemory(m_HL, source);
 	++m_PC;
-	source -= (m_F & eF_C);
+	source += (m_F & eF_C);
 	m_A = HandleArithmeticSubtractFlags(m_A, source);
 	return 7;
 }
@@ -5648,7 +5648,7 @@ uint32 CZ80::ImplementSBCA_IXd_(void)
 	ReadMemory(m_PC++, *(reinterpret_cast<uint8*>(&displacement)));
 	uint8 source;
 	ReadMemory(m_IX + displacement, source);
-	source -= (m_F & eF_C);
+	source += (m_F & eF_C);
 	m_A = HandleArithmeticSubtractFlags(m_A, source);
 	return 19;
 }
@@ -5678,7 +5678,7 @@ uint32 CZ80::ImplementSBCA_IYd_(void)
 	ReadMemory(m_PC++, *(reinterpret_cast<uint8*>(&displacement)));
 	uint8 source;
 	ReadMemory(m_IY + displacement, source);
-	source -= (m_F & eF_C);
+	source += (m_F & eF_C);
 	m_A = HandleArithmeticSubtractFlags(m_A, source);
 	return 19;
 }
@@ -6909,7 +6909,7 @@ uint32 CZ80::ImplementSBCHLdd(void)
 	uint8 opcode;
 	ReadMemory(++m_PC, opcode);
 	++m_PC;
-	uint16 source = REGISTER_16BIT(opcode >> 4) - (m_F & eF_C);
+	uint16 source = REGISTER_16BIT(opcode >> 4) + (m_F & eF_C);
 	m_HL = Handle16BitArithmeticSubtractFlags(m_HL, source);
 	return 15;
 }
