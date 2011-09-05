@@ -416,6 +416,10 @@ void CZ80::HitBreakpoint(const char* type)
 	if (GetEnableBreakpoints())
 	{
 		fprintf(stderr, "[Z80] Hit %s breakpoint at address %04X\n", type, m_PC);
+		if (GetEnableUnattendedDebug())
+		{
+			fprintf(stdout, "[Z80] Hit %s breakpoint at address %04X\n", type, m_PC);
+		}
 		OutputInstruction(m_PC);
 		if (GetEnableProgramFlowBreakpoints())
 		{
@@ -3289,6 +3293,13 @@ bool CZ80::WriteMemory(uint16 address, uint8 byte)
 bool CZ80::ReadMemory(uint16 address, uint8& byte)
 {
 	byte = m_pMemory[address];
+
+	if (GetEnableBreakpoints() && (address == g_dataBreakpoint))
+	{
+		fprintf(stderr, "[Z80] reading %02X from %04X\n", byte, address);
+		HitBreakpoint("data");
+	}
+
 	return true;
 }
 
