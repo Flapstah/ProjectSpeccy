@@ -127,27 +127,33 @@ float CZ80::Update(float milliseconds)
 	}
 	else
 	{
-		switch (m_State.m_InterruptMode)
+		if (m_State.m_IFF1)
 		{
-			case 0:
-				break;
-			case 1:
-				if (m_pMemory[m_PC] == 0x76)
-				{
-					++m_PC;
-				}
+			m_State.m_IFF2 = m_State.m_IFF1;
+			m_State.m_IFF1 = 0;
 
-				WriteMemory(--m_SP, m_PCh);
-				WriteMemory(--m_SP, m_PCl);
-				m_PC = 0x0038;
-				tstates_available -= 13; // RST (11) + 2
-				break;
-			case 2:
-				break;
-			default:
-				m_enableDebug = true;
-				HitBreakpoint("illegal interrupt mode");
-				break;
+			switch (m_State.m_InterruptMode)
+			{
+				case 0:
+					break;
+				case 1:
+					if (m_pMemory[m_PC] == 0x76)
+					{
+						++m_PC;
+					}
+
+					WriteMemory(--m_SP, m_PCh);
+					WriteMemory(--m_SP, m_PCl);
+					m_PC = 0x0038;
+					tstates_available -= 13; // RST (11) + 2
+					break;
+				case 2:
+					break;
+				default:
+					m_enableDebug = true;
+					HitBreakpoint("illegal interrupt mode");
+					break;
+			}
 		}
 
 		while (tstates_available >= 4.0f)
