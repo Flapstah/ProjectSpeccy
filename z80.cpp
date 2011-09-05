@@ -37,6 +37,8 @@ uint16 g_dataBreakpoint = 0; //0x5C3A; // ERR_NR
 uint16 g_stackContentsBreakpoint = 0xDC62;
 uint8 g_stackContentsBreakpointNumItems = 64;
 
+#define LEE_COMPATIBLE
+
 //=============================================================================
 
 CZ80::CZ80(uint8* pMemory, float clockSpeedMHz)
@@ -340,7 +342,17 @@ void CZ80::SetEnableProgramFlowBreakpoints(bool set)
 void CZ80::OutputStatus(void)
 {
 	fprintf(stdout, "--------\n");
-#if 0
+#if defined(LEE_COMPATIBLE)
+	fprintf(stdout, "FLAGS = S  Z  -  H  -  P  N  C\n");
+	fprintf(stdout, "        %i  %i  %i  %i  %i  %i  %i  %i\n", (m_F & eF_S) >> 7, (m_F & eF_Z) >> 6, (m_F & eF_Y) >> 5, (m_F & eF_H) >> 4, (m_F & eF_X) >> 3, (m_F & eF_PV) >> 2, (m_F & eF_N) >> 1, (m_F & eF_C));
+	fprintf(stdout, "AF= %04X\n", m_AF);
+	fprintf(stdout, "BC= %04X\n", m_BC);
+	fprintf(stdout, "DE= %04X\n", m_DE);
+	fprintf(stdout, "HL= %04X\n", m_HL);
+	fprintf(stdout, "IX= %04X\n", m_IX);
+	fprintf(stdout, "IY= %04X\n", m_IY);
+	fprintf(stdout, "SP= %04X\n", m_SP);
+#else
 	fprintf(stdout, "[Z80]        Registers:\n");
 	fprintf(stdout, "[Z80]        AF'=%04X  AF=%04X  A=%02X  F=%02X  S:%i Z:%i Y:%i H:%i X:%i PV:%i N:%i C:%i \n", m_AFalt, m_AF, m_A, m_F, (m_F & eF_S) >> 7, (m_F & eF_Z) >> 6, (m_F & eF_Y) >> 5, (m_F & eF_H) >> 4, (m_F & eF_X) >> 3, (m_F & eF_PV) >> 2, (m_F & eF_N) >> 1, (m_F & eF_C));
 	fprintf(stdout, "[Z80]        BC'=%04X  BC=%04X  B=%02X  C=%02X  (%02X %02X %02X %02X %02X %02X %02X %02X)\n", m_BCalt, m_BC, m_B, m_C, m_pMemory[m_BC], m_pMemory[m_BC + 1], m_pMemory[m_BC + 2], m_pMemory[m_BC + 3], m_pMemory[m_BC + 4], m_pMemory[m_BC + 5], m_pMemory[m_BC + 6], m_pMemory[m_BC + 7]);
@@ -351,16 +363,6 @@ void CZ80::OutputStatus(void)
 	fprintf(stdout, "[Z80]        I=%02X  R=%02X  IM=%i  IFF1=%i  IFF2=%i\n", m_I, m_R, m_State.m_InterruptMode, m_State.m_IFF1, m_State.m_IFF2);
 	fprintf(stdout, "[Z80]        SP=%04X (%02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X)\n", m_SP, m_pMemory[m_SP], m_pMemory[m_SP + 1], m_pMemory[m_SP + 2], m_pMemory[m_SP + 3], m_pMemory[m_SP + 4], m_pMemory[m_SP + 5], m_pMemory[m_SP + 6], m_pMemory[m_SP + 7], m_pMemory[m_SP + 8], m_pMemory[m_SP + 9], m_pMemory[m_SP + 10], m_pMemory[m_SP + 11], m_pMemory[m_SP + 12], m_pMemory[m_SP + 13], m_pMemory[m_SP + 14], m_pMemory[m_SP + 15]);
 	fprintf(stdout, "[Z80]        PC=%04X (%02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X)\n", m_PC, m_pMemory[m_PC], m_pMemory[m_PC + 1], m_pMemory[m_PC + 2], m_pMemory[m_PC + 3], m_pMemory[m_PC + 4], m_pMemory[m_PC + 5], m_pMemory[m_PC + 6], m_pMemory[m_PC + 7], m_pMemory[m_PC + 8], m_pMemory[m_PC + 9], m_pMemory[m_PC + 10], m_pMemory[m_PC + 11], m_pMemory[m_PC + 12], m_pMemory[m_PC + 13], m_pMemory[m_PC + 14], m_pMemory[m_PC + 15]);
-#else
-	fprintf(stdout, "FLAGS = S  Z  -  H  -  P  N  C\n");
-	fprintf(stdout, "        %i  %i  %i  %i  %i  %i  %i  %i\n", (m_F & eF_S) >> 7, (m_F & eF_Z) >> 6, (m_F & eF_Y) >> 5, (m_F & eF_H) >> 4, (m_F & eF_X) >> 3, (m_F & eF_PV) >> 2, (m_F & eF_N) >> 1, (m_F & eF_C));
-	fprintf(stdout, "AF= %04X\n", m_AF);
-	fprintf(stdout, "BC= %04X\n", m_BC);
-	fprintf(stdout, "DE= %04X\n", m_DE);
-	fprintf(stdout, "HL= %04X\n", m_HL);
-	fprintf(stdout, "IX= %04X\n", m_IX);
-	fprintf(stdout, "IY= %04X\n", m_IY);
-	fprintf(stdout, "SP= %04X\n", m_SP);
 #endif
 	fprintf(stdout, "--------\n");
 }
@@ -372,27 +374,7 @@ void CZ80::OutputInstruction(uint16 address)
 	uint16 decodeAddress = address;
 	char buffer[64];
 	Decode(decodeAddress, buffer);
-#if 0
-	fprintf(stdout, "[Z80] %04X : ", address);
-	switch (decodeAddress - address)
-	{
-		case 1:
-			fprintf(stdout, "%02X          : %s\n", m_pMemory[address], buffer);
-			break;
-
-		case 2:
-			fprintf(stdout, "%02X %02X       : %s\n", m_pMemory[address], m_pMemory[address + 1], buffer);
-			break;
-
-		case 3:
-			fprintf(stdout, "%02X %02X %02X    : %s\n", m_pMemory[address], m_pMemory[address + 1], m_pMemory[address + 2], buffer);
-			break;
-
-		case 4:
-			fprintf(stdout, "%02X %02X %02X %02X : %s\n", m_pMemory[address], m_pMemory[address + 1], m_pMemory[address + 2], m_pMemory[address + 3], buffer);
-			break;
-	}
-#else
+#if defined(LEE_COMPATIBLE)
 	fprintf(stdout, "%04X :", address);
 	switch (decodeAddress - address)
 	{
@@ -410,6 +392,26 @@ void CZ80::OutputInstruction(uint16 address)
 
 		case 4:
 			fprintf(stdout, "%02X %02X %02X %02X             %s\n", m_pMemory[address], m_pMemory[address + 1], m_pMemory[address + 2], m_pMemory[address + 3], buffer);
+			break;
+	}
+#else
+	fprintf(stdout, "[Z80] %04X : ", address);
+	switch (decodeAddress - address)
+	{
+		case 1:
+			fprintf(stdout, "%02X          : %s\n", m_pMemory[address], buffer);
+			break;
+
+		case 2:
+			fprintf(stdout, "%02X %02X       : %s\n", m_pMemory[address], m_pMemory[address + 1], buffer);
+			break;
+
+		case 3:
+			fprintf(stdout, "%02X %02X %02X    : %s\n", m_pMemory[address], m_pMemory[address + 1], m_pMemory[address + 2], buffer);
+			break;
+
+		case 4:
+			fprintf(stdout, "%02X %02X %02X %02X : %s\n", m_pMemory[address], m_pMemory[address + 1], m_pMemory[address + 2], m_pMemory[address + 3], buffer);
 			break;
 	}
 #endif
@@ -10889,7 +10891,11 @@ void CZ80::DecodeJPccnn(uint16& address, char* pMnemonic)
 void CZ80::DecodeJRe(uint16& address, char* pMnemonic)
 {
 	address += 2;
+#if defined(LEE_COMPATIBLE)
+	sprintf(pMnemonic, "JR %02X", m_pMemory[address - 1]);
+#else
 	sprintf(pMnemonic, "JR %04X", address + static_cast<int8>(m_pMemory[address - 1]));
+#endif
 }
 
 //=============================================================================
@@ -10897,7 +10903,11 @@ void CZ80::DecodeJRe(uint16& address, char* pMnemonic)
 void CZ80::DecodeJRCe(uint16& address, char* pMnemonic)
 {
 	address += 2;
+#if defined(LEE_COMPATIBLE)
+	sprintf(pMnemonic, "JR C,%02X", m_pMemory[address - 1]);
+#else
 	sprintf(pMnemonic, "JR C,%04X", address + static_cast<int8>(m_pMemory[address - 1]));
+#endif
 }
 
 //=============================================================================
@@ -10905,7 +10915,11 @@ void CZ80::DecodeJRCe(uint16& address, char* pMnemonic)
 void CZ80::DecodeJRNCe(uint16& address, char* pMnemonic)
 {
 	address += 2;
+#if defined(LEE_COMPATIBLE)
+	sprintf(pMnemonic, "JR NC,%02X", m_pMemory[address - 1]);
+#else
 	sprintf(pMnemonic, "JR NC,%04X", address + static_cast<int8>(m_pMemory[address - 1]));
+#endif
 }
 
 //=============================================================================
@@ -10913,7 +10927,11 @@ void CZ80::DecodeJRNCe(uint16& address, char* pMnemonic)
 void CZ80::DecodeJRZe(uint16& address, char* pMnemonic)
 {
 	address += 2;
+#if defined(LEE_COMPATIBLE)
+	sprintf(pMnemonic, "JR Z,%02X", m_pMemory[address - 1]);
+#else
 	sprintf(pMnemonic, "JR Z,%04X", address + static_cast<int8>(m_pMemory[address - 1]));
+#endif
 }
 
 //=============================================================================
@@ -10921,7 +10939,11 @@ void CZ80::DecodeJRZe(uint16& address, char* pMnemonic)
 void CZ80::DecodeJRNZe(uint16& address, char* pMnemonic)
 {
 	address += 2;
+#if defined(LEE_COMPATIBLE)
+	sprintf(pMnemonic, "JR NZ,%02X", m_pMemory[address - 1]);
+#else
 	sprintf(pMnemonic, "JR NZ,%04X", address + static_cast<int8>(m_pMemory[address - 1]));
+#endif
 }
 
 //=============================================================================
@@ -10953,7 +10975,11 @@ void CZ80::DecodeJP_IY_(uint16& address, char* pMnemonic)
 void CZ80::DecodeDJNZe(uint16& address, char* pMnemonic)
 {
 	address += 2;
+#if defined(LEE_COMPATIBLE)
+	sprintf(pMnemonic, "DJNZ %02X", m_pMemory[address - 1]);
+#else
 	sprintf(pMnemonic, "DJNZ %04X", address + static_cast<int8>(m_pMemory[address - 1]));
+#endif
 }
 
 //=============================================================================
