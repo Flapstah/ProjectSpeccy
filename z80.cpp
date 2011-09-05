@@ -5536,7 +5536,7 @@ uint32 CZ80::ImplementSUB_IYd_(void)
 	++++m_PC;
 	uint8 source, displacement;
 	ReadMemory(m_PC++, displacement);
-	ReadMemory(m_IX + displacement, source);
+	ReadMemory(m_IY + displacement, source);
 	m_A = HandleArithmeticSubtractFlags(m_A, source);
 	return 19;
 }
@@ -7893,10 +7893,10 @@ uint32 CZ80::ImplementSLA_IYd_(void)
 	ReadMemory(m_PC++, *(reinterpret_cast<uint8*>(&displacement)));
 	++m_PC;
 	uint8 byte;
-	ReadMemory(m_IX + displacement, byte);
+	ReadMemory(m_IY + displacement, byte);
 	uint8 carry = (byte & eF_S) >> 7;
 	byte = (byte << 1);
-	WriteMemory(m_IX + displacement, byte);
+	WriteMemory(m_IY + displacement, byte);
 	HandleLogicalFlags(byte);
 	m_F |= carry;
 	return 23;
