@@ -6539,33 +6539,31 @@ uint32 CZ80::ImplementDAA(void)
 	//
 	IncrementR(1);
 	++m_PC;
-	uint8 adjustedA = m_A;
-	uint8 carry = 0;
+	uint8 carry = (m_F & eF_C) | ((m_A > 0x99) ? eF_C : 0);
 
 	if (m_F & eF_N)
 	{
 		if ((m_F & eF_H) || ((m_A & 0x0F) > 9))
 		{
-			adjustedA += 0x06;
+			m_A -= 0x06;
 		}
-		if ((m_F & eF_C) || ((m_A & 0xF0) > 9))
+		if ((m_F & eF_C) || ((m_A & 0xF0) > 0x90))
 		{
-			adjustedA += 0x60;
+			m_A -= 0x60;
 		}
 	}
 	else
 	{
 		if ((m_F & eF_H) || ((m_A & 0x0F) > 9))
 		{
-			adjustedA -= 0x06;
+			m_A += 0x06;
 		}
-		if ((m_F & eF_C) || ((m_A & 0xF0) > 9))
+		if ((m_F & eF_C) || ((m_A & 0xF0) > 0x90))
 		{
-			adjustedA -= 0x60;
+			m_A += 0x60;
 		}
 	}
 
-	m_A = adjustedA;
 	uint8 origF = m_F;
 	HandleLogicalFlags(m_A);
 	m_F |= (origF & eF_N) | carry;
