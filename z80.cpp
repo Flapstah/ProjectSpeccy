@@ -3653,8 +3653,8 @@ uint32 CZ80::ImplementLDr_IXd_(void)
 	//								5						19 (4,4,3,5,3)		4.75
 	//
 	IncrementR(2);
-	uint8 opcode = ReadMemory(++m_PC, opcode);
-	int8 displacement = reinterpret_cast<int8>(ReadMemory(++m_PC));
+	uint8 opcode = ReadMemory(++m_PC);
+	int8 displacement = static_cast<int8>(ReadMemory(++m_PC));
 	++m_PC;
 	REGISTER_8BIT(opcode >> 3) = ReadMemory(m_IX + displacement);
 	return 19;
@@ -3689,8 +3689,8 @@ uint32 CZ80::ImplementLDr_IYd_(void)
 	//								5						19 (4,4,3,5,3)		4.75
 	//
 	IncrementR(2);
-	uint8 opcode = ReadMemory(++m_PC, opcode);
-	int8 displacement = reinterpret_cast<int8>(ReadMemory(++m_PC));
+	uint8 opcode = ReadMemory(++m_PC);
+	int8 displacement = static_cast<int8>(ReadMemory(++m_PC));
 	++m_PC;
 	REGISTER_8BIT(opcode >> 3) = ReadMemory(m_IY + displacement);
 	return 19;
@@ -3754,8 +3754,8 @@ uint32 CZ80::ImplementLD_IXd_r(void)
 	//								5						19 (4,4,3,5,3)		4.75
 	//
 	IncrementR(2);
-	uint8 opcode = ReadMemory(++m_PC, opcode);
-	int8 displacement = reinterpret_cast<int8>(ReadMemory(++m_PC));
+	uint8 opcode = ReadMemory(++m_PC);
+	int8 displacement = static_cast<int8>(ReadMemory(++m_PC));
 	++m_PC;
 	WriteMemory(m_IX + displacement, REGISTER_8BIT(opcode));
 	return 19;
@@ -3790,8 +3790,8 @@ uint32 CZ80::ImplementLD_IYd_r(void)
 	//								5						19 (4,4,3,5,3)		4.75
 	//
 	IncrementR(2);
-	uint8 opcode = ReadMemory(++m_PC, opcode);
-	int8 displacement = reinterpret_cast<int8>(ReadMemory(++m_PC));
+	uint8 opcode = ReadMemory(++m_PC);
+	int8 displacement = static_cast<int8>(ReadMemory(++m_PC));
 	++m_PC;
 	WriteMemory(m_IY + displacement, REGISTER_8BIT(opcode));
 	return 19;
@@ -3843,7 +3843,7 @@ uint32 CZ80::ImplementLD_IXd_n(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	int8 displacement = reinterpret_cast<int8>(ReadMemory(m_PC++));
+	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	WriteMemory(m_IX + displacement, ReadMemory(m_PC++));
 	return 19;
 }
@@ -3871,7 +3871,7 @@ uint32 CZ80::ImplementLD_IYd_n(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	int8 displacement = reinterpret_cast<int8>(ReadMemory(m_PC++));
+	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	WriteMemory(m_IY + displacement, ReadMemory(m_PC++));
 	return 19;
 }
@@ -4909,7 +4909,8 @@ uint32 CZ80::ImplementLDI(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	WriteMemory(m_DE++, ReadMemory(m_HL++));
+	uint8 byte = ReadMemory(m_HL++);
+	WriteMemory(m_DE++, byte);
 	--m_BC;
 	// From The Undocumented Z80:
 	byte += m_A;
@@ -4969,7 +4970,8 @@ uint32 CZ80::ImplementLDD(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	WriteMemory(m_DE--, ReadMemory(m_HL--));
+	uint8 byte = ReadMemory(m_HL--);
+	WriteMemory(m_DE--, byte);
 	--m_BC;
 	// From The Undocumented Z80:
 	byte += m_A;
@@ -5238,7 +5240,7 @@ uint32 CZ80::ImplementADDA_IXd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	int8 displacement = reinterpret_cast<int8>(ReadMemory(m_PC++));
+	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	m_A = HandleArithmeticAddFlags(m_A, ReadMemory(m_IX + displacement));
 	return 19;
 }
@@ -5264,7 +5266,7 @@ uint32 CZ80::ImplementADDA_IYd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	int8 displacement = reinterpret_cast<int8>(ReadMemory(m_PC++));
+	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	m_A = HandleArithmeticAddFlags(m_A, ReadMemory(m_IY + displacement));
 	return 19;
 }
@@ -5363,7 +5365,7 @@ uint32 CZ80::ImplementADCA_IXd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	int8 displacement = reinterpret_cast<int8>(ReadMemory(m_PC++));
+	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	m_A = HandleArithmeticAddFlags(m_A, ReadMemory(m_IX + displacement) + (m_F & eF_C));
 	return 19;
 }
@@ -5389,7 +5391,7 @@ uint32 CZ80::ImplementADCA_IYd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	int8 displacement = reinterpret_cast<int8>(ReadMemory(m_PC++));
+	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	m_A = HandleArithmeticAddFlags(m_A, ReadMemory(m_IY + displacement) + (m_F & eF_C));
 	return 19;
 }
@@ -5488,7 +5490,7 @@ uint32 CZ80::ImplementSUB_IXd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	int8 displacement = reinterpret_cast<int8>(ReadMemory(m_PC++));
+	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	m_A = HandleArithmeticSubtractFlags(m_A, ReadMemory(m_IX + displacement));
 	return 19;
 }
@@ -5514,7 +5516,7 @@ uint32 CZ80::ImplementSUB_IYd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	int8 displacement = reinterpret_cast<int8>(ReadMemory(m_PC++));
+	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	m_A = HandleArithmeticSubtractFlags(m_A, ReadMemory(m_IY + displacement));
 	return 19;
 }
@@ -5613,7 +5615,7 @@ uint32 CZ80::ImplementSBCA_IXd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	int8 displacement = reinterpret_cast<int8>(ReadMemory(m_PC++));
+	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	m_A = HandleArithmeticSubtractFlags(m_A, ReadMemory(m_IX + displacement) + (m_F & eF_C));
 	return 19;
 }
@@ -5639,7 +5641,7 @@ uint32 CZ80::ImplementSBCA_IYd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	int8 displacement = reinterpret_cast<int8>(ReadMemory(m_PC++));
+	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	m_A = HandleArithmeticSubtractFlags(m_A, ReadMemory(m_IY + displacement) + (m_F & eF_C));
 	return 19;
 }
@@ -5744,7 +5746,7 @@ uint32 CZ80::ImplementAND_IXd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	int8 displacement = reinterpret_cast<int8>(ReadMemory(m_PC++));
+	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	m_A &= ReadMemory(m_IX + displacement);
 	HandleLogicalFlags(m_A);
 	m_F |= eF_H;
@@ -5772,7 +5774,7 @@ uint32 CZ80::ImplementAND_IYd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	int8 displacement = reinterpret_cast<int8>(ReadMemory(m_PC++));
+	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	m_A &= ReadMemory(m_IY + displacement);
 	HandleLogicalFlags(m_A);
 	m_F |= eF_H;
@@ -5876,7 +5878,7 @@ uint32 CZ80::ImplementOR_IXd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	int8 displacement = reinterpret_cast<int8>(ReadMemory(m_PC++));
+	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	m_A |= ReadMemory(m_IX + displacement);
 	HandleLogicalFlags(m_A);
 	return 19;
@@ -5903,7 +5905,7 @@ uint32 CZ80::ImplementOR_IYd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	int8 displacement = reinterpret_cast<int8>(ReadMemory(m_PC++));
+	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	m_A |= ReadMemory(m_IY + displacement);
 	HandleLogicalFlags(m_A);
 	return 19;
@@ -6006,7 +6008,7 @@ uint32 CZ80::ImplementXOR_IXd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	int8 displacement = reinterpret_cast<int8>(ReadMemory(m_PC++));
+	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	m_A ^= ReadMemory(m_IX + displacement);
 	HandleLogicalFlags(m_A);
 	return 19;
@@ -6033,7 +6035,7 @@ uint32 CZ80::ImplementXOR_IYd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	int8 displacement = reinterpret_cast<int8>(ReadMemory(m_PC++));
+	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	m_A ^= ReadMemory(m_IY + displacement);
 	HandleLogicalFlags(m_A);
 	return 19;
@@ -6133,7 +6135,7 @@ uint32 CZ80::ImplementCP_IXd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	int8 displacement = reinterpret_cast<int8>(ReadMemory(m_PC++));
+	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	HandleArithmeticSubtractFlags(m_A, ReadMemory(m_IX + displacement));
 	return 19;
 }
@@ -6159,7 +6161,7 @@ uint32 CZ80::ImplementCP_IYd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	int8 displacement = reinterpret_cast<int8>(ReadMemory(m_PC++));
+	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	HandleArithmeticSubtractFlags(m_A, ReadMemory(m_IY + displacement));
 	return 19;
 }
@@ -6244,7 +6246,7 @@ uint32 CZ80::ImplementINC_IXd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	int8 displacement = reinterpret_cast<int8>(ReadMemory(m_PC++));
+	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	uint8 byte = ReadMemory(m_IX + displacement);
 	uint8 origF = m_F;
 	byte = HandleArithmeticAddFlags(byte, 1);
@@ -6275,7 +6277,7 @@ uint32 CZ80::ImplementINC_IYd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	int8 displacement = reinterpret_cast<int8>(ReadMemory(m_PC++));
+	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	uint8 byte = ReadMemory(m_IX + displacement);
 	uint8 origF = m_F;
 	byte = HandleArithmeticAddFlags(byte, 1);
@@ -6365,7 +6367,7 @@ uint32 CZ80::ImplementDEC_IXd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	int8 displacement = reinterpret_cast<int8>(ReadMemory(m_PC++));
+	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	uint8 byte = ReadMemory(m_IX + displacement);
 	uint8 origF = m_F;
 	byte = HandleArithmeticSubtractFlags(byte, 1);
@@ -6396,7 +6398,7 @@ uint32 CZ80::ImplementDEC_IYd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	int8 displacement = reinterpret_cast<int8>(ReadMemory(m_PC++));
+	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	uint8 byte = ReadMemory(m_IY + displacement);
 	uint8 origF = m_F;
 	byte = HandleArithmeticSubtractFlags(byte, 1);
@@ -7192,7 +7194,7 @@ uint32 CZ80::ImplementRLC_IXd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	int8 displacement = reinterpret_cast<int8>(ReadMemory(m_PC++));
+	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	++m_PC;
 	uint8 byte = ReadMemory(m_IX + displacement);
 	uint8 carry = (byte & eF_S) >> 7;
@@ -7227,7 +7229,7 @@ uint32 CZ80::ImplementRLC_IYd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	int8 displacement = reinterpret_cast<int8>(ReadMemory(m_PC++));
+	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	++m_PC;
 	uint8 byte = ReadMemory(m_IY + displacement);
 	uint8 carry = (byte & eF_S) >> 7;
@@ -7319,9 +7321,9 @@ uint32 CZ80::ImplementRL_IXd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	int8 displacement = reinterpret_cast<int8>(ReadMemory(m_PC++));
+	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	++m_PC;
-	uint8 byte = ReadMemory(m_IX + displacement, byte);
+	uint8 byte = ReadMemory(m_IX + displacement);
 	uint8 carry = (byte & eF_S) >> 7;
 	byte = (byte << 1) | (m_F & eF_C);
 	WriteMemory(m_IX + displacement, byte);
@@ -7354,9 +7356,9 @@ uint32 CZ80::ImplementRL_IYd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	int8 displacement = reinterpret_cast<int8>(ReadMemory(m_PC++));
+	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	++m_PC;
-	uint8 byte = ReadMemory(m_IY + displacement, byte);
+	uint8 byte = ReadMemory(m_IY + displacement);
 	uint8 carry = (byte & eF_S) >> 7;
 	byte = (byte << 1) | (m_F & eF_C);
 	WriteMemory(m_IY + displacement, byte);
@@ -7446,7 +7448,7 @@ uint32 CZ80::ImplementRRC_IXd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	int8 displacement = reinterpret_cast<int8>(ReadMemory(m_PC++));
+	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	++m_PC;
 	uint8 byte = ReadMemory(m_IX + displacement);
 	uint8 carry = (byte & eF_C);
@@ -7481,7 +7483,7 @@ uint32 CZ80::ImplementRRC_IYd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	int8 displacement = reinterpret_cast<int8>(ReadMemory(m_PC++));
+	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	++m_PC;
 	uint8 byte = ReadMemory(m_IY + displacement);
 	uint8 carry = (byte & eF_C);
@@ -7574,7 +7576,7 @@ uint32 CZ80::ImplementRR_IXd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	int8 displacement = reinterpret_cast<int8>(ReadMemory(m_PC++));
+	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	++m_PC;
 	uint8 byte = ReadMemory(m_IX + displacement);
 	uint8 carry = (byte & eF_C);
@@ -7609,7 +7611,7 @@ uint32 CZ80::ImplementRR_IYd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	int8 displacement = reinterpret_cast<int8>(ReadMemory(m_PC++));
+	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	++m_PC;
 	uint8 byte = ReadMemory(m_IY + displacement);
 	uint8 carry = (byte & eF_C);
@@ -7698,7 +7700,7 @@ uint32 CZ80::ImplementSLA_IXd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	int8 displacement = reinterpret_cast<int8>(ReadMemory(m_PC++));
+	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	++m_PC;
 	uint8 byte = ReadMemory(m_IX + displacement);
 	uint8 carry = (byte & eF_S) >> 7;
@@ -7732,7 +7734,7 @@ uint32 CZ80::ImplementSLA_IYd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	int8 displacement = reinterpret_cast<int8>(ReadMemory(m_PC++));
+	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	++m_PC;
 	uint8 byte = ReadMemory(m_IY + displacement);
 	uint8 carry = (byte & eF_S) >> 7;
@@ -7826,7 +7828,7 @@ uint32 CZ80::ImplementSRA_IXd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	int8 displacement = reinterpret_cast<int8>(ReadMemory(m_PC++));
+	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	++m_PC;
 	uint8 byte = ReadMemory(m_IX + displacement);
 	uint8 sign = (byte & eF_S);
@@ -7862,7 +7864,7 @@ uint32 CZ80::ImplementSRA_IYd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	int8 displacement = reinterpret_cast<int8>(ReadMemory(m_PC++));
+	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	++m_PC;
 	uint8 byte = ReadMemory(m_IY + displacement);
 	uint8 sign = (byte & eF_S);
@@ -7953,7 +7955,7 @@ uint32 CZ80::ImplementSRL_IXd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	int8 displacement = reinterpret_cast<int8>(ReadMemory(m_PC++));
+	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	++m_PC;
 	uint8 byte = ReadMemory(m_IX + displacement);
 	uint8 carry = (byte & eF_C);
@@ -7987,7 +7989,7 @@ uint32 CZ80::ImplementSRL_IYd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	int8 displacement = reinterpret_cast<int8>(ReadMemory(m_PC++));
+	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	++m_PC;
 	uint8 byte = ReadMemory(m_IY + displacement);
 	uint8 carry = (byte & eF_C);
@@ -8154,7 +8156,7 @@ uint32 CZ80::ImplementBITb_IXd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	int8 displacement = reinterpret_cast<int8>(ReadMemory(m_PC++));
+	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	uint8 mask = 1 << ((ReadMemory(m_PC++) & 0x38) >> 3);
 	uint8 byte = ReadMemory(m_IX + displacement);
 	uint8 origF = m_F;
@@ -8186,7 +8188,7 @@ uint32 CZ80::ImplementBITb_IYd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	int8 displacement = reinterpret_cast<int8>(ReadMemory(m_PC++));
+	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	uint8 mask = 1 << ((ReadMemory(m_PC++) & 0x38) >> 3);
 	uint8 byte = ReadMemory(m_IY + displacement);
 	uint8 origF = m_F;
@@ -8250,8 +8252,7 @@ uint32 CZ80::ImplementSETb_HL_(void)
 	IncrementR(2);
 	++m_PC;
 	uint8 mask = 1 << ((ReadMemory(m_PC++) & 0x38) >> 3);
-	uint8 byte;
-	ReadMemory(m_HL, byte);
+	uint8 byte = ReadMemory(m_HL);
 	byte |= mask;
 	WriteMemory(m_HL, byte);
 	return 12;
@@ -8280,7 +8281,7 @@ uint32 CZ80::ImplementSETb_IXd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	int8 displacement = reinterpret_cast<int8>(ReadMemory(m_PC++));
+	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	uint8 mask = 1 << ((ReadMemory(m_PC++) & 0x38) >> 3);
 	uint8 byte = ReadMemory(m_IX + displacement);
 	byte |= mask;
@@ -8311,7 +8312,7 @@ uint32 CZ80::ImplementSETb_IYd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	int8 displacement = reinterpret_cast<int8>(ReadMemory(m_PC++));
+	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	uint8 mask = 1 << ((ReadMemory(m_PC++) & 0x38) >> 3);
 	uint8 byte = ReadMemory(m_IY + displacement);
 	byte |= mask;
@@ -8403,7 +8404,7 @@ uint32 CZ80::ImplementRESb_IXd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	int8 displacement = reinterpret_cast<int8>(ReadMemory(m_PC++));
+	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	uint8 mask = 1 << ((ReadMemory(m_PC++) & 0x38) >> 3);
 	uint8 byte = ReadMemory(m_IX + displacement);
 	byte &= ~mask;
@@ -8434,7 +8435,7 @@ uint32 CZ80::ImplementRESb_IYd_(void)
 	//
 	IncrementR(2);
 	++++m_PC;
-	int8 displacement = reinterpret_cast<int8>(ReadMemory(m_PC++));
+	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	uint8 mask = 1 << ((ReadMemory(m_PC++) & 0x38) >> 3);
 	uint8 byte = ReadMemory(m_IY + displacement);
 	byte &= ~mask;
@@ -8532,7 +8533,7 @@ uint32 CZ80::ImplementJRe(void)
 	//								3						12 (4,3,5)				3.00
 	//
 	IncrementR(1);
-	int8 displacement = reinterpret_cast<int8>(ReadMemory(m_PC++));
+	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	m_PC += displacement + 1;
 	return 12;
 }
@@ -8558,7 +8559,7 @@ uint32 CZ80::ImplementJRCe(void)
 	//
 	IncrementR(1);
 	uint32 tstates = 7;
-	int8 displacement = reinterpret_cast<int8>(ReadMemory(++m_PC));
+	int8 displacement = static_cast<int8>(ReadMemory(++m_PC));
 	++m_PC;
 	if (m_F & eF_C)
 	{
@@ -8589,7 +8590,7 @@ uint32 CZ80::ImplementJRNCe(void)
 	//
 	IncrementR(1);
 	uint32 tstates = 7;
-	int8 displacement = reinterpret_cast<int8>(ReadMemory(++m_PC));
+	int8 displacement = static_cast<int8>(ReadMemory(++m_PC));
 	++m_PC;
 	if (!(m_F & eF_C))
 	{
@@ -8620,7 +8621,7 @@ uint32 CZ80::ImplementJRZe(void)
 	//
 	IncrementR(1);
 	uint32 tstates = 7;
-	int8 displacement = reinterpret_cast<int8>(ReadMemory(++m_PC));
+	int8 displacement = static_cast<int8>(ReadMemory(++m_PC));
 	++m_PC;
 	if (m_F & eF_Z)
 	{
@@ -8651,7 +8652,7 @@ uint32 CZ80::ImplementJRNZe(void)
 	//
 	IncrementR(1);
 	uint32 tstates = 7;
-	int8 displacement = reinterpret_cast<int8>(ReadMemory(++m_PC));
+	int8 displacement = static_cast<int8>(ReadMemory(++m_PC));
 	++m_PC;
 	if (!(m_F & eF_Z))
 	{
@@ -8744,7 +8745,7 @@ uint32 CZ80::ImplementDJNZe(void)
 	//
 	IncrementR(1);
 	uint32 tstates = 8;
-	int8 displacement = reinterpret_cast<int8>(ReadMemory(++m_PC));
+	int8 displacement = static_cast<int8>(ReadMemory(++m_PC));
 	++m_PC;
 	if (--m_B != 0)
 	{
