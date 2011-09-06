@@ -25,6 +25,7 @@ class CZXSpectrum : public IScreenMemory
 
 						bool				OpenSCR(const char* fileName);
 						bool				LoadROM(const char* fileName);
+						bool				LoadSNA(const char* fileName);
 
 	protected:
 						void				DisplayHelp(void) const;
@@ -89,7 +90,6 @@ class CZXSpectrum : public IScreenMemory
 		
 		uint32			m_videoMemory[SC_PIXEL_SCREEN_WIDTH * SC_PIXEL_SCREEN_HEIGHT];
 		uint8				m_memory[SC_48K_SPECTRUM];
-		uint8				m_shadowMemory[SC_48K_SPECTRUM];
 		CDisplay*		m_pDisplay;
 		CZ80*				m_pZ80;
 		double			m_time;

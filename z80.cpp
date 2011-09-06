@@ -244,6 +244,59 @@ float CZ80::SingleStep(void)
 
 //=============================================================================
 
+void CZ80::LoadSNA(uint8* regs)
+{
+	uint8 index = 0;
+	m_I = regs[index++];
+
+	m_addresslo = regs[index++];
+	m_addresshi = regs[index++];
+	m_HLalt = m_address;
+	m_addresslo = regs[index++];
+	m_addresshi = regs[index++];
+	m_DEalt = m_address;
+	m_addresslo = regs[index++];
+	m_addresshi = regs[index++];
+	m_BCalt = m_address;
+	m_addresslo = regs[index++];
+	m_addresshi = regs[index++];
+	m_AFalt = m_address;
+
+	m_addresslo = regs[index++];
+	m_addresshi = regs[index++];
+	m_HL = m_address;
+	m_addresslo = regs[index++];
+	m_addresshi = regs[index++];
+	m_DE = m_address;
+	m_addresslo = regs[index++];
+	m_addresshi = regs[index++];
+	m_BC = m_address;
+	m_addresslo = regs[index++];
+	m_addresshi = regs[index++];
+	m_IX = m_address;
+	m_addresslo = regs[index++];
+	m_addresshi = regs[index++];
+	m_IY = m_address;
+
+	m_State.m_IFF2 = (regs[index] >> 1) & 0x01;
+	m_State.m_IFF1 = regs[index++] & 0x01;
+
+	m_R = regs[index++];
+
+	m_addresslo = regs[index++];
+	m_addresshi = regs[index++];
+	m_AF = m_address;
+	m_addresslo = regs[index++];
+	m_addresshi = regs[index++];
+	m_SP = m_address;
+
+	m_State.m_InterruptMode = regs[index++];
+
+	ImplementRETN();
+}
+
+//=============================================================================
+
 bool CZ80::GetEnableDebug(void) const
 {
  	return m_enableDebug;

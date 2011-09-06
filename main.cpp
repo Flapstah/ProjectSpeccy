@@ -19,6 +19,9 @@ int main(int argc, char* argv[])
 	speccy.OpenSCR("roms/SabreWulf.scr");
 */
 	speccy.LoadROM("roms/48.rom");
+/*
+	speccy.LoadSNA("roms/android2.sna");
+*/
 	while (speccy.Update());
 
 	return EXIT_SUCCESS;

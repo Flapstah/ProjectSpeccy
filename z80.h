@@ -16,6 +16,8 @@ class CZ80
 		float Update(float milliseconds);
 		float SingleStep(void);
 
+		void LoadSNA(uint8* regs);
+
 		bool GetEnableDebug(void) const;
 		void SetEnableDebug(bool set);
 		bool GetEnableUnattendedDebug(void) const;

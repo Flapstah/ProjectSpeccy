@@ -194,7 +194,34 @@ bool CZXSpectrum::LoadROM(const char* fileName)
 
 		fprintf(stdout, "[ZX Spectrum]: loaded rom [%s] successfully\n", fileName);
 
-		memcmp(m_shadowMemory, m_memory, SC_48K_SPECTRUM);
+		success = true;
+	}
+	else
+	{
+		fprintf(stderr, "[ZX Spectrum]: failed to load rom [%s]\n", fileName);
+	}
+
+	return success;
+}
+
+//=============================================================================
+
+bool CZXSpectrum::LoadSNA(const char* fileName)
+{
+	FILE* pFile = fopen(fileName, "rb");
+	bool success = false;
+
+	char scratch[49179];
+	if (pFile != NULL)
+	{
+		fread(scratch, sizeof(scratch), 1, pFile);
+		fclose(pFile);
+
+		fprintf(stdout, "[ZX Spectrum]: loaded [%s] successfully\n", fileName);
+
+		memcpy(&m_memory[SC_SCREEN_START_ADDRESS], &scratch[27], SC_48K_SPECTRUM - SC_SCREEN_START_ADDRESS);
+		m_pZ80->LoadSNA(reinterpret_cast<uint8*>(scratch));
+
 		success = true;
 	}
 	else
