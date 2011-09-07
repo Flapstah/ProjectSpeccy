@@ -44,9 +44,9 @@ class CZ80
 		uint16 Handle16BitArithmeticSubtractFlags(uint32 source1, uint32 source2);
 
 		bool WriteMemory(uint16 address, uint8 byte);
-		bool ReadMemory(uint16 address, uint8& byte);
+		uint8 ReadMemory(uint16 address);
 		bool WritePort(uint16 address, uint8 byte);
-		bool ReadPort(uint16 address, uint8& byte);
+		uint8 ReadPort(uint16 address);
 		
 		const char* Get8BitRegisterString(uint8 threeBits);
 		const char* Get16BitRegisterString(uint8 twoBits);
