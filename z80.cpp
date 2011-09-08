@@ -6247,7 +6247,7 @@ uint32 CZ80::ImplementINC_IYd_(void)
 	IncrementR(2);
 	++++m_PC;
 	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
-	uint8 byte = ReadMemory(m_IX + displacement);
+	uint8 byte = ReadMemory(m_IY + displacement);
 	uint8 origF = m_F;
 	byte = HandleArithmeticAddFlags(byte, 1);
 	m_F &= ~eF_C;
