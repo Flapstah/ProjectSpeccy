@@ -30,8 +30,6 @@
 
 uint16 g_addressBreakpoint = 0x1024; // ED_ENTER
 uint16 g_dataBreakpoint = 0; //0x5C3A; // ERR_NR
-uint16 g_stackContentsBreakpoint = 0xDC62;
-uint8 g_stackContentsBreakpointNumItems = 64;
 
 // #define LEE_COMPATIBLE
 
@@ -204,36 +202,6 @@ float CZ80::SingleStep(void)
 		OutputInstruction(prevPC);
 		HitBreakpoint("SP corrupt");
 	}
-
-//	static uint16 origSP = 0;
-//	if ((origSP == 0) && (m_SP != 0))
-//	{
-//		origSP = m_SP;
-//	}
-
-//	m_address = g_stackContentsBreakpoint;
-//	if (GetEnableBreakpoints() && (origSP != 0))
-//	{
-//		uint16 offset;
-//		g_stackContentsBreakpointNumItems = (origSP - m_SP) >> 1;
-//		fprintf(stderr, "[Z80] Checking %d items from SP address %04X\n", g_stackContentsBreakpointNumItems, m_SP);
-//		if (g_stackContentsBreakpointNumItems > 20)
-//		{
-//			OutputInstruction(prevPC);
-//			HitBreakpoint("too many stack items");
-//		}
-//
-//		for (uint16 index = 0; index < g_stackContentsBreakpointNumItems; ++index)
-//		{
-//			offset = index << 1;
-//			if ((m_pMemory[m_SP + offset] == m_addresslo) && (m_pMemory[m_SP + offset + 1] == m_addresshi))
-//			{
-//				fprintf(stderr, "[Z80] %04X is now on the stack (offset %d) at address %04X\n", m_address, offset, prevPC);
-//				OutputInstruction(prevPC);
-//				HitBreakpoint("stack contents");
-//			}
-//		}
-//	}
 
 	return microseconds_elapsed;
 }
