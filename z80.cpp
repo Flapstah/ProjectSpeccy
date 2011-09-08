@@ -358,6 +358,9 @@ void CZ80::SetEnableProgramFlowBreakpoints(bool set)
 
 void CZ80::OutputStatus(void)
 {
+	bool breakpointsEnabled = m_enableBreakpoints;
+	m_enableBreakpoints = false;
+
 	fprintf(stdout, "--------\n");
 #if defined(LEE_COMPATIBLE)
 	fprintf(stdout, "FLAGS = S  Z  -  H  -  P  N  C\n");
@@ -382,6 +385,8 @@ void CZ80::OutputStatus(void)
 	fprintf(stdout, "[Z80]        PC=%04X (%02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X)\n", m_PC, ReadMemory(m_PC), ReadMemory(m_PC + 1), ReadMemory(m_PC + 2), ReadMemory(m_PC + 3), ReadMemory(m_PC + 4), ReadMemory(m_PC + 5), ReadMemory(m_PC + 6), ReadMemory(m_PC + 7), ReadMemory(m_PC + 8), ReadMemory(m_PC + 9), ReadMemory(m_PC + 10), ReadMemory(m_PC + 11), ReadMemory(m_PC + 12), ReadMemory(m_PC + 13), ReadMemory(m_PC + 14), ReadMemory(m_PC + 15));
 #endif
 	fprintf(stdout, "--------\n");
+
+	m_enableBreakpoints = breakpointsEnabled;
 }
 
 //=============================================================================
