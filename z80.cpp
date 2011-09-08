@@ -10,10 +10,6 @@
 
 //=============================================================================
 // TODO:
-// Work out why delete and cursor keys don't work
-// Possible BCD error?
-// Separate out the block repeat instructions to do a single operation and put
-// the PC back until BC == 0
 //=============================================================================
 
 // Helper macros to determine 8 and 16 bit registers from opcodes
@@ -8533,8 +8529,9 @@ uint32 CZ80::ImplementJRe(void)
 	//								3						12 (4,3,5)				3.00
 	//
 	IncrementR(1);
+	++m_PC;
 	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
-	m_PC += displacement + 1;
+	m_PC += displacement;
 	return 12;
 }
 
