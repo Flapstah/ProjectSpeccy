@@ -37,7 +37,7 @@ uint16 g_dataBreakpoint = 0; //0x5C3A; // ERR_NR
 uint16 g_stackContentsBreakpoint = 0xDC62;
 uint8 g_stackContentsBreakpointNumItems = 64;
 
-#define LEE_COMPATIBLE
+// #define LEE_COMPATIBLE
 
 //=============================================================================
 
