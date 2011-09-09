@@ -237,10 +237,10 @@ void CZ80::LoadSNA(uint8* regs)
 	m_BC = m_address;
 	m_addresslo = regs[index++];
 	m_addresshi = regs[index++];
-	m_IX = m_address;
+	m_IY = m_address;
 	m_addresslo = regs[index++];
 	m_addresshi = regs[index++];
-	m_IY = m_address;
+	m_IX = m_address;
 
 	m_State.m_IFF2 = (regs[index] >> 1) & 0x01;
 	m_State.m_IFF1 = regs[index++] & 0x01;
