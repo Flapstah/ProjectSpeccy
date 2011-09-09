@@ -1392,6 +1392,10 @@ uint32 CZ80::Step(void)
 						return ImplementLDIXnn();
 						break;
 
+					case 0x22:
+						return ImplementLD_nn_IX();
+						break;
+
 					case 0x2A:
 						return ImplementLDIX_nn_();
 						break;
@@ -1760,6 +1764,10 @@ uint32 CZ80::Step(void)
 
 					case 0x21:
 						return ImplementLDIYnn();
+						break;
+
+					case 0x22:
+						return ImplementLD_nn_IY();
 						break;
 
 					case 0x2A:
@@ -2716,6 +2724,10 @@ void CZ80::Decode(uint16& address, char* pMnemonic)
 						DecodeLDIXnn(address, pMnemonic);
 						break;
 
+					case 0x22:
+						DecodeLD_nn_IX(address, pMnemonic);
+						break;
+
 					case 0x2A:
 						DecodeLDIX_nn_(address, pMnemonic);
 						break;
@@ -3072,6 +3084,10 @@ void CZ80::Decode(uint16& address, char* pMnemonic)
 
 					case 0x21:
 						DecodeLDIYnn(address, pMnemonic);
+						break;
+
+					case 0x22:
+						DecodeLD_nn_IY(address, pMnemonic);
 						break;
 
 					case 0x2A:
