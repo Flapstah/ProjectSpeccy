@@ -108,3 +108,27 @@ bool CDisplay::Update(IScreenMemory* pScreenMemory)
 
 //=============================================================================
 
+void CDisplay::SetDisplayScale(float scale)
+{
+	if (scale < 0.1f)
+	{
+		scale = 0.1f;
+	}
+
+	if (scale > 8.0f)
+	{
+		scale = 8.0f;
+	}
+
+	m_displayScale = scale;
+}
+
+//=============================================================================
+
+float CDisplay::GetDisplayScale(void)
+{
+	return m_displayScale;
+}
+
+//=============================================================================
+

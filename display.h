@@ -12,7 +12,8 @@ public:
 	~CDisplay(void);
 
 	bool Update(IScreenMemory* pScreenMemory);
-
+	void SetDisplayScale(float scale);
+	float GetDisplayScale(void);
 
 protected:
 
