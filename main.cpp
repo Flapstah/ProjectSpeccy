@@ -22,7 +22,7 @@ int main(int argc, char* argv[])
 /*
 	speccy.LoadSNA("roms/android2.sna");
 	speccy.LoadSNA("roms/hobbit.sna");
-	speccy.LoadSNA("roms/LORDSMID.sna");
+	speccy.LoadSNA("roms/LORDSMID.SNA");
 */
 	while (speccy.Update());
 
