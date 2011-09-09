@@ -10,6 +10,7 @@
 #include "z80.h"
 
 static CKeyboard g_keyboard;
+#define DISPLAY_SCALE (2)
 
 //=============================================================================
 
@@ -47,9 +48,10 @@ bool CZXSpectrum::Initialise(void)
 {
 	bool initialised = false;
 
-	m_pDisplay = new CDisplay(640, 480, "ZX Spectrum");
+	m_pDisplay = new CDisplay(SC_VIDEO_MEMORY_WIDTH * DISPLAY_SCALE, SC_VIDEO_MEMORY_HEIGHT * DISPLAY_SCALE, "ZX Spectrum");
 	if (m_pDisplay != NULL)
 	{
+		m_pDisplay->SetDisplayScale(DISPLAY_SCALE);
 		m_time = glfwGetTime();
 		CKeyboard::Initialise();
 		if (m_pZ80 = new CZ80(m_memory, 4.0f))
