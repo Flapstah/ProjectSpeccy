@@ -104,6 +104,11 @@ bool CZXSpectrum::Update(void)
 
 		bool updateZ80 = !m_pZ80->GetEnableDebug() || m_pZ80->GetEnableUnattendedDebug() || CKeyboard::IsKeyPressed(GLFW_KEY_F9) || CKeyboard::IsKeyPressed(GLFW_KEY_F10);
 
+		// Timings:
+		// Each line is 224 tstates (24 tstates of left border, 128 tstates of
+		// screen, 24 tstates of right border and 48 tstates of flyback
+		// Each frame is 64 + 192 + 56 lines
+	
 		if (updateZ80)
 		{
 			double currentTime = glfwGetTime();
