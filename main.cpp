@@ -21,6 +21,7 @@ int main(int argc, char* argv[])
 	speccy.LoadROM("roms/48.rom");
 /*
 	speccy.LoadSNA("roms/android2.sna");
+	speccy.LoadSNA("roms/hobbit.sna");
 	speccy.LoadSNA("roms/LORDSMID.sna");
 */
 	while (speccy.Update());

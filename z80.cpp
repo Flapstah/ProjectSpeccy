@@ -10,6 +10,7 @@
 
 //=============================================================================
 // TODO:
+// Implement the undocumented opcodes
 //=============================================================================
 
 // Helper macros to determine 8 and 16 bit registers from opcodes
@@ -199,6 +200,7 @@ float CZ80::SingleStep(void)
 	if ((m_SP >= 0x5C00) && (m_SP <= 0x5CB5))
 	{
 		fprintf(stderr, "[Z80] SP just jumped into the system variables area (changed from %04X to %04X), at location %04X\n", prevSP, m_SP, prevPC);
+		fprintf(stdout, "[Z80] SP just jumped into the system variables area (changed from %04X to %04X), at location %04X\n", prevSP, m_SP, prevPC);
 		OutputInstruction(prevPC);
 		HitBreakpoint("SP corrupt");
 	}
@@ -3444,6 +3446,10 @@ uint8 CZ80::ReadPort(uint16 address)
 			break;
 	}
 
+//	if (byte != 0x1F)
+//	{
+//		printf("[Z80] Port %04X is %02X\n", address, byte);
+//	}
 
 	return byte;
 }
