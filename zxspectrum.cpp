@@ -17,6 +17,10 @@ CZXSpectrum::CZXSpectrum(void)
 	: m_pDisplay(NULL)
 	, m_pZ80(NULL)
 {
+	for (uint32 index = 0; index < (sizeof(m_videoMemory) / 4); ++index)
+	{
+		m_videoMemory[index] = 0x00CDCDCD;
+	}
 }
 
 //=============================================================================
@@ -142,14 +146,14 @@ const void* CZXSpectrum::GetScreenMemory(void) const
 
 uint32 CZXSpectrum::GetScreenWidth(void) const
 {
-	return SC_PIXEL_SCREEN_WIDTH;
+	return SC_VIDEO_MEMORY_WIDTH;
 }
 
 //=============================================================================
 
 uint32 CZXSpectrum::GetScreenHeight(void) const
 {
-	return SC_PIXEL_SCREEN_HEIGHT;
+	return SC_VIDEO_MEMORY_HEIGHT;
 }
 
 //=============================================================================
@@ -267,7 +271,7 @@ void CZXSpectrum::UpdateScreen(const uint8* pScreenMemory)
 			}
 
 			uint32 colour = pixel ? inkRGB : paperRGB;
-			m_videoMemory[x + (y * SC_PIXEL_SCREEN_WIDTH)] = colour;
+			m_videoMemory[(x + SC_BORDER_SIZE) + ((y + SC_BORDER_SIZE) * SC_VIDEO_MEMORY_WIDTH)] = colour;
 		}
 	}
 }

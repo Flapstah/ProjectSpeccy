@@ -32,6 +32,7 @@ class CZXSpectrum : public IScreenMemory
 
 		enum SpectrumConstants
 		{
+			SC_BORDER_SIZE = 16,
 			SC_PIXEL_SCREEN_WIDTH = 256,
 			SC_PIXEL_SCREEN_HEIGHT = 192,
 			SC_ATTRIBUTE_SCREEN_WIDTH = 32,
@@ -41,6 +42,9 @@ class CZXSpectrum : public IScreenMemory
 			SC_ATTRIBUTES_START_ADDRESS = SC_SCREEN_START_ADDRESS + SC_PIXEL_SCREEN_BYTES,
 			SC_ATTRIBUTES_SCREEN_BYTES = SC_ATTRIBUTE_SCREEN_WIDTH * SC_ATTRIBUTE_SCREEN_HEIGHT,
 			SC_SCREEN_SIZE_BYTES = SC_PIXEL_SCREEN_BYTES + SC_ATTRIBUTES_SCREEN_BYTES,
+
+			SC_VIDEO_MEMORY_WIDTH = SC_PIXEL_SCREEN_WIDTH + (SC_BORDER_SIZE << 1),
+			SC_VIDEO_MEMORY_HEIGHT = SC_PIXEL_SCREEN_HEIGHT + (SC_BORDER_SIZE << 1),
 
 			SC_16K_SPECTRUM = 32768,
 			SC_48K_SPECTRUM = 65536
@@ -88,7 +92,7 @@ class CZXSpectrum : public IScreenMemory
 		inline	uint32	AttributeByteIndex(uint8 x, uint8 y) const { return (SC_PIXEL_SCREEN_BYTES + ((y >> 3) * SC_ATTRIBUTE_SCREEN_WIDTH) + (x >> 3)); }
 						void		UpdateScreen(const uint8* pScreenMemory);
 		
-		uint32			m_videoMemory[SC_PIXEL_SCREEN_WIDTH * SC_PIXEL_SCREEN_HEIGHT];
+		uint32			m_videoMemory[SC_VIDEO_MEMORY_WIDTH * SC_VIDEO_MEMORY_HEIGHT];
 		uint8				m_memory[SC_48K_SPECTRUM];
 		CDisplay*		m_pDisplay;
 		CZ80*				m_pZ80;
