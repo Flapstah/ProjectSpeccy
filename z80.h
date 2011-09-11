@@ -14,7 +14,8 @@ class CZ80
 
 		void Reset(void);
 		float Update(float milliseconds);
-		float SingleStep(void);
+		uint32 SingleStep(void);
+		uint32 ServiceInterrupts(void);
 
 		void LoadSNA(uint8* regs);
 

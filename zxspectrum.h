@@ -32,7 +32,11 @@ class CZXSpectrum : public IScreenMemory
 
 		enum SpectrumConstants
 		{
-			SC_BORDER_SIZE = 16,
+			SC_TOP_BORDER = 64,
+			SC_BOTTOM_BORDER = 56,
+			SC_LEFT_BORDER = 48,
+			SC_RIGHT_BORDER = 48,
+			SC_VISIBLE_BORDER_SIZE = 16,
 			SC_PIXEL_SCREEN_WIDTH = 256,
 			SC_PIXEL_SCREEN_HEIGHT = 192,
 			SC_ATTRIBUTE_SCREEN_WIDTH = 32,
@@ -43,8 +47,8 @@ class CZXSpectrum : public IScreenMemory
 			SC_ATTRIBUTES_SCREEN_BYTES = SC_ATTRIBUTE_SCREEN_WIDTH * SC_ATTRIBUTE_SCREEN_HEIGHT,
 			SC_SCREEN_SIZE_BYTES = SC_PIXEL_SCREEN_BYTES + SC_ATTRIBUTES_SCREEN_BYTES,
 
-			SC_VIDEO_MEMORY_WIDTH = SC_PIXEL_SCREEN_WIDTH + (SC_BORDER_SIZE << 1),
-			SC_VIDEO_MEMORY_HEIGHT = SC_PIXEL_SCREEN_HEIGHT + (SC_BORDER_SIZE << 1),
+			SC_VIDEO_MEMORY_WIDTH = SC_PIXEL_SCREEN_WIDTH + (SC_VISIBLE_BORDER_SIZE << 1),
+			SC_VIDEO_MEMORY_HEIGHT = SC_PIXEL_SCREEN_HEIGHT + (SC_VISIBLE_BORDER_SIZE << 1),
 
 			SC_16K_SPECTRUM = 32768,
 			SC_48K_SPECTRUM = 65536
@@ -91,12 +95,16 @@ class CZXSpectrum : public IScreenMemory
 		inline	uint32	PixelByteIndex(uint8 x, uint8 y) const { return ((y & 0xC0) << 5) + ((y & 0x38) << 2) + ((y & 0x07) << 8) + (x >> 3); };
 		inline	uint32	AttributeByteIndex(uint8 x, uint8 y) const { return (SC_PIXEL_SCREEN_BYTES + ((y >> 3) * SC_ATTRIBUTE_SCREEN_WIDTH) + (x >> 3)); }
 						void		UpdateScreen(const uint8* pScreenMemory);
+						void		UpdateScanline(void);
 		
 		uint32			m_videoMemory[SC_VIDEO_MEMORY_WIDTH * SC_VIDEO_MEMORY_HEIGHT];
 		uint8				m_memory[SC_48K_SPECTRUM];
 		CDisplay*		m_pDisplay;
 		CZ80*				m_pZ80;
 		double			m_time;
+
+		uint32			m_scanline;
+		uint32			m_frameNumber;
 
 	private:
 };

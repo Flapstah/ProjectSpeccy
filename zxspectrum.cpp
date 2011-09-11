@@ -17,6 +17,8 @@ static CKeyboard g_keyboard;
 CZXSpectrum::CZXSpectrum(void)
 	: m_pDisplay(NULL)
 	, m_pZ80(NULL)
+	, m_scanline(0)
+	, m_frameNumber(0)
 {
 	for (uint32 index = 0; index < (sizeof(m_videoMemory) / 4); ++index)
 	{
@@ -68,7 +70,7 @@ bool CZXSpectrum::Initialise(void)
 
 bool CZXSpectrum::Update(void)
 {
-	bool ret = false;
+	bool ret = true;
 
 	if ((m_pZ80 != NULL) && (m_pDisplay != NULL))
 	{
@@ -109,18 +111,27 @@ bool CZXSpectrum::Update(void)
 		// screen, 24 tstates of right border and 48 tstates of flyback
 		// Each frame is 64 + 192 + 56 lines
 	
-		if (updateZ80)
+		double currentTime = glfwGetTime();
+		double elapsedTime = currentTime - m_time;
+
+		if (updateZ80 & (elapsedTime >= (1.0 / 50.0)))
 		{
-			double currentTime = glfwGetTime();
-			double elapsedTime = currentTime - m_time;
 			m_time = currentTime;
 
-			elapsedTime = (elapsedTime > (1.0/60.0)) ? (1.0/60.0) : elapsedTime;
-			m_pZ80->Update(static_cast<float>(elapsedTime * 1000.0));
-			UpdateScreen(&m_memory[SC_SCREEN_START_ADDRESS]);
+			int32 tstates = m_pZ80->ServiceInterrupts();
+			for (m_scanline = 0; m_scanline < (SC_TOP_BORDER + SC_PIXEL_SCREEN_HEIGHT + SC_BOTTOM_BORDER); ++m_scanline)
+			{
+				while (tstates < 224)
+				{
+					tstates += m_pZ80->SingleStep();
+				}
+				tstates -= 224;
+
+				UpdateScanline();
+			}
 		}
 
-		ret = m_pDisplay->Update(this) && !CKeyboard::IsKeyPressed(GLFW_KEY_ESC);
+		ret &= m_pDisplay->Update(this) && !CKeyboard::IsKeyPressed(GLFW_KEY_ESC);
 		glfwSleep(0.005);
 	}
 
@@ -278,7 +289,84 @@ void CZXSpectrum::UpdateScreen(const uint8* pScreenMemory)
 			}
 
 			uint32 colour = pixel ? inkRGB : paperRGB;
-			m_videoMemory[(x + SC_BORDER_SIZE) + ((y + SC_BORDER_SIZE) * SC_VIDEO_MEMORY_WIDTH)] = colour;
+			m_videoMemory[(x + SC_VISIBLE_BORDER_SIZE) + ((y + SC_VISIBLE_BORDER_SIZE) * SC_VIDEO_MEMORY_WIDTH)] = colour;
+		}
+	}
+}
+
+//=============================================================================
+
+void CZXSpectrum::UpdateScanline(void)
+{
+	if ((m_scanline < (SC_TOP_BORDER - SC_VISIBLE_BORDER_SIZE)) || (m_scanline > (SC_TOP_BORDER + SC_PIXEL_SCREEN_HEIGHT + SC_VISIBLE_BORDER_SIZE)))
+	{
+		printf("CZXSpectrum::UpdateScanline() outside visible bounds %d\n", m_scanline);
+		return;
+	}
+
+	uint32 scanline = m_scanline - (SC_TOP_BORDER - SC_VISIBLE_BORDER_SIZE);
+	uint8* pScreenMemory = &m_memory[SC_SCREEN_START_ADDRESS];
+
+	uint8 borderColour = 7;
+	uint32 borderRGB = 0xFF000000;
+	if (borderColour & 0x01) borderRGB |= 0x00FF0000;
+	if (borderColour & 0x02) borderRGB |= 0x000000FF;
+	if (borderColour & 0x04) borderRGB |= 0x0000FF00;
+
+	if ((scanline < SC_VISIBLE_BORDER_SIZE) || (scanline > (SC_VISIBLE_BORDER_SIZE + SC_PIXEL_SCREEN_HEIGHT)))
+	{
+		printf("CZXSpectrum::UpdateScanline() top or bottom border %d\n", m_scanline);
+		for (uint32 x = 0; x < SC_VIDEO_MEMORY_WIDTH; ++x)
+		{
+			m_videoMemory[(scanline * SC_VIDEO_MEMORY_WIDTH) + x] = borderRGB; 
+		}
+	}
+	else
+	{
+		printf("CZXSpectrum::UpdateScanline() screen scanline %d, scanline %d\n", m_scanline, scanline);
+
+		uint32 pixelByte = PixelByteIndex(0, scanline - SC_VISIBLE_BORDER_SIZE);
+		uint32 attributeByte = AttributeByteIndex(0, scanline - SC_VISIBLE_BORDER_SIZE);
+		printf("CZXSpectrum::UpdateScanline() pixel offset %d attribute offset %d\n", pixelByte, attributeByte);
+
+		for (uint32 x = 0; x < SC_VIDEO_MEMORY_WIDTH; ++x)
+		{
+			if ((x < SC_VISIBLE_BORDER_SIZE) || (x > (SC_VISIBLE_BORDER_SIZE + SC_PIXEL_SCREEN_WIDTH)))
+			{
+				printf("CZXSpectrum::UpdateScanline() x %d\n", x);
+				m_videoMemory[(scanline * SC_VIDEO_MEMORY_WIDTH) + x] = borderRGB; 
+			}
+			else
+			{
+				uint32 offset = (x - SC_VISIBLE_BORDER_SIZE) >> 3;
+				printf("CZXSpectrum::UpdateScanline() byte offset %d\n", offset);
+
+				uint8 ink = (pScreenMemory[attributeByte + offset] & 0x07) >> 0;
+				uint8 paper = (pScreenMemory[attributeByte + offset] & 0x38) >> 3;
+				uint32 bright = (pScreenMemory[attributeByte + offset] & 0x40) ? 0x00FFFFFF : 0x00CDCDCD;
+				bool flash = pScreenMemory[attributeByte + offset] & 0x80;
+
+				uint32 paperRGB = 0xFF000000;
+				if (paper & 0x01) paperRGB |= 0x00FF0000;
+				if (paper & 0x02) paperRGB |= 0x000000FF;
+				if (paper & 0x04) paperRGB |= 0x0000FF00;
+				paperRGB &= bright;
+				uint32 inkRGB = 0xFF000000;
+				if (ink & 0x01) inkRGB |= 0x00FF0000;
+				if (ink & 0x02) inkRGB |= 0x000000FF;
+				if (ink & 0x04) inkRGB |= 0x0000FF00;
+				inkRGB &= bright;
+
+				bool pixel = (pScreenMemory[pixelByte + offset] & (1 << (7 - (x & 0x07))));
+				if (flash & ((m_frameNumber >> 5) & 0x0001))
+				{
+					// Flash attribute swaps ink and paper every 32 frames on a real Speccy
+					pixel = !pixel;
+				}
+
+				uint32 colour = pixel ? inkRGB : paperRGB;
+				m_videoMemory[(x + SC_VISIBLE_BORDER_SIZE) + ((scanline + SC_VISIBLE_BORDER_SIZE) * SC_VIDEO_MEMORY_WIDTH)] = colour;
+			}
 		}
 	}
 }

@@ -112,6 +112,7 @@ void CZ80::Reset(void)
 
 //=============================================================================
 
+/*
 float CZ80::Update(float milliseconds)
 {
 	float microseconds_available = milliseconds * 1000.0f;
@@ -165,10 +166,10 @@ float CZ80::Update(float milliseconds)
 	microseconds_available = tstates_available * m_reciprocalClockSpeedMHz;
 	return microseconds_available / 1000.0f;
 }
-
+*/
 //=============================================================================
 
-float CZ80::SingleStep(void)
+uint32 CZ80::SingleStep(void)
 {
 	if (GetEnableDebug() || GetEnableUnattendedDebug())
 	{
@@ -187,7 +188,7 @@ float CZ80::SingleStep(void)
 
 	uint16 prevPC = m_PC;
 	uint16 prevSP = m_SP;
-	float microseconds_elapsed = static_cast<float>(Step()) * m_reciprocalClockSpeedMHz;
+	uint32 tstates = Step();
 
 	if ((prevPC < 0x386E) && (m_PC >= 0x386E))
 	{
@@ -205,7 +206,45 @@ float CZ80::SingleStep(void)
 		HitBreakpoint("SP corrupt");
 	}
 
-	return microseconds_elapsed;
+	return tstates;
+}
+
+//=============================================================================
+
+uint32 CZ80::ServiceInterrupts(void)
+{
+	uint32 tstates = 0;
+
+	if (m_State.m_IFF1)
+	{
+		m_State.m_IFF2 = m_State.m_IFF1;
+		m_State.m_IFF1 = 0;
+
+		switch (m_State.m_InterruptMode)
+		{
+			case 0:
+				break;
+			case 1:
+				if (m_pMemory[m_PC] == 0x76)
+				{
+					++m_PC;
+				}
+
+				WriteMemory(--m_SP, m_PCh);
+				WriteMemory(--m_SP, m_PCl);
+				m_PC = 0x0038;
+				tstates = 13; // RST (11) + 2
+				break;
+			case 2:
+				break;
+			default:
+				m_enableDebug = true;
+				HitBreakpoint("illegal interrupt mode");
+				break;
+		}
+	}
+
+	return tstates;
 }
 
 //=============================================================================
