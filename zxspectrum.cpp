@@ -22,7 +22,6 @@ CZXSpectrum::CZXSpectrum(void)
 	, m_pZ80(NULL)
 	, m_scanline(0)
 	, m_frameNumber(0)
-	, m_borderColour(7)
 {
 	for (uint32 index = 0; index < (sizeof(m_videoMemory) / 4); ++index)
 	{
@@ -204,7 +203,7 @@ void CZXSpectrum::WritePort(uint16 address, uint8 byte)
 			// +---+---+---+---+---+---+---+---+
 			// |   |   |   | E | M |  Border   |
 			// +---+---+---+---+---+---+---+---+
-			m_borderColour = byte & 0x07;
+			m_portFE = byte & PC_OUTPUT_MASK;
 			break;
 
 		default:
@@ -470,9 +469,9 @@ void CZXSpectrum::UpdateScanline(void)
 	uint8* pScreenMemory = &m_memory[SC_SCREEN_START_ADDRESS];
 
 	uint32 borderRGB = 0xFF000000;
-	if (m_borderColour & 0x01) borderRGB |= 0x00CD0000;
-	if (m_borderColour & 0x02) borderRGB |= 0x000000CD;
-	if (m_borderColour & 0x04) borderRGB |= 0x0000CD00;
+	if (m_portFE & CC_BLUE) borderRGB |= 0x00CD0000;
+	if (m_portFE & CC_RED) borderRGB |= 0x000000CD;
+	if (m_portFE & CC_GREEN) borderRGB |= 0x0000CD00;
 
 	if ((scanline < SC_VISIBLE_BORDER_SIZE) || (scanline >= (SC_VISIBLE_BORDER_SIZE + SC_PIXEL_SCREEN_HEIGHT)))
 	{
@@ -508,14 +507,14 @@ void CZXSpectrum::UpdateScanline(void)
 				bool flash = (pScreenMemory[attributeByte + offset] & 0x80) ? true : false;
 
 				uint32 paperRGB = 0xFF000000;
-				if (paper & 0x01) paperRGB |= 0x00FF0000;
-				if (paper & 0x02) paperRGB |= 0x000000FF;
-				if (paper & 0x04) paperRGB |= 0x0000FF00;
+				if (paper & CC_BLUE) paperRGB |= 0x00FF0000;
+				if (paper & CC_RED) paperRGB |= 0x000000FF;
+				if (paper & CC_GREEN) paperRGB |= 0x0000FF00;
 				paperRGB &= bright;
 				uint32 inkRGB = 0xFF000000;
-				if (ink & 0x01) inkRGB |= 0x00FF0000;
-				if (ink & 0x02) inkRGB |= 0x000000FF;
-				if (ink & 0x04) inkRGB |= 0x0000FF00;
+				if (ink & CC_BLUE) inkRGB |= 0x00FF0000;
+				if (ink & CC_RED) inkRGB |= 0x000000FF;
+				if (ink & CC_GREEN) inkRGB |= 0x0000FF00;
 				inkRGB &= bright;
 
 				bool pixel = ((pScreenMemory[pixelByte + offset] & (1 << (7 - (x & 0x07))))) ? true : false;

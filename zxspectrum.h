@@ -113,7 +113,27 @@ class CZXSpectrum : public IMemory, public IScreenMemory
 
 		uint32			m_scanline;
 		uint32			m_frameNumber;
-		uint8				m_borderColour;
+
+		enum ColourConstants
+		{
+			CC_BLUE			= 0x01,
+			CC_RED			= 0x02,
+			CC_MAGENTA	= 0x03,
+			CC_GREEN		= 0x04,
+			CC_CYAN			= 0x05,
+			CC_YELLOW		= 0x06,
+			CC_WHITE		= 0x07
+		};
+
+		enum PortConstants
+		{
+			PC_EAR_IN				= 0x40,
+			PC_EAR_OUT			= 0x10,
+			PC_MIC_OUT			= 0x08,
+			PC_BORDER_MASK	= 0x07,
+			PC_OUTPUT_MASK	= PC_EAR_OUT | PC_MIC_OUT | PC_BORDER_MASK
+		};
+		uint8				m_portFE;
 
 	private:
 };
