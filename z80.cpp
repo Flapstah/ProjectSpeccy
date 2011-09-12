@@ -36,7 +36,7 @@ uint16 g_dataBreakpoint = 0; //0x5C3A; // ERR_NR
 
 //=============================================================================
 
-CZ80::CZ80(uint8* pMemory, float clockSpeedMHz)
+CZ80::CZ80(uint8* pMemory)
 	// Map registers to register memory
 	: m_AF(*(reinterpret_cast<uint16*>(&m_RegisterMemory[eR_AF])))
 	, m_BC(*(reinterpret_cast<uint16*>(&m_RegisterMemory[eR_BC])))
@@ -71,8 +71,6 @@ CZ80::CZ80(uint8* pMemory, float clockSpeedMHz)
 	, m_addresshi(m_RegisterMemory[eR_Addressh])
 	, m_addresslo(m_RegisterMemory[eR_Addressl])
 	, m_pMemory(pMemory)
-	, m_clockSpeedMHz(clockSpeedMHz)
-	, m_reciprocalClockSpeedMHz(1.0f / clockSpeedMHz)
 #if defined(NDEBUG)
 	, m_enableDebug(false)
 #else
@@ -110,63 +108,6 @@ void CZ80::Reset(void)
 	memset(m_RegisterMemory, 0, sizeof(m_RegisterMemory));
 }
 
-//=============================================================================
-
-/*
-float CZ80::Update(float milliseconds)
-{
-	float microseconds_available = milliseconds * 1000.0f;
-	float tstates_available = microseconds_available / m_reciprocalClockSpeedMHz;
-
-	if (GetEnableDebug() || GetEnableUnattendedDebug())
-	{
-		// TODO: Interrupts need servicing here, I think
-		tstates_available -= SingleStep();
-	}
-	else
-	{
-		if (m_State.m_IFF1)
-		{
-			m_State.m_IFF2 = m_State.m_IFF1;
-			m_State.m_IFF1 = 0;
-
-			switch (m_State.m_InterruptMode)
-			{
-				case 0:
-					break;
-				case 1:
-					if (m_pMemory[m_PC] == 0x76)
-					{
-						++m_PC;
-					}
-
-					WriteMemory(--m_SP, m_PCh);
-					WriteMemory(--m_SP, m_PCl);
-					m_PC = 0x0038;
-					tstates_available -= 13; // RST (11) + 2
-					break;
-				case 2:
-					break;
-				default:
-					m_enableDebug = true;
-					HitBreakpoint("illegal interrupt mode");
-					break;
-			}
-		}
-
-		while (tstates_available >= 4.0f)
-		{
-			tstates_available -= SingleStep();
-	
-			if (GetEnableDebug())
-				break;
-		}
-	}
-
-	microseconds_available = tstates_available * m_reciprocalClockSpeedMHz;
-	return microseconds_available / 1000.0f;
-}
-*/
 //=============================================================================
 
 uint32 CZ80::SingleStep(void)

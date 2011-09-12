@@ -57,7 +57,7 @@ bool CZXSpectrum::Initialise(void)
 		m_pDisplay->SetDisplayScale(DISPLAY_SCALE);
 		m_time = glfwGetTime();
 		CKeyboard::Initialise();
-		if (m_pZ80 = new CZ80(m_memory, 4.0f))
+		if (m_pZ80 = new CZ80(m_memory))
 		{
 			fprintf(stdout, "[ZX Spectrum] Initialised\n");
 			initialised = true;

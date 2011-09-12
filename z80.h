@@ -10,10 +10,9 @@
 class CZ80
 {
 	public:
-		CZ80(uint8* pMemory, float clockSpeedMHz);
+		CZ80(uint8* pMemory);
 
 		void Reset(void);
-		float Update(float milliseconds);
 		uint32 SingleStep(void);
 		uint32 ServiceInterrupts(void);
 
@@ -680,8 +679,6 @@ class CZ80
 		uint8		m_8BitRegisterOffset[8];
 
 		uint8*	m_pMemory;
-		float		m_clockSpeedMHz;
-		float		m_reciprocalClockSpeedMHz;
 		bool		m_enableDebug;
 		bool		m_enableUnattendedDebug;
 		bool		m_enableOutputStatus;
