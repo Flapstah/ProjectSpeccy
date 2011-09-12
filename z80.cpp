@@ -3270,7 +3270,7 @@ void CZ80::HandleLogicalFlags(uint8 source)
 uint16 CZ80::Handle16BitArithmeticAddFlags(uint32 source1, uint32 source2)
 {
 	uint32 result = source1 + source2;
-	uint32 half = (source1 & 0x0FFF) + (source2 & 0x0FFF) >> 8;
+	uint32 half = ((source1 & 0x0FFF) + (source2 & 0x0FFF)) >> 8;
 	uint32 overflow = ((source1 & source2 & ~result) | (~source1 & ~source2 & result)) >> 13;
 
 	m_F = ((result >> 8) & (eF_S | eF_X | eF_Y)) | (((result & 0xFFFF) == 0) ? eF_Z : 0) | (half & eF_H) | (overflow & eF_PV) | ((result >> 16) & eF_C);
@@ -3283,7 +3283,7 @@ uint16 CZ80::Handle16BitArithmeticAddFlags(uint32 source1, uint32 source2)
 uint16 CZ80::Handle16BitArithmeticSubtractFlags(uint32 source1, uint32 source2)
 {
 	uint32 result = source1 - source2;
-	uint32 half = (source1 & 0x0FFF) - (source2 & 0x0FFF) >> 8;
+	uint32 half = ((source1 & 0x0FFF) - (source2 & 0x0FFF)) >> 8;
 	uint32 overflow = ((source1 & ~source2 & ~result) | (~source1 & source2 & result)) >> 13;
 
 	m_F = ((result >> 8) & (eF_S | eF_X | eF_Y)) | (((result & 0xFFFF) == 0) ? eF_Z : 0) | (half & eF_H) | (overflow & eF_PV) | eF_N | ((result >> 16) & eF_C);
@@ -3449,6 +3449,7 @@ const char* CZ80::Get8BitRegisterString(uint8 threeBits)
 		case 6: return "(HL)";	break;
 		case 7: return "A";			break;
 	}
+	return "??";
 }
 
 //=============================================================================
@@ -3462,6 +3463,7 @@ const char* CZ80::Get16BitRegisterString(uint8 twoBits)
 		case 2: return "HL";		break;
 		case 3: return "SP";		break;
 	}
+	return "??";
 }
 
 //=============================================================================
@@ -3479,6 +3481,7 @@ const char* CZ80::GetConditionString(uint8 threeBits)
 		case 6: return "P";			break; // Positive (Not Sign)
 		case 7: return "M";			break; // Minus (Sign)
 	}
+	return "??";
 }
 
 bool CZ80::IsConditionTrue(uint8 threeBits)
@@ -3494,6 +3497,7 @@ bool CZ80::IsConditionTrue(uint8 threeBits)
 		case 6: return (m_F & eF_S) == 0;		break; // Positive (Not Sign)
 		case 7: return (m_F & eF_S) != 0;		break; // Minus (Sign)
 	}
+	return false;
 }
 
 //=============================================================================
@@ -4005,7 +4009,7 @@ uint32 CZ80::ImplementLDAI(void)
 	IncrementR(2);
 	m_A = m_I;
 	m_F &= eF_C;
-	m_F |= (m_A & eF_S) | (eF_Z & (m_A == 0)) | (m_State.m_IFF2) ? eF_PV : 0 | (m_A & (eF_X | eF_Y));
+	m_F |= (m_A & eF_S) | ((m_A == 0) ? eF_Z : 0) | (m_State.m_IFF2) ? eF_PV : 0 | (m_A & (eF_X | eF_Y));
 	++++m_PC;
 	return 9;
 }
@@ -4030,7 +4034,7 @@ uint32 CZ80::ImplementLDAR(void)
 	IncrementR(2);
 	m_A = m_R;
 	m_F &= eF_C;
-	m_F |= (m_A & eF_S) | (eF_Z & (m_A == 0)) | (m_State.m_IFF2) ? eF_PV : 0 | (m_A & (eF_X | eF_Y));
+	m_F |= (m_A & eF_S) | ((m_A == 0) ? eF_Z : 0) | (m_State.m_IFF2) ? eF_PV : 0 | (m_A & (eF_X | eF_Y));
 	++++m_PC;
 	return 9;
 }
@@ -8724,6 +8728,7 @@ uint32 CZ80::ImplementDJNZe(void)
 		m_PC += displacement;
 		tstates += 5;
 	}
+	return tstates;
 }
 
 //=============================================================================

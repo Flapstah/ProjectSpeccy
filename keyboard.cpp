@@ -13,7 +13,7 @@ bool CKeyboard::s_keyPrevState[512];
 
 //=============================================================================
 
-bool CKeyboard::Initialise(void)
+void CKeyboard::Initialise(void)
 {
 	memset(s_keyState, 0, sizeof(s_keyState) * sizeof(bool));
 	memset(s_keyPrevState, 0, sizeof(s_keyPrevState) * sizeof(bool));
@@ -23,7 +23,7 @@ bool CKeyboard::Initialise(void)
 
 //=============================================================================
 
-bool CKeyboard::Uninitialise(void)
+void CKeyboard::Uninitialise(void)
 {
 }
 

@@ -4,8 +4,8 @@
 class CKeyboard
 {
 public:
-	static	bool				Initialise(void);
-	static	bool				Uninitialise(void);
+	static	void				Initialise(void);
+	static	void				Uninitialise(void);
 
 	static	void				Update(int key, int action);
 	static	bool				IsKeyPressed(int key);

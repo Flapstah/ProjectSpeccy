@@ -284,7 +284,7 @@ void CZXSpectrum::UpdateScreen(const uint8* pScreenMemory)
 			uint8 ink = (pScreenMemory[attrOffset] & 0x07) >> 0;
 			uint8 paper = (pScreenMemory[attrOffset] & 0x38) >> 3;
 			uint32 bright = (pScreenMemory[attrOffset] & 0x40) ? 0x00FFFFFF : 0x00CDCDCD;
-			bool flash = pScreenMemory[attrOffset] & 0x80;
+			bool flash = (pScreenMemory[attrOffset] & 0x80) ? true : false;
 
 			uint32 paperRGB = 0xFF000000;
 			uint32 inkRGB = 0xFF000000;
@@ -297,7 +297,7 @@ void CZXSpectrum::UpdateScreen(const uint8* pScreenMemory)
 			if (ink & 0x04) inkRGB |= 0x0000FF00;
 			inkRGB &= bright;
 
-			bool pixel = (pScreenMemory[PixelByteIndex(x, y)] & (1 << (7 - (x & 0x07))));
+			bool pixel = ((pScreenMemory[PixelByteIndex(x, y)] & (1 << (7 - (x & 0x07))))) ? true : false;
 			if (flash & ((m_frameNumber >> 5) & 0x0001))
 			{
 				// Flash attribute swaps ink and paper every 32 frames on a real Speccy
@@ -360,7 +360,7 @@ void CZXSpectrum::UpdateScanline(void)
 				uint8 ink = (pScreenMemory[attributeByte + offset] & 0x07) >> 0;
 				uint8 paper = (pScreenMemory[attributeByte + offset] & 0x38) >> 3;
 				uint32 bright = (pScreenMemory[attributeByte + offset] & 0x40) ? 0x00FFFFFF : 0x00CDCDCD;
-				bool flash = pScreenMemory[attributeByte + offset] & 0x80;
+				bool flash = (pScreenMemory[attributeByte + offset] & 0x80) ? true : false;
 
 				uint32 paperRGB = 0xFF000000;
 				if (paper & 0x01) paperRGB |= 0x00FF0000;
@@ -373,7 +373,7 @@ void CZXSpectrum::UpdateScanline(void)
 				if (ink & 0x04) inkRGB |= 0x0000FF00;
 				inkRGB &= bright;
 
-				bool pixel = (pScreenMemory[pixelByte + offset] & (1 << (7 - (x & 0x07))));
+				bool pixel = ((pScreenMemory[pixelByte + offset] & (1 << (7 - (x & 0x07))))) ? true : false;
 				if (flash & ((m_frameNumber >> 5) & 0x0001))
 				{
 					// Flash attribute swaps ink and paper every 32 frames on a real Speccy
