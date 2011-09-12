@@ -11,6 +11,7 @@
 
 static CKeyboard g_keyboard;
 #define DISPLAY_SCALE (2)
+#define SHOW_FRAMERATE
 
 //=============================================================================
 
@@ -133,12 +134,22 @@ bool CZXSpectrum::Update(void)
 				}
 
 				++m_frameNumber;
+
+#if defined(SHOW_FRAMERATE)
+				static double startTime = currentTime;
+				static uint32 startFrame = m_frameNumber;
+				if ((currentTime - startTime) > 1.0)
+				{
+					double framerate = (double)(m_frameNumber - startFrame) / (currentTime - startTime);
+					printf("[ZX Spectrum]: average frame rate is %.02f\n", framerate);
+					startFrame = m_frameNumber;
+					startTime = currentTime;
+				}
+#endif // defined(SHOW_FRAMERATE)
 			}
 
 			ret &= m_pDisplay->Update(this) && !CKeyboard::IsKeyPressed(GLFW_KEY_ESC);
 		}
-
-		//glfwSleep(0.005);
 	}
 
 	return ret;
