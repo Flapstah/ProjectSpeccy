@@ -11,7 +11,9 @@
 
 static CKeyboard g_keyboard;
 #define DISPLAY_SCALE (2)
-#define SHOW_FRAMERATE
+//#define SHOW_FRAMERATE
+
+static uint16 g_dataBreakpoint = 0; //0x5C3A; // ERR_NR
 
 //=============================================================================
 
@@ -20,6 +22,7 @@ CZXSpectrum::CZXSpectrum(void)
 	, m_pZ80(NULL)
 	, m_scanline(0)
 	, m_frameNumber(0)
+	, m_borderColour(7)
 {
 	for (uint32 index = 0; index < (sizeof(m_videoMemory) / 4); ++index)
 	{
@@ -31,7 +34,7 @@ CZXSpectrum::CZXSpectrum(void)
 
 CZXSpectrum::~CZXSpectrum(void)
 {
-	fprintf(stdout, "[ZX Spectrum] Shutting down\n");
+	fprintf(stdout, "[ZX Spectrum]: Shutting down\n");
 
 	if (m_pDisplay != NULL)
 	{
@@ -57,9 +60,9 @@ bool CZXSpectrum::Initialise(void)
 		m_pDisplay->SetDisplayScale(DISPLAY_SCALE);
 		m_time = glfwGetTime();
 		CKeyboard::Initialise();
-		if (m_pZ80 = new CZ80(m_memory))
+		if (m_pZ80 = new CZ80(this))
 		{
-			fprintf(stdout, "[ZX Spectrum] Initialised\n");
+			fprintf(stdout, "[ZX Spectrum]: Initialised\n");
 			initialised = true;
 		}
 	}
@@ -141,7 +144,7 @@ bool CZXSpectrum::Update(void)
 				if ((currentTime - startTime) > 1.0)
 				{
 					double framerate = (double)(m_frameNumber - startFrame) / (currentTime - startTime);
-					printf("[ZX Spectrum]: average frame rate is %.02f\n", framerate);
+					fprintf(stdout, "[ZX Spectrum]: average frame rate is %.02f\n", framerate);
 					startFrame = m_frameNumber;
 					startTime = currentTime;
 				}
@@ -168,6 +171,149 @@ void CZXSpectrum::DisplayHelp(void) const
 	fprintf(stderr, "[ZX Spectrum]:      [F8]  Toggle enable program flow break points\n");
 	fprintf(stderr, "[ZX Spectrum]:      [F10] Single step\n");
 	fprintf(stderr, "[ZX Spectrum]:      [ESC] Quit\n");
+}
+
+//=============================================================================
+
+void CZXSpectrum::WriteMemory(uint16 address, uint8 byte)
+{
+	if (address >= 0x4000)
+	{
+		m_memory[address] = byte;
+	}
+	else
+	{
+		m_pZ80->HitBreakpoint("write to ROM");
+	}
+}
+
+//=============================================================================
+
+uint8 CZXSpectrum::ReadMemory(uint16 address) const
+{
+	return m_memory[address];
+}
+
+//=============================================================================
+
+void CZXSpectrum::WritePort(uint16 address, uint8 byte)
+{
+	switch (address & 0x00FF)
+	{
+		case 0x00FE:
+			// +---+---+---+---+---+---+---+---+
+			// |   |   |   | E | M |  Border   |
+			// +---+---+---+---+---+---+---+---+
+			m_borderColour = byte & 0x07;
+			break;
+
+		default:
+			fprintf(stderr, "[ZX Spectrum]: WritePort for unhandled address %04X, data %02X\n", address, byte);
+			break;
+	}
+}
+
+//=============================================================================
+
+uint8 CZXSpectrum::ReadPort(uint16 address) const
+{
+	uint8 byte = 0;
+	uint8 mask = 0;
+
+	switch (address)
+	{
+		case 0xFEFE: // SHIFT, Z, X, C, V
+			byte = 0x1F;
+			if (glfwGetKey(GLFW_KEY_LSHIFT) == GLFW_PRESS) mask |= 0x01;
+			if (glfwGetKey('Z') == GLFW_PRESS) mask |= 0x02;
+			if (glfwGetKey('X') == GLFW_PRESS) mask |= 0x04;
+			if (glfwGetKey('C') == GLFW_PRESS) mask |= 0x08;
+			if (glfwGetKey('V') == GLFW_PRESS) mask |= 0x10;
+			byte &= ~mask;
+			break;
+
+		case 0xFDFE: // A, S, D, F, G
+			byte = 0x1F;
+			if (glfwGetKey('A') == GLFW_PRESS) mask |= 0x01;
+			if (glfwGetKey('S') == GLFW_PRESS) mask |= 0x02;
+			if (glfwGetKey('D') == GLFW_PRESS) mask |= 0x04;
+			if (glfwGetKey('F') == GLFW_PRESS) mask |= 0x08;
+			if (glfwGetKey('G') == GLFW_PRESS) mask |= 0x10;
+			byte &= ~mask;
+			break;
+
+		case 0xFBFE: // Q, W, E, R, T
+			byte = 0x1F;
+			if (glfwGetKey('Q') == GLFW_PRESS) mask |= 0x01;
+			if (glfwGetKey('W') == GLFW_PRESS) mask |= 0x02;
+			if (glfwGetKey('E') == GLFW_PRESS) mask |= 0x04;
+			if (glfwGetKey('R') == GLFW_PRESS) mask |= 0x08;
+			if (glfwGetKey('T') == GLFW_PRESS) mask |= 0x10;
+			byte &= ~mask;
+			break;
+
+		case 0xF7FE: // 1, 2, 3, 4, 5
+			byte = 0x1F;
+			if (glfwGetKey('1') == GLFW_PRESS) mask |= 0x01;
+			if (glfwGetKey('2') == GLFW_PRESS) mask |= 0x02;
+			if (glfwGetKey('3') == GLFW_PRESS) mask |= 0x04;
+			if (glfwGetKey('4') == GLFW_PRESS) mask |= 0x08;
+			if (glfwGetKey('5') == GLFW_PRESS) mask |= 0x10;
+			byte &= ~mask;
+			break;
+
+		case 0xEFFE: // 0, 9, 8, 7, 6
+			byte = 0x1F;
+			if (glfwGetKey('0') == GLFW_PRESS) mask |= 0x01;
+			if (glfwGetKey('9') == GLFW_PRESS) mask |= 0x02;
+			if (glfwGetKey('8') == GLFW_PRESS) mask |= 0x04;
+			if (glfwGetKey('7') == GLFW_PRESS) mask |= 0x08;
+			if (glfwGetKey('6') == GLFW_PRESS) mask |= 0x10;
+			byte &= ~mask;
+			break;
+
+		case 0xDFFE: // P, O, I, U, Y
+			byte = 0x1F;
+			if (glfwGetKey('P') == GLFW_PRESS) mask |= 0x01;
+			if (glfwGetKey('O') == GLFW_PRESS) mask |= 0x02;
+			if (glfwGetKey('I') == GLFW_PRESS) mask |= 0x04;
+			if (glfwGetKey('U') == GLFW_PRESS) mask |= 0x08;
+			if (glfwGetKey('Y') == GLFW_PRESS) mask |= 0x10;
+			byte &= ~mask;
+			break;
+
+		case 0xBFFE: // ENTER, L, K, J, H
+			byte = 0x1F;
+			if (glfwGetKey(GLFW_KEY_ENTER) == GLFW_PRESS) mask |= 0x01;
+			if (glfwGetKey('L') == GLFW_PRESS) mask |= 0x02;
+			if (glfwGetKey('K') == GLFW_PRESS) mask |= 0x04;
+			if (glfwGetKey('J') == GLFW_PRESS) mask |= 0x08;
+			if (glfwGetKey('H') == GLFW_PRESS) mask |= 0x10;
+			byte &= ~mask;
+			break;
+
+		case 0x7FFE: // SPACE, SYM SHIFT, M, N, B
+			byte = 0x1F;
+			if (glfwGetKey(GLFW_KEY_SPACE) == GLFW_PRESS) mask |= 0x01;
+			if (glfwGetKey(GLFW_KEY_RSHIFT) == GLFW_PRESS) mask |= 0x02;
+			if (glfwGetKey('M') == GLFW_PRESS) mask |= 0x04;
+			if (glfwGetKey('N') == GLFW_PRESS) mask |= 0x08;
+			if (glfwGetKey('B') == GLFW_PRESS) mask |= 0x10;
+			byte &= ~mask;
+			break;
+
+		default:
+			fprintf(stderr, "[ZX Spectrum]: ReadPort for unhandled address %04X\n", address);
+			byte = 0;
+			break;
+	}
+
+//	if (byte != 0x1F)
+//	{
+//		printf("[ZX Spectrum]: Port %04X is %02X\n", address, byte);
+//	}
+
+	return byte;
 }
 
 //=============================================================================
@@ -323,11 +469,10 @@ void CZXSpectrum::UpdateScanline(void)
 	uint32 scanline = m_scanline - (SC_TOP_BORDER - SC_VISIBLE_BORDER_SIZE);
 	uint8* pScreenMemory = &m_memory[SC_SCREEN_START_ADDRESS];
 
-	uint8 borderColour = 7;
 	uint32 borderRGB = 0xFF000000;
-	if (borderColour & 0x01) borderRGB |= 0x00CD0000;
-	if (borderColour & 0x02) borderRGB |= 0x000000CD;
-	if (borderColour & 0x04) borderRGB |= 0x0000CD00;
+	if (m_borderColour & 0x01) borderRGB |= 0x00CD0000;
+	if (m_borderColour & 0x02) borderRGB |= 0x000000CD;
+	if (m_borderColour & 0x04) borderRGB |= 0x0000CD00;
 
 	if ((scanline < SC_VISIBLE_BORDER_SIZE) || (scanline >= (SC_VISIBLE_BORDER_SIZE + SC_PIXEL_SCREEN_HEIGHT)))
 	{

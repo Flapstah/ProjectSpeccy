@@ -3,16 +3,24 @@
 
 #include "common/platform_types.h"
 
+#include "imemory.h"
 #include "iscreenmemory.h"
 
 class CDisplay;
 class CZ80;
 
-class CZXSpectrum : public IScreenMemory
+class CZXSpectrum : public IMemory, public IScreenMemory
 {
 	public:
 		CZXSpectrum(void);
 		virtual ~CZXSpectrum(void);
+
+		// IMemory
+		virtual void WriteMemory(uint16 address, uint8 byte);
+		virtual uint8 ReadMemory(uint16 address) const;
+		virtual void WritePort(uint16 address, uint8 byte);
+		virtual uint8 ReadPort(uint16 address) const;
+		// ~IMemory
 
 		// IScreenMemory
 		virtual	const void*	GetScreenMemory(void) const;
@@ -105,6 +113,7 @@ class CZXSpectrum : public IScreenMemory
 
 		uint32			m_scanline;
 		uint32			m_frameNumber;
+		uint8				m_borderColour;
 
 	private:
 };
