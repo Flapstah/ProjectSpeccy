@@ -231,7 +231,12 @@ void CZ80::LoadSNA(uint8* regs)
 
 	m_State.m_InterruptMode = regs[index++];
 
-	ImplementRETN();
+	IncrementR(2);
+	m_State.m_IFF1 = m_State.m_IFF2;
+	m_PCl = ReadMemory(m_SP);
+	WriteMemory(m_SP++, 0);
+	m_PCh = ReadMemory(m_SP);
+	WriteMemory(m_SP++, 0);
 }
 
 //=============================================================================
