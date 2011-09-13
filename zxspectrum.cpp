@@ -13,6 +13,14 @@ static CKeyboard g_keyboard;
 #define DISPLAY_SCALE (2)
 #define SHOW_FRAMERATE
 
+// TODO:
+// fix up UpdateScanline() to use new enumerated constants
+// have UpdateScanline accept number of tstates for the instruction and keep an
+// internal count of the number of tstates elapsed and then fire an entire scan
+// line every 224 tstates
+// do the same for tape handling so it can fire every 79 tstates
+
+
 //=============================================================================
 
 CZXSpectrum::CZXSpectrum(void)
