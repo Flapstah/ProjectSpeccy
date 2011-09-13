@@ -81,8 +81,8 @@ bool CDisplay::Update(IScreenMemory* pScreenMemory)
 	glBindTexture(GL_TEXTURE_2D, eTID_Main);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, pScreenMemory->GetScreenWidth(), pScreenMemory->GetScreenHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE, pScreenMemory->GetScreenMemory());
 
-	int32 scaledWidth = m_displayScale * pScreenMemory->GetScreenWidth();
-	int32 scaledHeight = m_displayScale * pScreenMemory->GetScreenHeight();
+	int32 scaledWidth = static_cast<int32>(m_displayScale * pScreenMemory->GetScreenWidth());
+	int32 scaledHeight = static_cast<int32>(m_displayScale * pScreenMemory->GetScreenHeight());
 	int32 x = (width - scaledWidth) / 2;
 	int32 y = (height - scaledHeight) / 2;
 
@@ -101,7 +101,7 @@ bool CDisplay::Update(IScreenMemory* pScreenMemory)
 	glfwSwapBuffers();
 	glDisable(GL_TEXTURE_2D);
 
-	bool cont = glfwGetWindowParam(GLFW_OPENED);
+	bool cont = (glfwGetWindowParam(GLFW_OPENED) == GL_TRUE) ? true : false;
 
 	return cont;
 }
