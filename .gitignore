@@ -1,11 +1,15 @@
 CMakeFiles/
 docs/
+ZXSpectrum/Debug/
+ZXSpectrum/ipch/
 *~
 *.swp
 CMakeCache.txt
 Makefile
 cmake_install.cmake
 debug.txt
+poop
+parp
 tags
 test
 test.exe
