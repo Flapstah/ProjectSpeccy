@@ -216,97 +216,85 @@ void CZXSpectrum::WritePort(uint16 address, uint8 byte)
 
 uint8 CZXSpectrum::ReadPort(uint16 address) const
 {
-	uint8 byte = 0;
-	uint8 mask = 0;
+	uint8 byte = 0x1F;
+	uint8 mask = 0x00;
+	uint8 line = ~(address >> 8);
 
-	switch (address)
+	if (line & 0x01)
 	{
-		case 0xFEFE: // SHIFT, Z, X, C, V
-			byte = 0x1F;
-			if (glfwGetKey(GLFW_KEY_LSHIFT) == GLFW_PRESS) mask |= 0x01;
-			if (glfwGetKey('Z') == GLFW_PRESS) mask |= 0x02;
-			if (glfwGetKey('X') == GLFW_PRESS) mask |= 0x04;
-			if (glfwGetKey('C') == GLFW_PRESS) mask |= 0x08;
-			if (glfwGetKey('V') == GLFW_PRESS) mask |= 0x10;
-			byte &= ~mask;
-			break;
-
-		case 0xFDFE: // A, S, D, F, G
-			byte = 0x1F;
-			if (glfwGetKey('A') == GLFW_PRESS) mask |= 0x01;
-			if (glfwGetKey('S') == GLFW_PRESS) mask |= 0x02;
-			if (glfwGetKey('D') == GLFW_PRESS) mask |= 0x04;
-			if (glfwGetKey('F') == GLFW_PRESS) mask |= 0x08;
-			if (glfwGetKey('G') == GLFW_PRESS) mask |= 0x10;
-			byte &= ~mask;
-			break;
-
-		case 0xFBFE: // Q, W, E, R, T
-			byte = 0x1F;
-			if (glfwGetKey('Q') == GLFW_PRESS) mask |= 0x01;
-			if (glfwGetKey('W') == GLFW_PRESS) mask |= 0x02;
-			if (glfwGetKey('E') == GLFW_PRESS) mask |= 0x04;
-			if (glfwGetKey('R') == GLFW_PRESS) mask |= 0x08;
-			if (glfwGetKey('T') == GLFW_PRESS) mask |= 0x10;
-			byte &= ~mask;
-			break;
-
-		case 0xF7FE: // 1, 2, 3, 4, 5
-			byte = 0x1F;
-			if (glfwGetKey('1') == GLFW_PRESS) mask |= 0x01;
-			if (glfwGetKey('2') == GLFW_PRESS) mask |= 0x02;
-			if (glfwGetKey('3') == GLFW_PRESS) mask |= 0x04;
-			if (glfwGetKey('4') == GLFW_PRESS) mask |= 0x08;
-			if (glfwGetKey('5') == GLFW_PRESS) mask |= 0x10;
-			byte &= ~mask;
-			break;
-
-		case 0xEFFE: // 0, 9, 8, 7, 6
-			byte = 0x1F;
-			if (glfwGetKey('0') == GLFW_PRESS) mask |= 0x01;
-			if (glfwGetKey('9') == GLFW_PRESS) mask |= 0x02;
-			if (glfwGetKey('8') == GLFW_PRESS) mask |= 0x04;
-			if (glfwGetKey('7') == GLFW_PRESS) mask |= 0x08;
-			if (glfwGetKey('6') == GLFW_PRESS) mask |= 0x10;
-			byte &= ~mask;
-			break;
-
-		case 0xDFFE: // P, O, I, U, Y
-			byte = 0x1F;
-			if (glfwGetKey('P') == GLFW_PRESS) mask |= 0x01;
-			if (glfwGetKey('O') == GLFW_PRESS) mask |= 0x02;
-			if (glfwGetKey('I') == GLFW_PRESS) mask |= 0x04;
-			if (glfwGetKey('U') == GLFW_PRESS) mask |= 0x08;
-			if (glfwGetKey('Y') == GLFW_PRESS) mask |= 0x10;
-			byte &= ~mask;
-			break;
-
-		case 0xBFFE: // ENTER, L, K, J, H
-			byte = 0x1F;
-			if (glfwGetKey(GLFW_KEY_ENTER) == GLFW_PRESS) mask |= 0x01;
-			if (glfwGetKey('L') == GLFW_PRESS) mask |= 0x02;
-			if (glfwGetKey('K') == GLFW_PRESS) mask |= 0x04;
-			if (glfwGetKey('J') == GLFW_PRESS) mask |= 0x08;
-			if (glfwGetKey('H') == GLFW_PRESS) mask |= 0x10;
-			byte &= ~mask;
-			break;
-
-		case 0x7FFE: // SPACE, SYM SHIFT, M, N, B
-			byte = 0x1F;
-			if (glfwGetKey(GLFW_KEY_SPACE) == GLFW_PRESS) mask |= 0x01;
-			if (glfwGetKey(GLFW_KEY_RSHIFT) == GLFW_PRESS) mask |= 0x02;
-			if (glfwGetKey('M') == GLFW_PRESS) mask |= 0x04;
-			if (glfwGetKey('N') == GLFW_PRESS) mask |= 0x08;
-			if (glfwGetKey('B') == GLFW_PRESS) mask |= 0x10;
-			byte &= ~mask;
-			break;
-
-		default:
-			fprintf(stderr, "[ZX Spectrum]: ReadPort for unhandled address %04X\n", address);
-			byte = 0;
-			break;
+		// SHIFT, Z, X, C, V
+		if (glfwGetKey(GLFW_KEY_LSHIFT) == GLFW_PRESS) mask |= 0x01;
+		if (glfwGetKey('Z') == GLFW_PRESS) mask |= 0x02;
+		if (glfwGetKey('X') == GLFW_PRESS) mask |= 0x04;
+		if (glfwGetKey('C') == GLFW_PRESS) mask |= 0x08;
+		if (glfwGetKey('V') == GLFW_PRESS) mask |= 0x10;
 	}
 
+	if (line & 0x02)
+	{
+		// A, S, D, F, G
+		if (glfwGetKey('A') == GLFW_PRESS) mask |= 0x01;
+		if (glfwGetKey('S') == GLFW_PRESS) mask |= 0x02;
+		if (glfwGetKey('D') == GLFW_PRESS) mask |= 0x04;
+		if (glfwGetKey('F') == GLFW_PRESS) mask |= 0x08;
+		if (glfwGetKey('G') == GLFW_PRESS) mask |= 0x10;
+	}
+
+	if (line & 0x04) // Q, W, E, R, T
+	{
+		if (glfwGetKey('Q') == GLFW_PRESS) mask |= 0x01;
+		if (glfwGetKey('W') == GLFW_PRESS) mask |= 0x02;
+		if (glfwGetKey('E') == GLFW_PRESS) mask |= 0x04;
+		if (glfwGetKey('R') == GLFW_PRESS) mask |= 0x08;
+		if (glfwGetKey('T') == GLFW_PRESS) mask |= 0x10;
+	}
+
+	if (line & 0x08) // 1, 2, 3, 4, 5
+	{
+		if (glfwGetKey('1') == GLFW_PRESS) mask |= 0x01;
+		if (glfwGetKey('2') == GLFW_PRESS) mask |= 0x02;
+		if (glfwGetKey('3') == GLFW_PRESS) mask |= 0x04;
+		if (glfwGetKey('4') == GLFW_PRESS) mask |= 0x08;
+		if (glfwGetKey('5') == GLFW_PRESS) mask |= 0x10;
+	}
+
+	if (line & 0x10) // 0, 9, 8, 7, 6
+	{
+		if (glfwGetKey('0') == GLFW_PRESS) mask |= 0x01;
+		if (glfwGetKey('9') == GLFW_PRESS) mask |= 0x02;
+		if (glfwGetKey('8') == GLFW_PRESS) mask |= 0x04;
+		if (glfwGetKey('7') == GLFW_PRESS) mask |= 0x08;
+		if (glfwGetKey('6') == GLFW_PRESS) mask |= 0x10;
+	}
+
+	if (line & 0x20) // P, O, I, U, Y
+	{
+		if (glfwGetKey('P') == GLFW_PRESS) mask |= 0x01;
+		if (glfwGetKey('O') == GLFW_PRESS) mask |= 0x02;
+		if (glfwGetKey('I') == GLFW_PRESS) mask |= 0x04;
+		if (glfwGetKey('U') == GLFW_PRESS) mask |= 0x08;
+		if (glfwGetKey('Y') == GLFW_PRESS) mask |= 0x10;
+	}
+
+	if (line & 0x40) // ENTER, L, K, J, H
+	{
+		if (glfwGetKey(GLFW_KEY_ENTER) == GLFW_PRESS) mask |= 0x01;
+		if (glfwGetKey('L') == GLFW_PRESS) mask |= 0x02;
+		if (glfwGetKey('K') == GLFW_PRESS) mask |= 0x04;
+		if (glfwGetKey('J') == GLFW_PRESS) mask |= 0x08;
+		if (glfwGetKey('H') == GLFW_PRESS) mask |= 0x10;
+	}
+
+	if (line & 0x80) // SPACE, SYM SHIFT, M, N, B
+	{
+		if (glfwGetKey(GLFW_KEY_SPACE) == GLFW_PRESS) mask |= 0x01;
+		if (glfwGetKey(GLFW_KEY_RSHIFT) == GLFW_PRESS) mask |= 0x02;
+		if (glfwGetKey('M') == GLFW_PRESS) mask |= 0x04;
+		if (glfwGetKey('N') == GLFW_PRESS) mask |= 0x08;
+		if (glfwGetKey('B') == GLFW_PRESS) mask |= 0x10;
+	}
+
+	byte &= ~mask;
 //	if (byte != 0x1F)
 //	{
 //		printf("[ZX Spectrum]: Port %04X is %02X\n", address, byte);

@@ -20,10 +20,13 @@ int main(int argc, char* argv[])
 */
 	speccy.LoadROM("roms/48.rom");
 /*
+  // working
 	speccy.LoadSNA("roms/android2.sna");
 	speccy.LoadSNA("roms/hobbit.sna");
+	// not working
 	speccy.LoadSNA("roms/LORDSMID.SNA");
 */
+	speccy.LoadSNA("roms/hobbit.sna");
 	while (speccy.Update());
 
 	return EXIT_SUCCESS;
