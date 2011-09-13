@@ -31,9 +31,9 @@ class CZXSpectrum : public IMemory, public IScreenMemory
 						bool				Initialise(void);
 						bool				Update(void);
 
-						bool				OpenSCR(const char* fileName);
 						bool				LoadROM(const char* fileName);
 						bool				LoadSNA(const char* fileName);
+						bool				LoadRAW(const char* fileName);
 
 	protected:
 						void				DisplayHelp(void) const;
@@ -57,6 +57,11 @@ class CZXSpectrum : public IMemory, public IScreenMemory
 
 			SC_VIDEO_MEMORY_WIDTH = SC_PIXEL_SCREEN_WIDTH + (SC_VISIBLE_BORDER_SIZE << 1),
 			SC_VIDEO_MEMORY_HEIGHT = SC_PIXEL_SCREEN_HEIGHT + (SC_VISIBLE_BORDER_SIZE << 1),
+
+			SC_TOTAL_VIDEO_WIDTH = SC_LEFT_BORDER + SC_PIXEL_SCREEN_WIDTH + SC_RIGHT_BORDER,
+			SC_TOTAL_VIDEO_HEIGHT = SC_TOP_BORDER + SC_PIXEL_SCREEN_HEIGHT + SC_BOTTOM_BORDER,
+
+			SC_FRAME_TSTATES = 69888, // (24+128+24+48)*(64+192+56)
 
 			SC_16K_SPECTRUM = 32768,
 			SC_48K_SPECTRUM = 65536
@@ -102,18 +107,9 @@ class CZXSpectrum : public IMemory, public IScreenMemory
 		// + (x / 8)
 		inline	uint32	PixelByteIndex(uint8 x, uint8 y) const { return ((y & 0xC0) << 5) + ((y & 0x38) << 2) + ((y & 0x07) << 8) + (x >> 3); };
 		inline	uint32	AttributeByteIndex(uint8 x, uint8 y) const { return (SC_PIXEL_SCREEN_BYTES + ((y >> 3) * SC_ATTRIBUTE_SCREEN_WIDTH) + (x >> 3)); }
-						void		UpdateScreen(const uint8* pScreenMemory);
 						void		UpdateScanline(void);
+						void		UpdateTape(uint32 tstates);
 		
-		uint32			m_videoMemory[SC_VIDEO_MEMORY_WIDTH * SC_VIDEO_MEMORY_HEIGHT];
-		uint8				m_memory[SC_48K_SPECTRUM];
-		CDisplay*		m_pDisplay;
-		CZ80*				m_pZ80;
-		double			m_time;
-
-		uint32			m_scanline;
-		uint32			m_frameNumber;
-
 		enum ColourConstants
 		{
 			CC_BLUE			= 0x01,
@@ -133,7 +129,20 @@ class CZXSpectrum : public IMemory, public IScreenMemory
 			PC_BORDER_MASK	= 0x07,
 			PC_OUTPUT_MASK	= PC_EAR_OUT | PC_MIC_OUT | PC_BORDER_MASK
 		};
+
+		// Memory for the OpenGL texture used to represent the ZX Spectrum screen
+		uint32			m_videoMemory[SC_VIDEO_MEMORY_WIDTH * SC_VIDEO_MEMORY_HEIGHT];
+		// Main memory for the 48K ZX Spectrum
+		uint8				m_memory[SC_48K_SPECTRUM];
+		double			m_time;
+		CDisplay*		m_pDisplay;
+		CZ80*				m_pZ80;
+		FILE*				m_pFile;
+		uint32			m_scanline;
+		uint32			m_xpos;
+		uint32			m_frameNumber;
 		uint8				m_portFE;
+		bool				m_tapePlaying;
 
 	private:
 };

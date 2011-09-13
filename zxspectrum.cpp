@@ -11,22 +11,20 @@
 
 static CKeyboard g_keyboard;
 #define DISPLAY_SCALE (2)
-//#define SHOW_FRAMERATE
-
-static uint16 g_dataBreakpoint = 0; //0x5C3A; // ERR_NR
+#define SHOW_FRAMERATE
 
 //=============================================================================
 
 CZXSpectrum::CZXSpectrum(void)
 	: m_pDisplay(NULL)
 	, m_pZ80(NULL)
+	, m_pFile(NULL)
 	, m_scanline(0)
+	, m_xpos(0)
 	, m_frameNumber(0)
+	, m_portFE(0)
+	, m_tapePlaying(false)
 {
-	for (uint32 index = 0; index < (sizeof(m_videoMemory) / 4); ++index)
-	{
-		m_videoMemory[index] = 0x00CDCDCD;
-	}
 }
 
 //=============================================================================
@@ -34,6 +32,11 @@ CZXSpectrum::CZXSpectrum(void)
 CZXSpectrum::~CZXSpectrum(void)
 {
 	fprintf(stdout, "[ZX Spectrum]: Shutting down\n");
+
+	if (m_pFile != NULL)
+	{
+		fclose(m_pFile);
+	}
 
 	if (m_pDisplay != NULL)
 	{
@@ -107,6 +110,21 @@ bool CZXSpectrum::Update(void)
 			m_pZ80->SetEnableProgramFlowBreakpoints(!m_pZ80->GetEnableProgramFlowBreakpoints());
 		}
 
+		if (CKeyboard::IsKeyPressed(GLFW_KEY_PAGEUP))
+		{
+			m_tapePlaying = !m_tapePlaying;
+			fprintf(stdout, "[ZX Spectrum]: tape is now %s\n", m_tapePlaying ? "playing" : "stopped");
+		}
+
+		if (CKeyboard::IsKeyPressed(GLFW_KEY_HOME))
+		{
+			if (m_pFile != NULL)
+			{
+				fseek(m_pFile, 0, SEEK_SET);
+				fprintf(stdout, "[ZX Spectrum]: tape is now at start (and %s)\n", m_tapePlaying ? "playing" : "stopped");
+			}
+		}
+
 		bool updateZ80 = !m_pZ80->GetEnableDebug() || m_pZ80->GetEnableUnattendedDebug() || CKeyboard::IsKeyPressed(GLFW_KEY_F9) || CKeyboard::IsKeyPressed(GLFW_KEY_F10);
 
 		// Timings:
@@ -162,14 +180,16 @@ bool CZXSpectrum::Update(void)
 void CZXSpectrum::DisplayHelp(void) const
 {
 	fprintf(stderr, "[ZX Spectrum]: Help keys:\n");
-	fprintf(stderr, "[ZX Spectrum]:      [F1]  Show help\n");
-	fprintf(stderr, "[ZX Spectrum]:      [F2]  Toggle debug mode\n");
-	fprintf(stderr, "[ZX Spectrum]:      [F3]  Toggle status output\n");
-	fprintf(stderr, "[ZX Spectrum]:      [F5]  Toggle unattended debug mode\n");
-	fprintf(stderr, "[ZX Spectrum]:      [F7]  Toggle enable break points\n");
-	fprintf(stderr, "[ZX Spectrum]:      [F8]  Toggle enable program flow break points\n");
-	fprintf(stderr, "[ZX Spectrum]:      [F10] Single step\n");
-	fprintf(stderr, "[ZX Spectrum]:      [ESC] Quit\n");
+	fprintf(stderr, "[ZX Spectrum]:      [F1]     Show help\n");
+	fprintf(stderr, "[ZX Spectrum]:      [F2]     Toggle debug mode\n");
+	fprintf(stderr, "[ZX Spectrum]:      [F3]     Toggle status output\n");
+	fprintf(stderr, "[ZX Spectrum]:      [F5]     Toggle unattended debug mode\n");
+	fprintf(stderr, "[ZX Spectrum]:      [F7]     Toggle enable break points\n");
+	fprintf(stderr, "[ZX Spectrum]:      [F8]     Toggle enable program flow break points\n");
+	fprintf(stderr, "[ZX Spectrum]:      [F9/F10] Single step\n");
+	fprintf(stderr, "[ZX Spectrum]:      [PgUp]   Start/stop tape\n");
+	fprintf(stderr, "[ZX Spectrum]:      [Home]   Rewind tape\n");
+	fprintf(stderr, "[ZX Spectrum]:      [ESC]    Quit\n");
 }
 
 //=============================================================================
@@ -326,43 +346,17 @@ uint32 CZXSpectrum::GetScreenHeight(void) const
 
 //=============================================================================
 
-bool CZXSpectrum::OpenSCR(const char* fileName)
-{
-	FILE* pFile = fopen(fileName, "rb");
-	bool success = false;
-
-	if (pFile != NULL)
-	{
-		// load into memory
-		fread(&m_memory[SC_SCREEN_START_ADDRESS], sizeof(SC_SCREEN_SIZE_BYTES), 1, pFile);
-		fclose(pFile);
-
-		UpdateScreen(&m_memory[SC_SCREEN_START_ADDRESS]);
-
-		fprintf(stdout, "[ZX Spectrum]: loaded screen [%s] successfully\n", fileName);
-		success = true;
-	}
-	else
-	{
-		fprintf(stderr, "[ZX Spectrum]: failed to load screen [%s]\n", fileName);
-	}
-
-	return success;
-}
-
-//=============================================================================
-
 bool CZXSpectrum::LoadROM(const char* fileName)
 {
 	memset(m_memory, 0, sizeof(m_memory));
-
-	FILE* pFile = fopen(fileName, "rb");
+	m_pFile = fopen(fileName, "rb");
 	bool success = false;
 
-	if (pFile != NULL)
+	if (m_pFile != NULL)
 	{
-		fread(m_memory, sizeof(m_memory), 1, pFile);
-		fclose(pFile);
+		fread(m_memory, sizeof(m_memory), 1, m_pFile);
+		fclose(m_pFile);
+		m_pFile = NULL;
 
 		fprintf(stdout, "[ZX Spectrum]: loaded rom [%s] successfully\n", fileName);
 
@@ -370,7 +364,7 @@ bool CZXSpectrum::LoadROM(const char* fileName)
 	}
 	else
 	{
-		fprintf(stderr, "[ZX Spectrum]: failed to load rom [%s]\n", fileName);
+		fprintf(stderr, "[ZX Spectrum]: failed to load [%s]\n", fileName);
 	}
 
 	return success;
@@ -380,16 +374,17 @@ bool CZXSpectrum::LoadROM(const char* fileName)
 
 bool CZXSpectrum::LoadSNA(const char* fileName)
 {
-	FILE* pFile = fopen(fileName, "rb");
+	m_pFile = fopen(fileName, "rb");
 	bool success = false;
 
 	char scratch[49179];
-	if (pFile != NULL)
+	if (m_pFile != NULL)
 	{
-		fread(scratch, sizeof(scratch), 1, pFile);
-		fclose(pFile);
+		fread(scratch, sizeof(scratch), 1, m_pFile);
+		fclose(m_pFile);
+		m_pFile = NULL;
 
-		fprintf(stdout, "[ZX Spectrum]: loaded [%s] successfully\n", fileName);
+		fprintf(stdout, "[ZX Spectrum]: loaded SNA [%s] successfully\n", fileName);
 
 		memcpy(&m_memory[SC_SCREEN_START_ADDRESS], &scratch[27], SC_48K_SPECTRUM - SC_SCREEN_START_ADDRESS);
 		m_pZ80->LoadSNA(reinterpret_cast<uint8*>(scratch));
@@ -398,7 +393,7 @@ bool CZXSpectrum::LoadSNA(const char* fileName)
 	}
 	else
 	{
-		fprintf(stderr, "[ZX Spectrum]: failed to load rom [%s]\n", fileName);
+		fprintf(stderr, "[ZX Spectrum]: failed to load [%s]\n", fileName);
 	}
 
 	return success;
@@ -406,41 +401,22 @@ bool CZXSpectrum::LoadSNA(const char* fileName)
 
 //=============================================================================
 
-void CZXSpectrum::UpdateScreen(const uint8* pScreenMemory)
+bool CZXSpectrum::LoadRAW(const char* fileName)
 {
-	// swizzle into texture
-	for (uint32 y = 0; y < SC_PIXEL_SCREEN_HEIGHT; ++y)
+	m_pFile = fopen(fileName, "rb");
+	bool success = false;
+
+	if (m_pFile != NULL)
 	{
-		for (uint32 x = 0; x < SC_PIXEL_SCREEN_WIDTH; ++x)
-		{
-			uint32 attrOffset = AttributeByteIndex(x, y);
-			uint8 ink = (pScreenMemory[attrOffset] & 0x07) >> 0;
-			uint8 paper = (pScreenMemory[attrOffset] & 0x38) >> 3;
-			uint32 bright = (pScreenMemory[attrOffset] & 0x40) ? 0x00FFFFFF : 0x00CDCDCD;
-			bool flash = (pScreenMemory[attrOffset] & 0x80) ? true : false;
-
-			uint32 paperRGB = 0xFF000000;
-			uint32 inkRGB = 0xFF000000;
-			if (paper & 0x01) paperRGB |= 0x00FF0000;
-			if (paper & 0x02) paperRGB |= 0x000000FF;
-			if (paper & 0x04) paperRGB |= 0x0000FF00;
-			paperRGB &= bright;
-			if (ink & 0x01) inkRGB |= 0x00FF0000;
-			if (ink & 0x02) inkRGB |= 0x000000FF;
-			if (ink & 0x04) inkRGB |= 0x0000FF00;
-			inkRGB &= bright;
-
-			bool pixel = ((pScreenMemory[PixelByteIndex(x, y)] & (1 << (7 - (x & 0x07))))) ? true : false;
-			if (flash & ((m_frameNumber >> 5) & 0x0001))
-			{
-				// Flash attribute swaps ink and paper every 32 frames on a real Speccy
-				pixel = !pixel;
-			}
-
-			uint32 colour = pixel ? inkRGB : paperRGB;
-			m_videoMemory[(x + SC_VISIBLE_BORDER_SIZE) + ((y + SC_VISIBLE_BORDER_SIZE) * SC_VIDEO_MEMORY_WIDTH)] = colour;
-		}
+		fprintf(stdout, "[ZX Spectrum]: opened RAW [%s] successfully\n", fileName);
+		success = true;
 	}
+	else
+	{
+		fprintf(stderr, "[ZX Spectrum]: failed to load [%s]\n", fileName);
+	}
+
+	return success;
 }
 
 //=============================================================================
@@ -519,5 +495,19 @@ void CZXSpectrum::UpdateScanline(void)
 	}
 }
 
+//=============================================================================
+
+void CZXSpectrum::UpdateTape(uint32 tstates)
+{
+	// RAW images are 44100 Hz => 44100 bytes/sec (1 byte in file = 1 bit)
+	// Screen refresh is (64+192+56)*224=69888 T states long
+	// 3.5Mhz/69888=50.080128205Hz refresh rate (let's call it 50Hz)
+	// 44100bps/50.080128205Hz=880.588800002 bits per screen refresh
+	// (44100bps/50Hz=882 bits per screen refresh)
+	// 69888/880.588800002=79.365079365 tstates per bit
+	// (69888/882=79.238095238 tstates per bit)
+	// rounded to 79 tstates for simplicity
+
+}
 //=============================================================================
 
