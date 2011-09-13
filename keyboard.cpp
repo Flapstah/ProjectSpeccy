@@ -31,6 +31,7 @@ void CKeyboard::Uninitialise(void)
 
 void CKeyboard::Update(int key, int action)
 {
+	s_keyPrevState[key] = s_keyState[key];
 	s_keyState[key] = (action == GLFW_PRESS) ? true : false;
 //	if (key >= GLFW_KEY_SPECIAL)
 //	{
@@ -47,7 +48,6 @@ void CKeyboard::Update(int key, int action)
 bool CKeyboard::IsKeyPressed(int key)
 {
 	bool pressed = (s_keyState[key] && !s_keyPrevState[key]);
-	s_keyPrevState[key] = s_keyState[key];
 	return pressed;
 }
 
@@ -56,8 +56,14 @@ bool CKeyboard::IsKeyPressed(int key)
 bool CKeyboard::IsKeyHeld(int key)
 {
 	bool held = (s_keyState[key] && s_keyPrevState[key]);
-	s_keyPrevState[key] = s_keyState[key];
 	return held;
+}
+
+//=============================================================================
+
+void CKeyboard::ClearKey(int key)
+{
+	s_keyPrevState[key] = s_keyState[key] = false;
 }
 
 //=============================================================================

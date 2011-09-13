@@ -10,6 +10,7 @@ public:
 	static	void				Update(int key, int action);
 	static	bool				IsKeyPressed(int key);
 	static	bool				IsKeyHeld(int key);
+	static	void				ClearKey(int key);
 
 protected:
 	static	bool				s_keyState[512];
