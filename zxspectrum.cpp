@@ -15,16 +15,13 @@ static CKeyboard g_keyboard;
 
 // TODO:
 // fix up UpdateScanline() to use new enumerated constants
-// have UpdateScanline accept number of tstates for the instruction and keep an
-// internal count of the number of tstates elapsed and then fire an entire scan
-// line every 224 tstates
-// do the same for tape handling so it can fire every 79 tstates
-
 
 //=============================================================================
 
 CZXSpectrum::CZXSpectrum(void)
-	: m_pDisplay(NULL)
+	: m_frameTime(1.0 / 50.0)
+	, m_clockRate(1.0f)
+	, m_pDisplay(NULL)
 	, m_pZ80(NULL)
 	, m_pFile(NULL)
 	, m_scanline(0)
@@ -147,6 +144,26 @@ bool CZXSpectrum::Update(void)
 			}
 		}
 
+		if (CKeyboard::IsKeyPressed(GLFW_KEY_UP))
+		{
+			if (m_clockRate < 20.0f)
+			{
+				m_clockRate *= 2.0f;
+				m_frameTime = (1.0 / 50.0) / m_clockRate;
+				fprintf(stdout, "[ZX Spectrum]: increased emulation speed to %.02f\n", m_clockRate);
+			}
+		}
+
+		if (CKeyboard::IsKeyPressed(GLFW_KEY_DOWN))
+		{
+			if (m_clockRate > 0.5f)
+			{
+				m_clockRate /= 2.0f;
+				m_frameTime = (1.0 / 50.0) / m_clockRate;
+				fprintf(stdout, "[ZX Spectrum]: decreased emulation speed to %.02f\n", m_clockRate);
+			}
+		}
+
 		bool updateZ80 = !m_pZ80->GetEnableDebug() || m_pZ80->GetEnableUnattendedDebug() || CKeyboard::IsKeyPressed(GLFW_KEY_F9) || CKeyboard::IsKeyPressed(GLFW_KEY_F10);
 
 		// Timings:
@@ -157,7 +174,7 @@ bool CZXSpectrum::Update(void)
 		double currentTime = glfwGetTime();
 		double elapsedTime = currentTime - m_time;
 
-		if (elapsedTime >= (1.0 / 50.0))
+		if (elapsedTime >= m_frameTime)
 		{
 			if (updateZ80)
 			{
@@ -214,6 +231,8 @@ void CZXSpectrum::DisplayHelp(void) const
 	fprintf(stderr, "[ZX Spectrum]:      [F9/F10] Single step\n");
 	fprintf(stderr, "[ZX Spectrum]:      [PgUp]   Start/stop tape\n");
 	fprintf(stderr, "[ZX Spectrum]:      [Home]   Rewind tape\n");
+	fprintf(stderr, "[ZX Spectrum]:      [Up]     Increase emulation speen\n");
+	fprintf(stderr, "[ZX Spectrum]:      [Down]   Decrease emulation speen\n");
 	fprintf(stderr, "[ZX Spectrum]:      [ESC]    Quit\n");
 }
 

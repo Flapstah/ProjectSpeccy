@@ -135,6 +135,8 @@ class CZXSpectrum : public IMemory, public IScreenMemory
 		// Main memory for the 48K ZX Spectrum
 		uint8				m_memory[SC_48K_SPECTRUM];
 		double			m_time;
+		double			m_frameTime;
+		float				m_clockRate;
 		CDisplay*		m_pDisplay;
 		CZ80*				m_pZ80;
 		FILE*				m_pFile;

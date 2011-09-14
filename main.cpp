@@ -12,12 +12,6 @@ int main(int argc, char* argv[])
 
 	CZXSpectrum speccy;
 	speccy.Initialise();
-/*
-	speccy.OpenSCR("roms/Fairlight.scr");
-	speccy.OpenSCR("roms/KnightLore.scr");
-	speccy.OpenSCR("roms/LordsOfMidnightThe.scr");
-	speccy.OpenSCR("roms/SabreWulf.scr");
-*/
 	speccy.LoadROM("roms/48.rom");
 /*
   // working
