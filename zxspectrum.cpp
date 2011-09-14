@@ -11,7 +11,7 @@
 
 static CKeyboard g_keyboard;
 #define DISPLAY_SCALE (2)
-#define SHOW_FRAMERATE
+//#define SHOW_FRAMERATE
 
 // TODO:
 // fix up UpdateScanline() to use new enumerated constants
@@ -30,7 +30,10 @@ CZXSpectrum::CZXSpectrum(void)
 	, m_scanline(0)
 	, m_xpos(0)
 	, m_frameNumber(0)
-	, m_portFE(0)
+	, m_scanlineTstates(0)
+	, m_tapeTstates(0)
+	, m_writePortFE(0)
+	, m_readPortFE(0)
 	, m_tapePlaying(false)
 {
 }
@@ -120,8 +123,15 @@ bool CZXSpectrum::Update(void)
 
 		if (CKeyboard::IsKeyPressed(GLFW_KEY_PAGEUP))
 		{
-			m_tapePlaying = !m_tapePlaying;
-			fprintf(stdout, "[ZX Spectrum]: tape is now %s\n", m_tapePlaying ? "playing" : "stopped");
+			if (m_pFile != NULL)
+			{
+				m_tapePlaying = !m_tapePlaying;
+				fprintf(stdout, "[ZX Spectrum]: tape is now %s\n", m_tapePlaying ? "playing" : "stopped");
+			}
+			else
+			{
+				fprintf(stdout, "[ZX Spectrum]: no tape loaded\n");
+			}
 		}
 
 		if (CKeyboard::IsKeyPressed(GLFW_KEY_HOME))
@@ -130,6 +140,10 @@ bool CZXSpectrum::Update(void)
 			{
 				fseek(m_pFile, 0, SEEK_SET);
 				fprintf(stdout, "[ZX Spectrum]: tape is now at start (and %s)\n", m_tapePlaying ? "playing" : "stopped");
+			}
+			else
+			{
+				fprintf(stdout, "[ZX Spectrum]: no tape loaded\n");
 			}
 		}
 
@@ -149,14 +163,17 @@ bool CZXSpectrum::Update(void)
 			{
 				m_time = currentTime;
 
-				int32 tstates = m_pZ80->ServiceInterrupts();
+				uint32 tstates = m_pZ80->ServiceInterrupts();
+				UpdateTape(tstates);
 				for (m_scanline = 0; m_scanline < (SC_TOP_BORDER + SC_PIXEL_SCREEN_HEIGHT + SC_BOTTOM_BORDER); ++m_scanline)
 				{
-					while (tstates < 224)
+					while (m_scanlineTstates < 224)
 					{
-						tstates += m_pZ80->SingleStep();
+						tstates = m_pZ80->SingleStep();
+						m_scanlineTstates += tstates;
+						UpdateTape(tstates);
 					}
-					tstates -= 224;
+					m_scanlineTstates -= 224;
 
 					UpdateScanline();
 				}
@@ -231,7 +248,7 @@ void CZXSpectrum::WritePort(uint16 address, uint8 byte)
 			// +---+---+---+---+---+---+---+---+
 			// |   |   |   | E | M |  Border   |
 			// +---+---+---+---+---+---+---+---+
-			m_portFE = byte & PC_OUTPUT_MASK;
+			m_writePortFE = byte & PC_OUTPUT_MASK;
 			break;
 
 		default:
@@ -244,7 +261,7 @@ void CZXSpectrum::WritePort(uint16 address, uint8 byte)
 
 uint8 CZXSpectrum::ReadPort(uint16 address) const
 {
-	uint8 byte = 0x1F;
+	m_readPortFE |= 0x1F;
 	uint8 mask = 0x00;
 	uint8 line = ~(address >> 8);
 
@@ -322,13 +339,13 @@ uint8 CZXSpectrum::ReadPort(uint16 address) const
 		if (glfwGetKey('B') == GLFW_PRESS) mask |= 0x10;
 	}
 
-	byte &= ~mask;
-//	if (byte != 0x1F)
+	m_readPortFE &= ~mask;
+//	if ((m_readPortFE & 0x1F) != 0x1F)
 //	{
-//		printf("[ZX Spectrum]: Port %04X is %02X\n", address, byte);
+//		printf("[ZX Spectrum]: Port %04X is %02X\n", address, m_readPortFE);
 //	}
 
-	return byte;
+	return m_readPortFE;
 }
 
 //=============================================================================
@@ -441,9 +458,9 @@ void CZXSpectrum::UpdateScanline(void)
 	uint8* pScreenMemory = &m_memory[SC_SCREEN_START_ADDRESS];
 
 	uint32 borderRGB = 0xFF000000;
-	if (m_portFE & CC_BLUE) borderRGB |= 0x00CD0000;
-	if (m_portFE & CC_RED) borderRGB |= 0x000000CD;
-	if (m_portFE & CC_GREEN) borderRGB |= 0x0000CD00;
+	if (m_writePortFE & CC_BLUE) borderRGB |= 0x00CD0000;
+	if (m_writePortFE & CC_RED) borderRGB |= 0x000000CD;
+	if (m_writePortFE & CC_GREEN) borderRGB |= 0x0000CD00;
 
 	if ((scanline < SC_VISIBLE_BORDER_SIZE) || (scanline >= (SC_VISIBLE_BORDER_SIZE + SC_PIXEL_SCREEN_HEIGHT)))
 	{
@@ -516,6 +533,34 @@ void CZXSpectrum::UpdateTape(uint32 tstates)
 	// (69888/882=79.238095238 tstates per bit)
 	// rounded to 79 tstates for simplicity
 
+	m_tapeTstates += tstates;
+	if (m_tapeTstates < 79)
+		return;
+	m_tapeTstates -= 79;
+
+	if (m_tapePlaying)
+	{
+		uint8 byte;
+		if (fread(&byte, sizeof(byte), 1, m_pFile))
+		{
+			m_readPortFE &= ~PC_EAR_IN;
+			m_readPortFE |= (byte & 0x80) ? PC_EAR_IN : 0;
+		}
+		else
+		{
+			if (feof(m_pFile))
+			{
+				fprintf(stdout, "[ZX Spectrum]: tape reached end - rewound and stopped\n");
+			}
+			else
+			{
+				fprintf(stdout, "[ZX Spectrum]: tape error %d - rewound and stopped\n", ferror(m_pFile));
+			}
+
+			fseek(m_pFile, 0, SEEK_SET);
+			m_tapePlaying	= false;
+		}
+	}
 }
 //=============================================================================
 
