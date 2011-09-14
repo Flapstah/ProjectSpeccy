@@ -61,6 +61,10 @@ class CZ80
 
 		uint32 ImplementLDrr(void);
 		uint32 ImplementLDrn(void);
+		uint32 ImplementLDIXhn(void);
+		uint32 ImplementLDIXln(void);
+		uint32 ImplementLDIYhn(void);
+		uint32 ImplementLDIYln(void);
 		uint32 ImplementLDr_HL_(void);
 		uint32 ImplementLDr_IXd_(void);
 		uint32 ImplementLDr_IYd_(void);
@@ -319,6 +323,10 @@ class CZ80
 
 		void DecodeLDrr(uint16& address, char* pMnemonic) const;
 		void DecodeLDrn(uint16& address, char* pMnemonic) const;
+		void DecodeLDIXhn(uint16& address, char* pMnemonic) const;
+		void DecodeLDIXln(uint16& address, char* pMnemonic) const;
+		void DecodeLDIYhn(uint16& address, char* pMnemonic) const;
+		void DecodeLDIYln(uint16& address, char* pMnemonic) const;
 		void DecodeLDr_IXd_(uint16& address, char* pMnemonic) const;
 		void DecodeLDr_IYd_(uint16& address, char* pMnemonic) const;
 		void DecodeLD_HL_r(uint16& address, char* pMnemonic) const;
