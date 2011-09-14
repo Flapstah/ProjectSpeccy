@@ -25,8 +25,12 @@ int main(int argc, char* argv[])
 	speccy.LoadSNA("roms/hobbit.sna");
 	// not working
 	speccy.LoadSNA("roms/LORDSMID.SNA");
+	speccy.LoadRAW("roms/manic.raw");
+	speccy.LoadRAW("roms/jsw.raw");
+	speccy.LoadRAW("roms/007Spy.raw");
+	speccy.LoadRAW("roms/Magnetron.raw");
 */
-	speccy.LoadSNA("roms/hobbit.sna");
+	speccy.LoadRAW("roms/manic.raw");
 	while (speccy.Update());
 
 	return EXIT_SUCCESS;
