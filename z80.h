@@ -51,6 +51,8 @@ class CZ80
 		inline uint8 ReadPort(uint16 address) const				{ return m_pMemory->ReadPort(address); }
 		
 		const char* Get8BitRegisterString(uint8 threeBits) const;
+		const char* Get8BitIXRegisterString(uint8 threeBits) const;
+		const char* Get8BitIYRegisterString(uint8 threeBits) const;
 		const char* Get16BitRegisterString(uint8 twoBits) const;
 		const char* GetConditionString(uint8 threeBits) const;
 		bool IsConditionTrue(uint8 threeBits) const;
@@ -62,9 +64,13 @@ class CZ80
 		uint32 ImplementLDrr(void);
 		uint32 ImplementLDrn(void);
 		uint32 ImplementLDIXhn(void);
+		uint32 ImplementLDIXhr(void);
 		uint32 ImplementLDIXln(void);
+		uint32 ImplementLDIXlr(void);
 		uint32 ImplementLDIYhn(void);
+		uint32 ImplementLDIYhr(void);
 		uint32 ImplementLDIYln(void);
+		uint32 ImplementLDIYlr(void);
 		uint32 ImplementLDr_HL_(void);
 		uint32 ImplementLDr_IXd_(void);
 		uint32 ImplementLDr_IYd_(void);
@@ -324,9 +330,13 @@ class CZ80
 		void DecodeLDrr(uint16& address, char* pMnemonic) const;
 		void DecodeLDrn(uint16& address, char* pMnemonic) const;
 		void DecodeLDIXhn(uint16& address, char* pMnemonic) const;
+		void DecodeLDIXhr(uint16& address, char* pMnemonic) const;
 		void DecodeLDIXln(uint16& address, char* pMnemonic) const;
+		void DecodeLDIXlr(uint16& address, char* pMnemonic) const;
 		void DecodeLDIYhn(uint16& address, char* pMnemonic) const;
+		void DecodeLDIYhr(uint16& address, char* pMnemonic) const;
 		void DecodeLDIYln(uint16& address, char* pMnemonic) const;
+		void DecodeLDIYlr(uint16& address, char* pMnemonic) const;
 		void DecodeLDr_IXd_(uint16& address, char* pMnemonic) const;
 		void DecodeLDr_IYd_(uint16& address, char* pMnemonic) const;
 		void DecodeLD_HL_r(uint16& address, char* pMnemonic) const;

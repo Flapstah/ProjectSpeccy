@@ -12,7 +12,7 @@
 //=============================================================================
 // TODO:
 // Implement the undocumented opcodes
-//  - DD 6F
+//  - DD 84  ADD A,H; ADD A,L; and other 8 bit arithmetic operations
 //=============================================================================
 
 // Helper macros to determine 8 and 16 bit registers from opcodes
@@ -1329,6 +1329,26 @@ uint32 CZ80::Step(void)
 						return ImplementLDr_IXd_();
 						break;
 
+					case 0x60: // LD IXh,B
+					case 0x61: // LD IXh,C
+					case 0x62: // LD IXh,D
+					case 0x63: // LD IXh,E
+					case 0x64: // LD IXh,IXh
+					case 0x65: // LD IXh,IXl
+					case 0x67: // LD IXh,A
+						return ImplementLDIXhr();
+						break;
+
+					case 0x68: // LD IXl,B
+					case 0x69: // LD IXl,C
+					case 0x6A: // LD IXl,D
+					case 0x6B: // LD IXl,E
+					case 0x6C: // LD IXl,IXh
+					case 0x6D: // LD IXl,IXl
+					case 0x6F: // LD IXl,A
+						return ImplementLDIXlr();
+						break;
+
 					case 0x70: // LD (IX+d),B
 					case 0x71: // LD (IX+d),C
 					case 0x72: // LD (IX+d),D
@@ -1709,6 +1729,26 @@ uint32 CZ80::Step(void)
 					case 0x6E: // LD L,(IY+d)
 					case 0x7E: // LD A,(IY+d)
 						return ImplementLDr_IYd_();
+						break;
+
+					case 0x60: // LD IYh,B
+					case 0x61: // LD IYh,C
+					case 0x62: // LD IYh,D
+					case 0x63: // LD IYh,E
+					case 0x64: // LD IYh,IYh
+					case 0x65: // LD IYh,IYl
+					case 0x67: // LD IYh,A
+						return ImplementLDIYhr();
+						break;
+
+					case 0x68: // LD IYl,B
+					case 0x69: // LD IYl,C
+					case 0x6A: // LD IYl,D
+					case 0x6B: // LD IYl,E
+					case 0x6C: // LD IYl,IYh
+					case 0x6D: // LD IYl,IYl
+					case 0x6F: // LD IYl,A
+						return ImplementLDIYlr();
 						break;
 
 					case 0x70: // LD (IY+d),B
@@ -2681,6 +2721,26 @@ void CZ80::Decode(uint16& address, char* pMnemonic) const
 						DecodeLDr_IXd_(address, pMnemonic);
 						break;
 
+					case 0x60: // LD IXh,B
+					case 0x61: // LD IXh,C
+					case 0x62: // LD IXh,D
+					case 0x63: // LD IXh,E
+					case 0x64: // LD IXh,IXh
+					case 0x65: // LD IXh,IXl
+					case 0x67: // LD IXh,A
+						return DecodeLDIXhr(address, pMnemonic);
+						break;
+
+					case 0x68: // LD IXl,B
+					case 0x69: // LD IXl,C
+					case 0x6A: // LD IXl,D
+					case 0x6B: // LD IXl,E
+					case 0x6C: // LD IXl,IXh
+					case 0x6D: // LD IXl,IXl
+					case 0x6F: // LD IXl,A
+						return DecodeLDIXlr(address, pMnemonic);
+						break;
+
 					case 0x70: // LD (IX+d),B
 					case 0x71: // LD (IX+d),C
 					case 0x72: // LD (IX+d),D
@@ -3051,6 +3111,26 @@ void CZ80::Decode(uint16& address, char* pMnemonic) const
 						DecodeLDr_IYd_(address, pMnemonic);
 						break;
 
+					case 0x60: // LD IYh,B
+					case 0x61: // LD IYh,C
+					case 0x62: // LD IYh,D
+					case 0x63: // LD IYh,E
+					case 0x64: // LD IYh,IYh
+					case 0x65: // LD IYh,IYl
+					case 0x67: // LD IYh,A
+						return DecodeLDIYhr(address, pMnemonic);
+						break;
+
+					case 0x68: // LD IYl,B
+					case 0x69: // LD IYl,C
+					case 0x6A: // LD IYl,D
+					case 0x6B: // LD IYl,E
+					case 0x6C: // LD IYl,IYh
+					case 0x6D: // LD IYl,IYl
+					case 0x6F: // LD IYl,A
+						return DecodeLDIYlr(address, pMnemonic);
+						break;
+
 					case 0x70: // LD (IY+d),B
 					case 0x71: // LD (IY+d),C
 					case 0x72: // LD (IY+d),D
@@ -3375,6 +3455,42 @@ const char* CZ80::Get8BitRegisterString(uint8 threeBits) const
 
 //=============================================================================
 
+const char* CZ80::Get8BitIXRegisterString(uint8 threeBits) const
+{
+	switch (threeBits & 0x07)
+	{
+		case 0: return "B";			break;
+		case 1: return "C";			break;
+		case 2: return "D";			break;
+		case 3: return "E";			break;
+		case 4: return "IXh";		break;
+		case 5: return "IXl";		break;
+		case 6: return "(HL)";	break;
+		case 7: return "A";			break;
+	}
+	return "??";
+}
+
+//=============================================================================
+
+const char* CZ80::Get8BitIYRegisterString(uint8 threeBits) const
+{
+	switch (threeBits & 0x07)
+	{
+		case 0: return "B";			break;
+		case 1: return "C";			break;
+		case 2: return "D";			break;
+		case 3: return "E";			break;
+		case 4: return "IYh";		break;
+		case 5: return "IYl";		break;
+		case 6: return "(HL)";	break;
+		case 7: return "A";			break;
+	}
+	return "??";
+}
+
+//=============================================================================
+
 const char* CZ80::Get16BitRegisterString(uint8 twoBits) const
 {
 	switch (twoBits & 0x03)
@@ -3499,7 +3615,7 @@ uint32 CZ80::ImplementLDIXhn(void)
 	//
 	// Operation:	IXh <- n
 	// Op Code:		LD
-	// Operands:	r, n
+	// Operands:	IXh, n
 	//						+-+-+-+-+-+-+-+-+
 	//						|1|1|0|1|1|1|0|1| DD
 	//						+-+-+-+-+-+-+-+-+
@@ -3519,12 +3635,48 @@ uint32 CZ80::ImplementLDIXhn(void)
 
 //=============================================================================
 
+uint32 CZ80::ImplementLDIXhr(void)
+{
+	//
+	// Operation:	IXh <- r
+	// Op Code:		LD
+	// Operands:	IXh, r
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|1|1|1|0|1| DD
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|1|1|0|0|s|s|s|
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//						where ddd and sss are any of:
+	//								B						000
+	//								C						001
+	//								D						010
+	//								E						011
+	//								IXh					100
+	//								IXl					101
+	//								A						111
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								1						8	(4,4)						2.00
+	//
+	IncrementR(1);
+	uint8 opcode = ReadMemory(++m_PC);
+	uint8* pReg = &REGISTER_8BIT(opcode);
+	if (pReg == &m_H) pReg = &m_IXh;
+	if (pReg == &m_L) pReg = &m_IXl;
+	m_IXh = *pReg;
+	++m_PC;
+	return 8;
+}
+
+//=============================================================================
+
 uint32 CZ80::ImplementLDIXln(void)
 {
 	//
 	// Operation:	IXl <- n
 	// Op Code:		LD
-	// Operands:	r, n
+	// Operands:	IXl, n
 	//						+-+-+-+-+-+-+-+-+
 	//						|1|1|0|1|1|1|0|1| DD
 	//						+-+-+-+-+-+-+-+-+
@@ -3544,14 +3696,50 @@ uint32 CZ80::ImplementLDIXln(void)
 
 //=============================================================================
 
+uint32 CZ80::ImplementLDIXlr(void)
+{
+	//
+	// Operation:	IXl <- r
+	// Op Code:		LD
+	// Operands:	IXl, r
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|1|1|1|0|1| DD
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|1|1|0|1|s|s|s|
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//						where ddd and sss are any of:
+	//								B						000
+	//								C						001
+	//								D						010
+	//								E						011
+	//								IXh					100
+	//								IXl					101
+	//								A						111
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								1						8	(4,4)						2.00
+	//
+	IncrementR(1);
+	uint8 opcode = ReadMemory(++m_PC);
+	uint8* pReg = &REGISTER_8BIT(opcode);
+	if (pReg == &m_H) pReg = &m_IXh;
+	if (pReg == &m_L) pReg = &m_IXl;
+	m_IXl = *pReg;
+	++m_PC;
+	return 8;
+}
+
+//=============================================================================
+
 uint32 CZ80::ImplementLDIYhn(void)
 {
 	//
 	// Operation:	IYh <- n
 	// Op Code:		LD
-	// Operands:	r, n
+	// Operands:	IYh, n
 	//						+-+-+-+-+-+-+-+-+
-	//						|1|1|0|1|1|1|0|1| DD
+	//						|1|1|1|1|1|1|0|1| FD
 	//						+-+-+-+-+-+-+-+-+
 	//						|0|0|1|0|0|1|1|0| 26
 	//						+-+-+-+-+-+-+-+-+
@@ -3569,14 +3757,50 @@ uint32 CZ80::ImplementLDIYhn(void)
 
 //=============================================================================
 
+uint32 CZ80::ImplementLDIYhr(void)
+{
+	//
+	// Operation:	IYh <- r
+	// Op Code:		LD
+	// Operands:	IYh, r
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|1|1|1|0|1| FD
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|1|1|0|0|s|s|s|
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//						where ddd and sss are any of:
+	//								B						000
+	//								C						001
+	//								D						010
+	//								E						011
+	//								IYh					100
+	//								IYl					101
+	//								A						111
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								1						8	(4,4)						2.00
+	//
+	IncrementR(1);
+	uint8 opcode = ReadMemory(++m_PC);
+	uint8* pReg = &REGISTER_8BIT(opcode);
+	if (pReg == &m_H) pReg = &m_IYh;
+	if (pReg == &m_L) pReg = &m_IYl;
+	m_IYh = *pReg;
+	++m_PC;
+	return 8;
+}
+
+//=============================================================================
+
 uint32 CZ80::ImplementLDIYln(void)
 {
 	//
 	// Operation:	IYl <- n
 	// Op Code:		LD
-	// Operands:	r, n
+	// Operands:	IYl, n
 	//						+-+-+-+-+-+-+-+-+
-	//						|1|1|0|1|1|1|0|1| DD
+	//						|1|1|1|1|1|1|0|1| FD
 	//						+-+-+-+-+-+-+-+-+
 	//						|0|0|1|0|1|1|1|0| 2E
 	//						+-+-+-+-+-+-+-+-+
@@ -3590,6 +3814,42 @@ uint32 CZ80::ImplementLDIYln(void)
 	++++m_PC;
 	m_IYl = ReadMemory(m_PC++);
 	return 11;
+}
+
+//=============================================================================
+
+uint32 CZ80::ImplementLDIYlr(void)
+{
+	//
+	// Operation:	IYl <- r
+	// Op Code:		LD
+	// Operands:	IYl, r
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|1|1|1|0|1| FD
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|1|1|0|1|s|s|s|
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//						where ddd and sss are any of:
+	//								B						000
+	//								C						001
+	//								D						010
+	//								E						011
+	//								IYh					100
+	//								IYl					101
+	//								A						111
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								1						8	(4,4)						2.00
+	//
+	IncrementR(1);
+	uint8 opcode = ReadMemory(++m_PC);
+	uint8* pReg = &REGISTER_8BIT(opcode);
+	if (pReg == &m_H) pReg = &m_IYh;
+	if (pReg == &m_L) pReg = &m_IYl;
+	m_IYl = *pReg;
+	++m_PC;
+	return 8;
 }
 
 //=============================================================================
@@ -9342,10 +9602,26 @@ void CZ80::DecodeLDIXhn(uint16& address, char* pMnemonic) const
 
 //=============================================================================
 
+void CZ80::DecodeLDIXhr(uint16& address, char* pMnemonic) const
+{
+	sprintf(pMnemonic, "LD IXh,%s", Get8BitIXRegisterString(ReadMemory(address + 1)));
+	address += 2;
+}
+
+//=============================================================================
+
 void CZ80::DecodeLDIXln(uint16& address, char* pMnemonic) const
 {
 	sprintf(pMnemonic, "LD IXl,%02X", ReadMemory(address + 2));
 	address += 3;
+}
+
+//=============================================================================
+
+void CZ80::DecodeLDIXlr(uint16& address, char* pMnemonic) const
+{
+	sprintf(pMnemonic, "LD IXl,%s", Get8BitIXRegisterString(ReadMemory(address + 1)));
+	address += 2;
 }
 
 //=============================================================================
@@ -9358,10 +9634,26 @@ void CZ80::DecodeLDIYhn(uint16& address, char* pMnemonic) const
 
 //=============================================================================
 
+void CZ80::DecodeLDIYhr(uint16& address, char* pMnemonic) const
+{
+	sprintf(pMnemonic, "LD IYh,%s", Get8BitIYRegisterString(ReadMemory(address + 1)));
+	address += 2;
+}
+
+//=============================================================================
+
 void CZ80::DecodeLDIYln(uint16& address, char* pMnemonic) const
 {
 	sprintf(pMnemonic, "LD IYl,%02X", ReadMemory(address + 2));
 	address += 3;
+}
+
+//=============================================================================
+
+void CZ80::DecodeLDIYlr(uint16& address, char* pMnemonic) const
+{
+	sprintf(pMnemonic, "LD IYl,%s", Get8BitIYRegisterString(ReadMemory(address + 1)));
+	address += 2;
 }
 
 //=============================================================================
