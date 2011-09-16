@@ -12,6 +12,13 @@
 //=============================================================================
 // TODO:
 // Implement the undocumented opcodes
+// Flags are wrong for:
+// DAA
+// CP
+// ADC8
+// SBC8
+// ADC16
+// SBC16
 //=============================================================================
 
 // Helper macros to determine 8 and 16 bit registers from opcodes
@@ -7666,7 +7673,8 @@ uint32 CZ80::ImplementCCF(void)
 	IncrementR(1);
 	++m_PC;
 	uint8 origF = m_F;
-	m_F = (origF & (eF_S | eF_Z | eF_PV)) | (((origF & eF_C) << 4) & eF_H) | (~origF & eF_C);
+	m_F &= (eF_S | eF_Z | eF_PV);
+	m_F |= (m_A & (eF_X | eF_Y)) | (((origF & eF_C) << 4) & eF_H) | (~origF & eF_C);
 	return 4;
 }
 
@@ -7688,7 +7696,7 @@ uint32 CZ80::ImplementSCF(void)
 	IncrementR(1);
 	++m_PC;
 	m_F &= (eF_S | eF_Z | eF_PV);
-	m_F |= eF_C;
+	m_F |= (m_A & (eF_X | eF_Y)) | eF_C;
 	return 4;
 }
 
