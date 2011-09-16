@@ -12,7 +12,6 @@
 //=============================================================================
 // TODO:
 // Implement the undocumented opcodes
-//  - DD 84  ADD A,H; ADD A,L; and other 8 bit arithmetic operations
 //=============================================================================
 
 // Helper macros to determine 8 and 16 bit registers from opcodes
@@ -939,12 +938,12 @@ uint32 CZ80::Step(void)
 				break;
 
 			case 0xC7: // RST 0
-			case 0xD7: // RST 16
-			case 0xE7: // RST 32
-			case 0xF7: // RST 48
 			case 0xCF: // RST 8
+			case 0xD7: // RST 16
 			case 0xDF: // RST 24
+			case 0xE7: // RST 32
 			case 0xEF: // RST 40
+			case 0xF7: // RST 48
 			case 0xFF: // RST 56
 				if (GetEnableProgramFlowBreakpoints())
 				{
@@ -1359,6 +1358,70 @@ uint32 CZ80::Step(void)
 						return ImplementLD_IXd_r();
 						break;
 
+					case 0x84: // ADD A,IXh
+						return ImplementADDAIXh();
+						break;
+
+					case 0x85: // ADD A,IXl
+						return ImplementADDAIXl();
+						break;
+
+					case 0x94: // SUB IXh
+						return ImplementSUBIXh();
+						break;
+
+					case 0x95: // SUB IXl
+						return ImplementSUBIXl();
+						break;
+
+					case 0xA4: // AND IXh
+						return ImplementANDIXh();
+						break;
+
+					case 0xA5: // AND IXl
+						return ImplementANDIXl();
+						break;
+
+					case 0xB4: // OR IXh
+						return ImplementORIXh();
+						break;
+
+					case 0xB5: // OR IXl
+						return ImplementORIXl();
+						break;
+
+					case 0x8C: // ADC A,IXh
+						return ImplementADCAIXh();
+						break;
+
+					case 0x8D: // ADC A,IXl
+						return ImplementADCAIXl();
+						break;
+
+					case 0x9C: // SBC A,IXh
+						return ImplementSBCAIXh();
+						break;
+
+					case 0x9D: // SBC A,IXl
+						return ImplementSBCAIXl();
+						break;
+
+					case 0xAC: // XOR IXh
+						return ImplementXORIXh();
+						break;
+
+					case 0xAD: // XOR IXl
+						return ImplementXORIXl();
+						break;
+
+					case 0xBC: // CP IXh
+						return ImplementCPIXh();
+						break;
+
+					case 0xBD: // CP IXl
+						return ImplementCPIXl();
+						break;
+
 					case 0x09: // ADD IX,BC
 					case 0x19: // ADD IX,DE
 					case 0x29: // ADD IX,HL
@@ -1759,6 +1822,70 @@ uint32 CZ80::Step(void)
 					case 0x75: // LD (IY+d),L
 					case 0x77: // LD (IY+d),A
 						return ImplementLD_IYd_r();
+						break;
+
+					case 0x84: // ADD A,IYh
+						return ImplementADDAIYh();
+						break;
+
+					case 0x85: // ADD A,IYl
+						return ImplementADDAIYl();
+						break;
+
+					case 0x94: // SUB IYh
+						return ImplementSUBIYh();
+						break;
+
+					case 0x95: // SUB IYl
+						return ImplementSUBIYl();
+						break;
+
+					case 0xA4: // AND IYh
+						return ImplementANDIYh();
+						break;
+
+					case 0xA5: // AND IYl
+						return ImplementANDIYl();
+						break;
+
+					case 0xB4: // OR IYh
+						return ImplementORIYh();
+						break;
+
+					case 0xB5: // OR IYl
+						return ImplementORIYl();
+						break;
+
+					case 0x8C: // ADC A,IYh
+						return ImplementADCAIYh();
+						break;
+
+					case 0x8D: // ADC A,IYl
+						return ImplementADCAIYl();
+						break;
+
+					case 0x9C: // SBC A,IYh
+						return ImplementSBCAIYh();
+						break;
+
+					case 0x9D: // SBC A,IYl
+						return ImplementSBCAIYl();
+						break;
+
+					case 0xAC: // XOR IYh
+						return ImplementXORIYh();
+						break;
+
+					case 0xAD: // XOR IYl
+						return ImplementXORIYl();
+						break;
+
+					case 0xBC: // CP IYh
+						return ImplementCPIYh();
+						break;
+
+					case 0xBD: // CP IYl
+						return ImplementCPIYl();
 						break;
 
 					case 0x09: // ADD IY,BC
@@ -5435,6 +5562,98 @@ uint32 CZ80::ImplementADDAr(void)
 
 //=============================================================================
 
+uint32 CZ80::ImplementADDAIXh(void)
+{
+	//
+	// Operation:	A <- A+IXh
+	// Op Code:		ADD
+	// Operands:	A, IXh
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|1|1|1|0|1| DD
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|0|0|0|0|1|0|0| 84
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								2						8	(4,4)						2.00
+	//
+	IncrementR(1);
+	++++m_PC;
+	m_A = HandleArithmeticAddFlags(m_A, m_IXh);
+	return 8;
+}
+
+//=============================================================================
+
+uint32 CZ80::ImplementADDAIXl(void)
+{
+	//
+	// Operation:	A <- A+IXl
+	// Op Code:		ADD
+	// Operands:	A, IXl
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|1|1|1|0|1| DD
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|0|0|0|0|1|0|1| 85
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								2						8	(4,4)						2.00
+	//
+	IncrementR(1);
+	++++m_PC;
+	m_A = HandleArithmeticAddFlags(m_A, m_IXl);
+	return 8;
+}
+
+//=============================================================================
+
+uint32 CZ80::ImplementADDAIYh(void)
+{
+	//
+	// Operation:	A <- A+IXh
+	// Op Code:		ADD
+	// Operands:	A, IXh
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|1|1|1|0|1| FD
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|0|0|0|0|1|0|0| 84
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								2						8	(4,4)						2.00
+	//
+	IncrementR(1);
+	++++m_PC;
+	m_A = HandleArithmeticAddFlags(m_A, m_IYh);
+	return 8;
+}
+
+//=============================================================================
+
+uint32 CZ80::ImplementADDAIYl(void)
+{
+	//
+	// Operation:	A <- A+IYl
+	// Op Code:		ADD
+	// Operands:	A, IYl
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|1|1|1|0|1| FD
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|0|0|0|0|1|0|1| 85
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								2						8	(4,4)						2.00
+	//
+	IncrementR(1);
+	++++m_PC;
+	m_A = HandleArithmeticAddFlags(m_A, m_IYl);
+	return 8;
+}
+
+//=============================================================================
+
 uint32 CZ80::ImplementADDAn(void)
 {
 	//
@@ -5556,6 +5775,98 @@ uint32 CZ80::ImplementADCAr(void)
 	IncrementR(1);
 	m_A = HandleArithmeticAddFlags(m_A, REGISTER_8BIT(ReadMemory(m_PC++)) + (m_F & eF_C));
 	return 4;
+}
+
+//=============================================================================
+
+uint32 CZ80::ImplementADCAIXh(void)
+{
+	//
+	// Operation:	A <- A+IXh
+	// Op Code:		ADC
+	// Operands:	A, IXh
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|1|1|1|0|1| DD
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|0|0|0|1|1|0|0| C4
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								2						8	(4,4)						2.00
+	//
+	IncrementR(1);
+	++++m_PC;
+	m_A = HandleArithmeticAddFlags(m_A, m_IXh + (m_F & eF_C));
+	return 8;
+}
+
+//=============================================================================
+
+uint32 CZ80::ImplementADCAIXl(void)
+{
+	//
+	// Operation:	A <- A+IXl
+	// Op Code:		ADC
+	// Operands:	A, IXl
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|1|1|1|0|1| DD
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|0|0|0|1|1|0|1| C5
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								2						8	(4,4)						2.00
+	//
+	IncrementR(1);
+	++++m_PC;
+	m_A = HandleArithmeticAddFlags(m_A, m_IXl + (m_F & eF_C));
+	return 8;
+}
+
+//=============================================================================
+
+uint32 CZ80::ImplementADCAIYh(void)
+{
+	//
+	// Operation:	A <- A+IXh
+	// Op Code:		ADC
+	// Operands:	A, IXh
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|1|1|1|0|1| FD
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|0|0|0|1|1|0|0| C4
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								2						8	(4,4)						2.00
+	//
+	IncrementR(1);
+	++++m_PC;
+	m_A = HandleArithmeticAddFlags(m_A, m_IYh + (m_F & eF_C));
+	return 8;
+}
+
+//=============================================================================
+
+uint32 CZ80::ImplementADCAIYl(void)
+{
+	//
+	// Operation:	A <- A+IYl
+	// Op Code:		ADC
+	// Operands:	A, IYl
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|1|1|1|0|1| FD
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|0|0|0|1|1|0|1| C5
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								2						8	(4,4)						2.00
+	//
+	IncrementR(1);
+	++++m_PC;
+	m_A = HandleArithmeticAddFlags(m_A, m_IYl + (m_F & eF_C));
+	return 8;
 }
 
 //=============================================================================
@@ -5685,6 +5996,98 @@ uint32 CZ80::ImplementSUBr(void)
 
 //=============================================================================
 
+uint32 CZ80::ImplementSUBIXh(void)
+{
+	//
+	// Operation:	A <- A+IXh
+	// Op Code:		SUB
+	// Operands:	A, IXh
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|1|1|1|0|1| DD
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|0|0|1|0|1|0|0| 94
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								2						8	(4,4)						2.00
+	//
+	IncrementR(1);
+	++++m_PC;
+	m_A = HandleArithmeticSubtractFlags(m_A, m_IXh);
+	return 8;
+}
+
+//=============================================================================
+
+uint32 CZ80::ImplementSUBIXl(void)
+{
+	//
+	// Operation:	A <- A+IXl
+	// Op Code:		SUB
+	// Operands:	A, IXl
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|1|1|1|0|1| DD
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|0|0|1|0|1|0|1| 95
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								2						8	(4,4)						2.00
+	//
+	IncrementR(1);
+	++++m_PC;
+	m_A = HandleArithmeticSubtractFlags(m_A, m_IXl);
+	return 8;
+}
+
+//=============================================================================
+
+uint32 CZ80::ImplementSUBIYh(void)
+{
+	//
+	// Operation:	A <- A+IXh
+	// Op Code:		SUB
+	// Operands:	A, IXh
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|1|1|1|0|1| FD
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|0|0|1|0|1|0|0| 94
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								2						8	(4,4)						2.00
+	//
+	IncrementR(1);
+	++++m_PC;
+	m_A = HandleArithmeticSubtractFlags(m_A, m_IYh);
+	return 8;
+}
+
+//=============================================================================
+
+uint32 CZ80::ImplementSUBIYl(void)
+{
+	//
+	// Operation:	A <- A+IYl
+	// Op Code:		SUB
+	// Operands:	A, IYl
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|1|1|1|0|1| FD
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|0|0|1|0|1|0|1| 95
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								2						8	(4,4)						2.00
+	//
+	IncrementR(1);
+	++++m_PC;
+	m_A = HandleArithmeticSubtractFlags(m_A, m_IYl);
+	return 8;
+}
+
+//=============================================================================
+
 uint32 CZ80::ImplementSUBn(void)
 {
 	//
@@ -5806,6 +6209,98 @@ uint32 CZ80::ImplementSBCAr(void)
 	IncrementR(1);
 	m_A = HandleArithmeticSubtractFlags(m_A, REGISTER_8BIT(ReadMemory(m_PC++)) + (m_F & eF_C));
 	return 4;
+}
+
+//=============================================================================
+
+uint32 CZ80::ImplementSBCAIXh(void)
+{
+	//
+	// Operation:	A <- A+IXh
+	// Op Code:		SBC
+	// Operands:	A, IXh
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|1|1|1|0|1| DD
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|0|0|0|1|1|0|0| 8C
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								2						8	(4,4)						2.00
+	//
+	IncrementR(1);
+	++++m_PC;
+	m_A = HandleArithmeticSubtractFlags(m_A, m_IXh + (m_F & eF_C));
+	return 8;
+}
+
+//=============================================================================
+
+uint32 CZ80::ImplementSBCAIXl(void)
+{
+	//
+	// Operation:	A <- A+IXl
+	// Op Code:		SBC
+	// Operands:	A, IXl
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|1|1|1|0|1| DD
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|0|0|0|1|1|0|1| 8D
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								2						8	(4,4)						2.00
+	//
+	IncrementR(1);
+	++++m_PC;
+	m_A = HandleArithmeticSubtractFlags(m_A, m_IXl + (m_F & eF_C));
+	return 8;
+}
+
+//=============================================================================
+
+uint32 CZ80::ImplementSBCAIYh(void)
+{
+	//
+	// Operation:	A <- A+IXh
+	// Op Code:		SBC
+	// Operands:	A, IXh
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|1|1|1|0|1| FD
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|0|0|0|1|1|0|0| 8C
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								2						8	(4,4)						2.00
+	//
+	IncrementR(1);
+	++++m_PC;
+	m_A = HandleArithmeticSubtractFlags(m_A, m_IYh + (m_F & eF_C));
+	return 8;
+}
+
+//=============================================================================
+
+uint32 CZ80::ImplementSBCAIYl(void)
+{
+	//
+	// Operation:	A <- A+IYl
+	// Op Code:		SBC
+	// Operands:	A, IYl
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|1|1|1|0|1| FD
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|0|0|0|1|1|0|1| 8D
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								2						8	(4,4)						2.00
+	//
+	IncrementR(1);
+	++++m_PC;
+	m_A = HandleArithmeticSubtractFlags(m_A, m_IYl + (m_F & eF_C));
+	return 8;
 }
 
 //=============================================================================
@@ -5933,6 +6428,106 @@ uint32 CZ80::ImplementANDr(void)
 	HandleLogicalFlags(m_A);
 	m_F |= eF_H;
 	return 4;
+}
+
+//=============================================================================
+
+uint32 CZ80::ImplementANDIXh(void)
+{
+	//
+	// Operation:	A <- A+IXh
+	// Op Code:		AND
+	// Operands:	A, IXh
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|1|1|1|0|1| DD
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|0|1|0|0|1|0|0| A4
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								2						8	(4,4)						2.00
+	//
+	IncrementR(1);
+	++++m_PC;
+	m_A &= m_IXh;
+	HandleLogicalFlags(m_A);
+	m_F |= eF_H;
+	return 8;
+}
+
+//=============================================================================
+
+uint32 CZ80::ImplementANDIXl(void)
+{
+	//
+	// Operation:	A <- A+IXl
+	// Op Code:		AND
+	// Operands:	A, IXl
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|1|1|1|0|1| DD
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|0|1|0|0|1|0|1| A5
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								2						8	(4,4)						2.00
+	//
+	IncrementR(1);
+	++++m_PC;
+	m_A &= m_IXl;
+	HandleLogicalFlags(m_A);
+	m_F |= eF_H;
+	return 8;
+}
+
+//=============================================================================
+
+uint32 CZ80::ImplementANDIYh(void)
+{
+	//
+	// Operation:	A <- A+IXh
+	// Op Code:		AND
+	// Operands:	A, IXh
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|1|1|1|0|1| FD
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|0|1|0|0|1|0|0| A4
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								2						8	(4,4)						2.00
+	//
+	IncrementR(1);
+	++++m_PC;
+	m_A &= m_IYh;
+	HandleLogicalFlags(m_A);
+	m_F |= eF_H;
+	return 8;
+}
+
+//=============================================================================
+
+uint32 CZ80::ImplementANDIYl(void)
+{
+	//
+	// Operation:	A <- A+IYl
+	// Op Code:		AND
+	// Operands:	A, IYl
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|1|1|1|0|1| FD
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|0|1|0|0|1|0|1| A5
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								2						8	(4,4)						2.00
+	//
+	IncrementR(1);
+	++++m_PC;
+	m_A &= m_IYl;
+	HandleLogicalFlags(m_A);
+	m_F |= eF_H;
+	return 8;
 }
 
 //=============================================================================
@@ -6071,6 +6666,102 @@ uint32 CZ80::ImplementORr(void)
 
 //=============================================================================
 
+uint32 CZ80::ImplementORIXh(void)
+{
+	//
+	// Operation:	A <- A+IXh
+	// Op Code:		OR
+	// Operands:	A, IXh
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|1|1|1|0|1| DD
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|0|1|1|0|1|0|0| B4
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								2						8	(4,4)						2.00
+	//
+	IncrementR(1);
+	++++m_PC;
+	m_A |= m_IXh;
+	HandleLogicalFlags(m_A);
+	return 8;
+}
+
+//=============================================================================
+
+uint32 CZ80::ImplementORIXl(void)
+{
+	//
+	// Operation:	A <- A+IXl
+	// Op Code:		OR
+	// Operands:	A, IXl
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|1|1|1|0|1| DD
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|0|1|1|0|1|0|1| B5
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								2						8	(4,4)						2.00
+	//
+	IncrementR(1);
+	++++m_PC;
+	m_A |= m_IXl;
+	HandleLogicalFlags(m_A);
+	return 8;
+}
+
+//=============================================================================
+
+uint32 CZ80::ImplementORIYh(void)
+{
+	//
+	// Operation:	A <- A+IXh
+	// Op Code:		OR
+	// Operands:	A, IXh
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|1|1|1|0|1| FD
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|0|1|1|0|1|0|0| B4
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								2						8	(4,4)						2.00
+	//
+	IncrementR(1);
+	++++m_PC;
+	m_A |= m_IYh;
+	HandleLogicalFlags(m_A);
+	return 8;
+}
+
+//=============================================================================
+
+uint32 CZ80::ImplementORIYl(void)
+{
+	//
+	// Operation:	A <- A+IYl
+	// Op Code:		OR
+	// Operands:	A, IYl
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|1|1|1|0|1| FD
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|0|1|1|0|1|0|1| B5
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								2						8	(4,4)						2.00
+	//
+	IncrementR(1);
+	++++m_PC;
+	m_A |= m_IYl;
+	HandleLogicalFlags(m_A);
+	return 8;
+}
+
+//=============================================================================
+
 uint32 CZ80::ImplementORn(void)
 {
 	//
@@ -6201,6 +6892,102 @@ uint32 CZ80::ImplementXORr(void)
 
 //=============================================================================
 
+uint32 CZ80::ImplementXORIXh(void)
+{
+	//
+	// Operation:	A <- A+IXh
+	// Op Code:		XOR
+	// Operands:	A, IXh
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|1|1|1|0|1| DD
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|0|1|0|1|1|0|0| AC
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								2						8	(4,4)						2.00
+	//
+	IncrementR(1);
+	++++m_PC;
+	m_A ^= m_IXh;
+	HandleLogicalFlags(m_A);
+	return 8;
+}
+
+//=============================================================================
+
+uint32 CZ80::ImplementXORIXl(void)
+{
+	//
+	// Operation:	A <- A+IXl
+	// Op Code:		XOR
+	// Operands:	A, IXl
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|1|1|1|0|1| DD
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|0|1|0|1|1|0|1| AD
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								2						8	(4,4)						2.00
+	//
+	IncrementR(1);
+	++++m_PC;
+	m_A ^= m_IXl;
+	HandleLogicalFlags(m_A);
+	return 8;
+}
+
+//=============================================================================
+
+uint32 CZ80::ImplementXORIYh(void)
+{
+	//
+	// Operation:	A <- A+IXh
+	// Op Code:		XOR
+	// Operands:	A, IXh
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|1|1|1|0|1| FD
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|0|1|0|1|1|0|0| AC
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								2						8	(4,4)						2.00
+	//
+	IncrementR(1);
+	++++m_PC;
+	m_A ^= m_IYh;
+	HandleLogicalFlags(m_A);
+	return 8;
+}
+
+//=============================================================================
+
+uint32 CZ80::ImplementXORIYl(void)
+{
+	//
+	// Operation:	A <- A+IYl
+	// Op Code:		XOR
+	// Operands:	A, IYl
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|1|1|1|0|1| FD
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|0|1|0|1|1|0|1| AD
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								2						8	(4,4)						2.00
+	//
+	IncrementR(1);
+	++++m_PC;
+	m_A ^= m_IYl;
+	HandleLogicalFlags(m_A);
+	return 8;
+}
+
+//=============================================================================
+
 uint32 CZ80::ImplementXORn(void)
 {
 	//
@@ -6326,6 +7113,98 @@ uint32 CZ80::ImplementCPr(void)
 	IncrementR(1);
 	HandleArithmeticSubtractFlags(m_A, REGISTER_8BIT(ReadMemory(m_PC++)));
 	return 4;
+}
+
+//=============================================================================
+
+uint32 CZ80::ImplementCPIXh(void)
+{
+	//
+	// Operation:	A <- A+IXh
+	// Op Code:		SUB
+	// Operands:	A, IXh
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|1|1|1|0|1| DD
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|0|1|1|1|1|0|0| BC
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								2						8	(4,4)						2.00
+	//
+	IncrementR(1);
+	++++m_PC;
+	HandleArithmeticSubtractFlags(m_A, m_IXh);
+	return 8;
+}
+
+//=============================================================================
+
+uint32 CZ80::ImplementCPIXl(void)
+{
+	//
+	// Operation:	A <- A+IXl
+	// Op Code:		SUB
+	// Operands:	A, IXl
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|1|1|1|0|1| DD
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|0|1|1|1|1|0|1| BD
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								2						8	(4,4)						2.00
+	//
+	IncrementR(1);
+	++++m_PC;
+	HandleArithmeticSubtractFlags(m_A, m_IXl);
+	return 8;
+}
+
+//=============================================================================
+
+uint32 CZ80::ImplementCPIYh(void)
+{
+	//
+	// Operation:	A <- A+IXh
+	// Op Code:		SUB
+	// Operands:	A, IXh
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|1|1|1|0|1| FD
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|0|1|1|1|1|0|0| BC
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								2						8	(4,4)						2.00
+	//
+	IncrementR(1);
+	++++m_PC;
+	HandleArithmeticSubtractFlags(m_A, m_IYh);
+	return 8;
+}
+
+//=============================================================================
+
+uint32 CZ80::ImplementCPIYl(void)
+{
+	//
+	// Operation:	A <- A+IYl
+	// Op Code:		SUB
+	// Operands:	A, IYl
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|1|1|1|0|1| FD
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|0|1|1|1|1|0|1| BD
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								2						8	(4,4)						2.00
+	//
+	IncrementR(1);
+	++++m_PC;
+	HandleArithmeticSubtractFlags(m_A, m_IYl);
+	return 8;
 }
 
 //=============================================================================
@@ -10114,6 +10993,38 @@ void CZ80::DecodeADDAr(uint16& address, char* pMnemonic) const
 
 //=============================================================================
 
+void CZ80::DecodeADDAIXh(uint16& address, char* pMnemonic) const
+{
+	address += 2;
+	sprintf(pMnemonic, "ADD A,IXh");
+}
+
+//=============================================================================
+
+void CZ80::DecodeADDAIXl(uint16& address, char* pMnemonic) const
+{
+	address += 2;
+	sprintf(pMnemonic, "ADD A,IXl");
+}
+
+//=============================================================================
+
+void CZ80::DecodeADDAIYh(uint16& address, char* pMnemonic) const
+{
+	address += 2;
+	sprintf(pMnemonic, "ADD A,IYh");
+}
+
+//=============================================================================
+
+void CZ80::DecodeADDAIYl(uint16& address, char* pMnemonic) const
+{
+	address += 2;
+	sprintf(pMnemonic, "ADD A,IYl");
+}
+
+//=============================================================================
+
 void CZ80::DecodeADDAn(uint16& address, char* pMnemonic) const
 {
 	sprintf(pMnemonic, "ADD A,%02X", ReadMemory(++address));
@@ -10176,6 +11087,38 @@ void CZ80::DecodeSUBr(uint16& address, char* pMnemonic) const
 
 //=============================================================================
 
+void CZ80::DecodeSUBIXh(uint16& address, char* pMnemonic) const
+{
+	address += 2;
+	sprintf(pMnemonic, "SUB IXh");
+}
+
+//=============================================================================
+
+void CZ80::DecodeSUBIXl(uint16& address, char* pMnemonic) const
+{
+	address += 2;
+	sprintf(pMnemonic, "SUB IXl");
+}
+
+//=============================================================================
+
+void CZ80::DecodeSUBIYh(uint16& address, char* pMnemonic) const
+{
+	address += 2;
+	sprintf(pMnemonic, "SUB IYh");
+}
+
+//=============================================================================
+
+void CZ80::DecodeSUBIYl(uint16& address, char* pMnemonic) const
+{
+	address += 2;
+	sprintf(pMnemonic, "SUB IYl");
+}
+
+//=============================================================================
+
 void CZ80::DecodeSUBn(uint16& address, char* pMnemonic) const
 {
 	sprintf(pMnemonic, "SUB %02X", ReadMemory(++address));
@@ -10203,6 +11146,38 @@ void CZ80::DecodeSUB_IYd_(uint16& address, char* pMnemonic) const
 void CZ80::DecodeSBCAr(uint16& address, char* pMnemonic) const
 {
 	sprintf(pMnemonic, "SBC A,%s", Get8BitRegisterString(ReadMemory(address++)));
+}
+
+//=============================================================================
+
+void CZ80::DecodeSBCAIXh(uint16& address, char* pMnemonic) const
+{
+	address += 2;
+	sprintf(pMnemonic, "SBC A,IXh");
+}
+
+//=============================================================================
+
+void CZ80::DecodeSBCAIXl(uint16& address, char* pMnemonic) const
+{
+	address += 2;
+	sprintf(pMnemonic, "SBC A,IXl");
+}
+
+//=============================================================================
+
+void CZ80::DecodeSBCAIYh(uint16& address, char* pMnemonic) const
+{
+	address += 2;
+	sprintf(pMnemonic, "SBC A,IYh");
+}
+
+//=============================================================================
+
+void CZ80::DecodeSBCAIYl(uint16& address, char* pMnemonic) const
+{
+	address += 2;
+	sprintf(pMnemonic, "SBC A,IYl");
 }
 
 //=============================================================================
@@ -10238,6 +11213,38 @@ void CZ80::DecodeANDr(uint16& address, char* pMnemonic) const
 
 //=============================================================================
 
+void CZ80::DecodeANDIXh(uint16& address, char* pMnemonic) const
+{
+	address += 2;
+	sprintf(pMnemonic, "AND IXh");
+}
+
+//=============================================================================
+
+void CZ80::DecodeANDIXl(uint16& address, char* pMnemonic) const
+{
+	address += 2;
+	sprintf(pMnemonic, "AND IXl");
+}
+
+//=============================================================================
+
+void CZ80::DecodeANDIYh(uint16& address, char* pMnemonic) const
+{
+	address += 2;
+	sprintf(pMnemonic, "AND IYh");
+}
+
+//=============================================================================
+
+void CZ80::DecodeANDIYl(uint16& address, char* pMnemonic) const
+{
+	address += 2;
+	sprintf(pMnemonic, "AND IYl");
+}
+
+//=============================================================================
+
 void CZ80::DecodeANDn(uint16& address, char* pMnemonic) const
 {
 	sprintf(pMnemonic, "AND %02X", ReadMemory(++address));
@@ -10265,6 +11272,38 @@ void CZ80::DecodeAND_IYd_(uint16& address, char* pMnemonic) const
 void CZ80::DecodeORr(uint16& address, char* pMnemonic) const
 {
 	sprintf(pMnemonic, "OR %s", Get8BitRegisterString(ReadMemory(address++)));
+}
+
+//=============================================================================
+
+void CZ80::DecodeORIXh(uint16& address, char* pMnemonic) const
+{
+	address += 2;
+	sprintf(pMnemonic, "OR IXh");
+}
+
+//=============================================================================
+
+void CZ80::DecodeORIXl(uint16& address, char* pMnemonic) const
+{
+	address += 2;
+	sprintf(pMnemonic, "OR IXl");
+}
+
+//=============================================================================
+
+void CZ80::DecodeORIYh(uint16& address, char* pMnemonic) const
+{
+	address += 2;
+	sprintf(pMnemonic, "OR IYh");
+}
+
+//=============================================================================
+
+void CZ80::DecodeORIYl(uint16& address, char* pMnemonic) const
+{
+	address += 2;
+	sprintf(pMnemonic, "OR IYl");
 }
 
 //=============================================================================
@@ -10300,6 +11339,38 @@ void CZ80::DecodeXORr(uint16& address, char* pMnemonic) const
 
 //=============================================================================
 
+void CZ80::DecodeXORIXh(uint16& address, char* pMnemonic) const
+{
+	address += 2;
+	sprintf(pMnemonic, "XOR IXh");
+}
+
+//=============================================================================
+
+void CZ80::DecodeXORIXl(uint16& address, char* pMnemonic) const
+{
+	address += 2;
+	sprintf(pMnemonic, "XOR IXl");
+}
+
+//=============================================================================
+
+void CZ80::DecodeXORIYh(uint16& address, char* pMnemonic) const
+{
+	address += 2;
+	sprintf(pMnemonic, "XOR IYh");
+}
+
+//=============================================================================
+
+void CZ80::DecodeXORIYl(uint16& address, char* pMnemonic) const
+{
+	address += 2;
+	sprintf(pMnemonic, "XOR IYl");
+}
+
+//=============================================================================
+
 void CZ80::DecodeXORn(uint16& address, char* pMnemonic) const
 {
 	sprintf(pMnemonic, "XOR %02X", ReadMemory(++address));
@@ -10327,6 +11398,38 @@ void CZ80::DecodeXOR_IYd_(uint16& address, char* pMnemonic) const
 void CZ80::DecodeCPr(uint16& address, char* pMnemonic) const
 {
 	sprintf(pMnemonic, "CP %s", Get8BitRegisterString(ReadMemory(address++)));
+}
+
+//=============================================================================
+
+void CZ80::DecodeCPIXh(uint16& address, char* pMnemonic) const
+{
+	address += 2;
+	sprintf(pMnemonic, "CP IXh");
+}
+
+//=============================================================================
+
+void CZ80::DecodeCPIXl(uint16& address, char* pMnemonic) const
+{
+	address += 2;
+	sprintf(pMnemonic, "CP IXl");
+}
+
+//=============================================================================
+
+void CZ80::DecodeCPIYh(uint16& address, char* pMnemonic) const
+{
+	address += 2;
+	sprintf(pMnemonic, "CP IYh");
+}
+
+//=============================================================================
+
+void CZ80::DecodeCPIYl(uint16& address, char* pMnemonic) const
+{
+	address += 2;
+	sprintf(pMnemonic, "CP IYl");
 }
 
 //=============================================================================
