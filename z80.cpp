@@ -7575,34 +7575,38 @@ uint32 CZ80::ImplementDAA(void)
 	//
 	IncrementR(1);
 	++m_PC;
-	uint8 carry = (m_F & eF_C) | ((m_A > 0x99) ? eF_C : 0);
+	uint8 correction = 0x00;
 
-	if (m_F & eF_N)
+	if ((m_F & eF_C) || (m_A > 0x99))
 	{
-		if ((m_F & eF_H) || ((m_A & 0x0F) > 9))
-		{
-			m_A -= 0x06;
-		}
-		if ((m_F & eF_C) || ((m_A & 0xF0) > 0x90))
-		{
-			m_A -= 0x60;
-		}
+		correction |= 0x60;
+		m_F |= eF_C;
 	}
 	else
 	{
-		if ((m_F & eF_H) || ((m_A & 0x0F) > 9))
-		{
-			m_A += 0x06;
-		}
-		if ((m_F & eF_C) || ((m_A & 0xF0) > 0x90))
-		{
-			m_A += 0x60;
-		}
+		m_F &= ~eF_C;
+	}
+
+	if ((m_F & eF_H) || ((m_A & 0x0F) > 9))
+	{
+		correction |= 0x06;
+	}
+
+	uint8 origA = m_A;
+
+	if (m_F & eF_N)
+	{
+		m_A -= correction;
+	}
+	else
+	{
+		m_A += correction;
 	}
 
 	uint8 origF = m_F;
 	HandleLogicalFlags(m_A);
-	m_F |= (origF & eF_N) | carry;
+	m_F &= ~(eF_H | eF_N | eF_C);
+	m_F |= ((origA ^ m_A) & eF_H) | (origF & (eF_N | eF_C));
 	return 4;
 }
 
