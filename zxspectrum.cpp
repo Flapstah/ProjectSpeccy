@@ -11,6 +11,8 @@
 
 static CKeyboard g_keyboard;
 #define DISPLAY_SCALE (2)
+#define MAX_CLOCKRATE_MULTIPLIER (64.0f)
+#define MIN_CLOCKRATE_MULTIPLIER (0.5f)
 //#define SHOW_FRAMERATE
 
 // TODO:
@@ -146,7 +148,7 @@ bool CZXSpectrum::Update(void)
 
 		if (CKeyboard::IsKeyPressed(GLFW_KEY_UP))
 		{
-			if (m_clockRate < 20.0f)
+			if (m_clockRate < MAX_CLOCKRATE_MULTIPLIER)
 			{
 				m_clockRate *= 2.0f;
 				m_frameTime = (1.0 / 50.0) / m_clockRate;
@@ -156,7 +158,7 @@ bool CZXSpectrum::Update(void)
 
 		if (CKeyboard::IsKeyPressed(GLFW_KEY_DOWN))
 		{
-			if (m_clockRate > 0.5f)
+			if (m_clockRate > MIN_CLOCKRATE_MULTIPLIER)
 			{
 				m_clockRate /= 2.0f;
 				m_frameTime = (1.0 / 50.0) / m_clockRate;
