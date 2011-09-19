@@ -7118,7 +7118,10 @@ uint32 CZ80::ImplementCPr(void)
 	//								A						111
 	//
 	IncrementR(1);
-	HandleArithmeticSubtractFlags(m_A, REGISTER_8BIT(ReadMemory(m_PC++)));
+	uint8 reg = REGISTER_8BIT(ReadMemory(m_PC++));
+	HandleArithmeticSubtractFlags(m_A, reg);
+	m_F &= ~(eF_Y | eF_X);
+	m_F |= reg & (eF_Y | eF_X);
 	return 4;
 }
 
@@ -7127,8 +7130,8 @@ uint32 CZ80::ImplementCPr(void)
 uint32 CZ80::ImplementCPIXh(void)
 {
 	//
-	// Operation:	A <- A+IXh
-	// Op Code:		SUB
+	// Operation:	A - IXh
+	// Op Code:		CP
 	// Operands:	A, IXh
 	//						+-+-+-+-+-+-+-+-+
 	//						|1|1|0|1|1|1|0|1| DD
@@ -7142,6 +7145,8 @@ uint32 CZ80::ImplementCPIXh(void)
 	IncrementR(1);
 	++++m_PC;
 	HandleArithmeticSubtractFlags(m_A, m_IXh);
+	m_F &= ~(eF_Y | eF_X);
+	m_F |= m_IXh & (eF_Y | eF_X);
 	return 8;
 }
 
@@ -7150,8 +7155,8 @@ uint32 CZ80::ImplementCPIXh(void)
 uint32 CZ80::ImplementCPIXl(void)
 {
 	//
-	// Operation:	A <- A+IXl
-	// Op Code:		SUB
+	// Operation:	A - IXl
+	// Op Code:		CP
 	// Operands:	A, IXl
 	//						+-+-+-+-+-+-+-+-+
 	//						|1|1|0|1|1|1|0|1| DD
@@ -7165,6 +7170,8 @@ uint32 CZ80::ImplementCPIXl(void)
 	IncrementR(1);
 	++++m_PC;
 	HandleArithmeticSubtractFlags(m_A, m_IXl);
+	m_F &= ~(eF_Y | eF_X);
+	m_F |= m_IXl & (eF_Y | eF_X);
 	return 8;
 }
 
@@ -7173,9 +7180,9 @@ uint32 CZ80::ImplementCPIXl(void)
 uint32 CZ80::ImplementCPIYh(void)
 {
 	//
-	// Operation:	A <- A+IXh
-	// Op Code:		SUB
-	// Operands:	A, IXh
+	// Operation:	A - IYh
+	// Op Code:		CP
+	// Operands:	A, IYh
 	//						+-+-+-+-+-+-+-+-+
 	//						|1|1|1|1|1|1|0|1| FD
 	//						+-+-+-+-+-+-+-+-+
@@ -7188,6 +7195,8 @@ uint32 CZ80::ImplementCPIYh(void)
 	IncrementR(1);
 	++++m_PC;
 	HandleArithmeticSubtractFlags(m_A, m_IYh);
+	m_F &= ~(eF_Y | eF_X);
+	m_F |= m_IYh & (eF_Y | eF_X);
 	return 8;
 }
 
@@ -7196,8 +7205,8 @@ uint32 CZ80::ImplementCPIYh(void)
 uint32 CZ80::ImplementCPIYl(void)
 {
 	//
-	// Operation:	A <- A+IYl
-	// Op Code:		SUB
+	// Operation:	A - IYl
+	// Op Code:		CP
 	// Operands:	A, IYl
 	//						+-+-+-+-+-+-+-+-+
 	//						|1|1|1|1|1|1|0|1| FD
@@ -7211,6 +7220,8 @@ uint32 CZ80::ImplementCPIYl(void)
 	IncrementR(1);
 	++++m_PC;
 	HandleArithmeticSubtractFlags(m_A, m_IYl);
+	m_F &= ~(eF_Y | eF_X);
+	m_F |= m_IYl & (eF_Y | eF_X);
 	return 8;
 }
 
@@ -7233,7 +7244,10 @@ uint32 CZ80::ImplementCPn(void)
 	//
 	IncrementR(1);
 	++m_PC;
-	HandleArithmeticSubtractFlags(m_A, ReadMemory(m_PC++));
+	uint8 byte = ReadMemory(m_PC++);
+	HandleArithmeticSubtractFlags(m_A, byte);
+	m_F &= ~(eF_Y | eF_X);
+	m_F |= byte & (eF_Y | eF_X);
 	return 7;
 }
 
@@ -7254,7 +7268,10 @@ uint32 CZ80::ImplementCP_HL_(void)
 	//
 	IncrementR(1);
 	++m_PC;
-	HandleArithmeticSubtractFlags(m_A, ReadMemory(m_HL));
+	uint8 byte = ReadMemory(m_HL);
+	HandleArithmeticSubtractFlags(m_A, byte);
+	m_F &= ~(eF_Y | eF_X);
+	m_F |= byte & (eF_Y | eF_X);
 	return 7;
 }
 
@@ -7280,7 +7297,10 @@ uint32 CZ80::ImplementCP_IXd_(void)
 	IncrementR(2);
 	++++m_PC;
 	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
-	HandleArithmeticSubtractFlags(m_A, ReadMemory(m_IX + displacement));
+	uint8 byte = ReadMemory(m_IX + displacement);
+	HandleArithmeticSubtractFlags(m_A, byte);
+	m_F &= ~(eF_Y | eF_X);
+	m_F |= byte & (eF_Y | eF_X);
 	return 19;
 }
 
@@ -7306,7 +7326,10 @@ uint32 CZ80::ImplementCP_IYd_(void)
 	IncrementR(2);
 	++++m_PC;
 	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
-	HandleArithmeticSubtractFlags(m_A, ReadMemory(m_IY + displacement));
+	uint8 byte = ReadMemory(m_IY + displacement);
+	HandleArithmeticSubtractFlags(m_A, byte);
+	m_F &= ~(eF_Y | eF_X);
+	m_F |= byte & (eF_Y | eF_X);
 	return 19;
 }
 
