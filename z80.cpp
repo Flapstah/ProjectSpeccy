@@ -8743,7 +8743,6 @@ uint32 CZ80::ImplementRRr(void)
 	uint8& reg = REGISTER_8BIT(ReadMemory(m_PC++));
 	uint8 carry = (reg & eF_C);
 	reg = (reg >> 1) | ((m_F & eF_C) << 7);
-	uint8 parity = reg;
 	HandleLogicalFlags(reg);
 	m_F |= carry;
 	return 8;
