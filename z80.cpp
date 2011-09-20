@@ -10410,8 +10410,20 @@ uint32 CZ80::ImplementINI(void)
 	++++m_PC;
 	m_addresslo = m_C;
 	m_addresshi = m_B;
-	WriteMemory(m_HL++, ReadPort(m_address));
-	--m_B;
+	uint8 byte = ReadPort(m_address);
+	WriteMemory(m_HL++, byte);
+	m_B = HandleArithmeticSubtractFlags(m_B, 1, false);
+	m_F &= (eF_S | eF_Z | eF_Y | eF_X);
+	m_F |= ((byte >> 6) & eF_N);
+	uint16 k = byte + ((m_C + 0x01) & 0xFF);
+	m_F |= ((k & 0xff00) ? (eF_H | eF_C) : 0);
+	k &= 0x07;
+	k ^= m_B;
+	uint8 parity = k;
+	parity ^= parity >> 4;
+	parity &= 0xF;
+	parity = ((0x6996 >> parity) << 2);
+	m_F |= (~parity & eF_PV);
 	return 16;
 }
 
@@ -10463,8 +10475,20 @@ uint32 CZ80::ImplementIND(void)
 	++++m_PC;
 	m_addresslo = m_C;
 	m_addresshi = m_B;
-	WriteMemory(m_HL--, ReadPort(m_address));
-	--m_B;
+	uint8 byte = ReadPort(m_address);
+	WriteMemory(m_HL--, byte);
+	m_B = HandleArithmeticSubtractFlags(m_B, 1, false);
+	m_F &= (eF_S | eF_Z | eF_Y | eF_X);
+	m_F |= ((byte >> 6) & eF_N);
+	uint16 k = byte + ((m_C - 0x01) & 0xFF);
+	m_F |= ((k & 0xff00) ? (eF_H | eF_C) : 0);
+	k &= 0x07;
+	k ^= m_B;
+	uint8 parity = k;
+	parity ^= parity >> 4;
+	parity &= 0xF;
+	parity = ((0x6996 >> parity) << 2);
+	m_F |= (~parity & eF_PV);
 	return 16;
 }
 
@@ -10575,8 +10599,20 @@ uint32 CZ80::ImplementOUTI(void)
 	++++m_PC;
 	m_addresslo = m_C;
 	m_addresshi = m_B;
-	WritePort(m_address, ReadMemory(m_HL++));
-	--m_B;
+	uint8 byte = ReadMemory(m_HL++);
+	WritePort(m_address, byte);
+	m_B = HandleArithmeticSubtractFlags(m_B, 1, false);
+	m_F &= (eF_S | eF_Z | eF_Y | eF_X);
+	m_F |= ((byte >> 6) & eF_N);
+	uint16 k = byte + m_L;
+	m_F |= ((k & 0xff00) ? (eF_H | eF_C) : 0);
+	k &= 0x07;
+	k ^= m_B;
+	uint8 parity = k;
+	parity ^= parity >> 4;
+	parity &= 0xF;
+	parity = ((0x6996 >> parity) << 2);
+	m_F |= (~parity & eF_PV);
 	return 16;
 }
 
@@ -10628,8 +10664,20 @@ uint32 CZ80::ImplementOUTD(void)
 	++++m_PC;
 	m_addresslo = m_C;
 	m_addresshi = m_B;
-	WritePort(m_address, ReadMemory(m_HL--));
-	--m_B;
+	uint8 byte = ReadMemory(m_HL--);
+	WritePort(m_address, byte);
+	m_B = HandleArithmeticSubtractFlags(m_B, 1, false);
+	m_F &= (eF_S | eF_Z | eF_Y | eF_X);
+	m_F |= ((byte >> 6) & eF_N);
+	uint16 k = byte + m_L;
+	m_F |= ((k & 0xff00) ? (eF_H | eF_C) : 0);
+	k &= 0x07;
+	k ^= m_B;
+	uint8 parity = k;
+	parity ^= parity >> 4;
+	parity &= 0xF;
+	parity = ((0x6996 >> parity) << 2);
+	m_F |= (~parity & eF_PV);
 	return 16;
 }
 
