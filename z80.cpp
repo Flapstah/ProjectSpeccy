@@ -5477,8 +5477,8 @@ uint32 CZ80::ImplementCPI(void)
 	uint8 origF = m_F;
 	HandleArithmeticSubtractFlags(m_A, _HL_, false);
 	uint8 byte = m_A - _HL_ - ((m_F & eF_H) >> 4);
-	m_F &= eF_C;
-	m_F |= (byte & eF_X) | ((byte << 4) & eF_Y) | (origF & eF_C);
+	m_F &= (eF_S | eF_Z | eF_H);
+	m_F |= (byte & eF_X) | ((byte << 4) & eF_Y) | ((m_BC != 0) ? eF_PV : 0) | eF_N | (origF & eF_C);
 	return 16;
 }
 
@@ -5541,8 +5541,8 @@ uint32 CZ80::ImplementCPD(void)
 	uint8 origF = m_F;
 	HandleArithmeticSubtractFlags(m_A, _HL_, false);
 	uint8 byte = m_A - _HL_ - ((m_F & eF_H) >> 4);
-	m_F &= eF_C;
-	m_F |= (byte & eF_X) | ((byte << 4) & eF_Y) | (origF & eF_C);
+	m_F &= (eF_S | eF_Z | eF_H);
+	m_F |= (byte & eF_X) | ((byte << 4) & eF_Y) | ((m_BC != 0) ? eF_PV : 0) | eF_N | (origF & eF_C);
 	return 16;
 }
 
