@@ -4471,7 +4471,7 @@ uint32 CZ80::ImplementLDAI(void)
 	IncrementR(2);
 	m_A = m_I;
 	m_F &= eF_C;
-	m_F |= (m_A & eF_S) | ((m_A == 0) ? eF_Z : 0) | (m_State.m_IFF2) ? eF_PV : 0 | (m_A & (eF_X | eF_Y));
+	m_F |= (m_A & (eF_S | eF_Y | eF_X)) | ((m_A == 0) ? eF_Z : 0) | (m_State.m_IFF2) ? eF_PV : 0;
 	++++m_PC;
 	return 9;
 }
@@ -4496,7 +4496,7 @@ uint32 CZ80::ImplementLDAR(void)
 	IncrementR(2);
 	m_A = m_R;
 	m_F &= eF_C;
-	m_F |= (m_A & eF_S) | ((m_A == 0) ? eF_Z : 0) | (m_State.m_IFF2) ? eF_PV : 0 | (m_A & (eF_X | eF_Y));
+	m_F |= (m_A & (eF_S | eF_Y | eF_X)) | ((m_A == 0) ? eF_Z : 0) | (m_State.m_IFF2) ? eF_PV : 0;
 	++++m_PC;
 	return 9;
 }
