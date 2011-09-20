@@ -1070,6 +1070,20 @@ uint32 CZ80::Step(void)
 						return ImplementSRA_HL_();
 						break;
 
+					case 0x30: // SLL B
+					case 0x31: // SLL C
+					case 0x32: // SLL D
+					case 0x33: // SLL E
+					case 0x34: // SLL H
+					case 0x35: // SLL L
+					case 0x37: // SLL A
+						return ImplementSLLr();
+						break;
+
+					case 0x36:
+						return ImplementSLL_HL_();
+						break;
+
 					case 0x38: // SRL B
 					case 0x39: // SRL C
 					case 0x3A: // SRL D
@@ -1558,6 +1572,10 @@ uint32 CZ80::Step(void)
 								return ImplementSRA_IXd_();
 								break;
 
+							case 0x36:
+								return ImplementSLL_IXd_();
+								break;
+
 							case 0x3E:
 								return ImplementSRL_IXd_();
 								break;
@@ -2022,6 +2040,10 @@ uint32 CZ80::Step(void)
 
 							case 0x2E:
 								return ImplementSRA_IYd_();
+								break;
+
+							case 0x36:
+								return ImplementSLL_IYd_();
 								break;
 
 							case 0x3E:
@@ -2606,6 +2628,17 @@ void CZ80::Decode(uint16& address, char* pMnemonic) const
 						DecodeSRAr(address, pMnemonic);
 						break;
 
+					case 0x30: // SLL B
+					case 0x31: // SLL C
+					case 0x32: // SLL D
+					case 0x33: // SLL E
+					case 0x34: // SLL H
+					case 0x35: // SLL L
+					case 0x36: // SLL (HL)
+					case 0x37: // SLL A
+						DecodeSLLr(address, pMnemonic);
+						break;
+
 					case 0x38: // SRL B
 					case 0x39: // SRL C
 					case 0x3A: // SRL D
@@ -3010,6 +3043,10 @@ void CZ80::Decode(uint16& address, char* pMnemonic) const
 								DecodeSRA_IXd_(address, pMnemonic);
 								break;
 
+							case 0x36:
+								DecodeSLL_IXd_(address, pMnemonic);
+								break;
+
 							case 0x3E:
 								DecodeSRL_IXd_(address, pMnemonic);
 								break;
@@ -3399,6 +3436,10 @@ void CZ80::Decode(uint16& address, char* pMnemonic) const
 
 							case 0x2E:
 								DecodeSRA_IYd_(address, pMnemonic);
+								break;
+
+							case 0x36:
+								DecodeSLL_IYd_(address, pMnemonic);
 								break;
 
 							case 0x3E:
@@ -9063,6 +9104,129 @@ uint32 CZ80::ImplementSRA_IYd_(void)
 
 //=============================================================================
 
+uint32 CZ80::ImplementSLLr(void)
+{
+	//
+	// Operation:	C <- 7<-0 r
+	// Op Code:		SLL
+	// Operands:	r
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|0|1|0|1|1| CB
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|0|1|1|0|r|r|r|
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								2						8	(4,4)						2.00	
+	//
+	IncrementR(2);
+	++m_PC;
+	uint8& reg = REGISTER_8BIT(ReadMemory(m_PC++));
+	uint8 carry = (reg & eF_S) >> 7;
+	reg = (reg << 1) | 0x01;
+	HandleLogicalFlags(reg);
+	m_F |= carry;
+	return 8;
+}
+
+//=============================================================================
+
+uint32 CZ80::ImplementSLL_HL_(void)
+{
+	//
+	// Operation:	C <- 7<-0 (HL)
+	// Op Code:		SLL
+	// Operands:	(HL)
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|0|1|0|1|1| CB
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|0|1|1|0|1|1|0| 36
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								4						15 (4,4,4,3)			3.75	
+	//
+	IncrementR(2);
+	++++m_PC;
+	uint8 byte = ReadMemory(m_HL);
+	uint8 carry = (byte & eF_S) >> 7;
+	byte = (byte << 1) | 0x01;
+	WriteMemory(m_HL, byte);
+	HandleLogicalFlags(byte);
+	m_F |= carry;
+	return 15;
+}
+
+//=============================================================================
+
+uint32 CZ80::ImplementSLL_IXd_(void)
+{
+	//
+	// Operation:	C <- 7<-0 (IX+d)
+	// Op Code:		SLL
+	// Operands:	(IX+d)
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|1|1|1|0|1| DD
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|0|1|0|1|1| CB
+	//						+-+-+-+-+-+-+-+-+
+	//						|d|d|d|d|d|d|d|d|
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|0|1|1|0|1|1|0| 36
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								6						23 (4,4,3,5,4,3)	5.75
+	//
+	IncrementR(2);
+	++++m_PC;
+	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
+	++m_PC;
+	uint8 byte = ReadMemory(m_IX + displacement);
+	uint8 carry = (byte & eF_S) >> 7;
+	byte = (byte << 1) | 0x01;
+	WriteMemory(m_IX + displacement, byte);
+	HandleLogicalFlags(byte);
+	m_F |= carry;
+	return 23;
+}
+
+//=============================================================================
+
+uint32 CZ80::ImplementSLL_IYd_(void)
+{
+	//
+	// Operation:	C <- 7<-0 (IY+d)
+	// Op Code:		SLL
+	// Operands:	(IY+d)
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|1|1|1|0|1| FD
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|0|1|0|1|1| CB
+	//						+-+-+-+-+-+-+-+-+
+	//						|d|d|d|d|d|d|d|d|
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|0|1|1|0|1|1|0| 36
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								6						23 (4,4,3,5,4,3)	5.75
+	//
+	IncrementR(2);
+	++++m_PC;
+	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
+	++m_PC;
+	uint8 byte = ReadMemory(m_IY + displacement);
+	uint8 carry = (byte & eF_S) >> 7;
+	byte = (byte << 1) | 0x01;
+	WriteMemory(m_IY + displacement, byte);
+	HandleLogicalFlags(byte);
+	m_F |= carry;
+	return 23;
+}
+
+//=============================================================================
+
 uint32 CZ80::ImplementSRLr(void)
 {
 	//
@@ -11924,6 +12088,30 @@ void CZ80::DecodeSRA_IXd_(uint16& address, char* pMnemonic) const
 void CZ80::DecodeSRA_IYd_(uint16& address, char* pMnemonic) const
 {
 	sprintf(pMnemonic, "SRA (IY+%02X)", ReadMemory(address + 2));
+	address += 4;
+}
+
+//=============================================================================
+
+void CZ80::DecodeSLLr(uint16& address, char* pMnemonic) const
+{
+	sprintf(pMnemonic, "SLL %s", Get8BitRegisterString(ReadMemory(++address)));
+	++address;
+}
+
+//=============================================================================
+
+void CZ80::DecodeSLL_IXd_(uint16& address, char* pMnemonic) const
+{
+	sprintf(pMnemonic, "SLL (IX+%02X)", ReadMemory(address + 2));
+	address += 4;
+}
+
+//=============================================================================
+
+void CZ80::DecodeSLL_IYd_(uint16& address, char* pMnemonic) const
+{
+	sprintf(pMnemonic, "SLL (IY+%02X)", ReadMemory(address + 2));
 	address += 4;
 }
 

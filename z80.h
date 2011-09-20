@@ -286,6 +286,10 @@ class CZ80
 		uint32 ImplementSRA_HL_(void);
 		uint32 ImplementSRA_IXd_(void);
 		uint32 ImplementSRA_IYd_(void);
+		uint32 ImplementSLLr(void);
+		uint32 ImplementSLL_HL_(void);
+		uint32 ImplementSLL_IXd_(void);
+		uint32 ImplementSLL_IYd_(void);
 		uint32 ImplementSRLr(void);
 		uint32 ImplementSRL_HL_(void);
 		uint32 ImplementSRL_IXd_(void);
@@ -568,6 +572,9 @@ class CZ80
 		void DecodeSRAr(uint16& address, char* pMnemonic) const;
 		void DecodeSRA_IXd_(uint16& address, char* pMnemonic) const;
 		void DecodeSRA_IYd_(uint16& address, char* pMnemonic) const;
+		void DecodeSLLr(uint16& address, char* pMnemonic) const;
+		void DecodeSLL_IXd_(uint16& address, char* pMnemonic) const;
+		void DecodeSLL_IYd_(uint16& address, char* pMnemonic) const;
 		void DecodeSRLr(uint16& address, char* pMnemonic) const;
 		void DecodeSRL_IXd_(uint16& address, char* pMnemonic) const;
 		void DecodeSRL_IYd_(uint16& address, char* pMnemonic) const;
