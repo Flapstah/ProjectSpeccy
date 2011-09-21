@@ -12,6 +12,7 @@
 //=============================================================================
 // TODO:
 // Implement the undocumented opcodes
+// Flags and/or behaviour wrong for INI and IND
 //=============================================================================
 
 // Helper macros to determine 8 and 16 bit registers from opcodes
