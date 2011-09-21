@@ -400,7 +400,7 @@ bool CZXSpectrum::LoadROM(const char* fileName)
 
 	if (m_pFile != NULL)
 	{
-		fread(m_memory, sizeof(m_memory), 1, m_pFile);
+		size_t result = fread(m_memory, sizeof(m_memory), 1, m_pFile);
 		fclose(m_pFile);
 		m_pFile = NULL;
 
@@ -426,7 +426,7 @@ bool CZXSpectrum::LoadSNA(const char* fileName)
 	char scratch[49179];
 	if (m_pFile != NULL)
 	{
-		fread(scratch, sizeof(scratch), 1, m_pFile);
+		size_t result = fread(scratch, sizeof(scratch), 1, m_pFile);
 		fclose(m_pFile);
 		m_pFile = NULL;
 
