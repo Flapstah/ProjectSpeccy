@@ -3806,7 +3806,7 @@ uint32 CZ80::ImplementLDIXhn(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						11 (4,4,3)				2.75
 	//
-	IncrementR(1);
+	IncrementR(2);
 	++++m_PC;
 	m_IXh = ReadMemory(m_PC++);
 	return 11;
@@ -3838,7 +3838,7 @@ uint32 CZ80::ImplementLDIXhr(void)
 	//							M Cycles		T States					MHz E.T.
 	//								1						8	(4,4)						2.00
 	//
-	IncrementR(1);
+	IncrementR(2);
 	uint8 opcode = ReadMemory(++m_PC);
 	uint8* pReg = &REGISTER_8BIT(opcode);
 	if (pReg == &m_H) pReg = &m_IXh;
@@ -3867,7 +3867,7 @@ uint32 CZ80::ImplementLDIXln(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						11 (4,4,3)				2.75
 	//
-	IncrementR(1);
+	IncrementR(2);
 	++++m_PC;
 	m_IXl = ReadMemory(m_PC++);
 	return 11;
@@ -3899,7 +3899,7 @@ uint32 CZ80::ImplementLDIXlr(void)
 	//							M Cycles		T States					MHz E.T.
 	//								1						8	(4,4)						2.00
 	//
-	IncrementR(1);
+	IncrementR(2);
 	uint8 opcode = ReadMemory(++m_PC);
 	uint8* pReg = &REGISTER_8BIT(opcode);
 	if (pReg == &m_H) pReg = &m_IXh;
@@ -3928,7 +3928,7 @@ uint32 CZ80::ImplementLDIYhn(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						11 (4,4,3)				2.75
 	//
-	IncrementR(1);
+	IncrementR(2);
 	++++m_PC;
 	m_IYh = ReadMemory(m_PC++);
 	return 11;
@@ -3960,7 +3960,7 @@ uint32 CZ80::ImplementLDIYhr(void)
 	//							M Cycles		T States					MHz E.T.
 	//								1						8	(4,4)						2.00
 	//
-	IncrementR(1);
+	IncrementR(2);
 	uint8 opcode = ReadMemory(++m_PC);
 	uint8* pReg = &REGISTER_8BIT(opcode);
 	if (pReg == &m_H) pReg = &m_IYh;
@@ -3989,7 +3989,7 @@ uint32 CZ80::ImplementLDIYln(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						11 (4,4,3)				2.75
 	//
-	IncrementR(1);
+	IncrementR(2);
 	++++m_PC;
 	m_IYl = ReadMemory(m_PC++);
 	return 11;
@@ -4021,7 +4021,7 @@ uint32 CZ80::ImplementLDIYlr(void)
 	//							M Cycles		T States					MHz E.T.
 	//								1						8	(4,4)						2.00
 	//
-	IncrementR(1);
+	IncrementR(2);
 	uint8 opcode = ReadMemory(++m_PC);
 	uint8* pReg = &REGISTER_8BIT(opcode);
 	if (pReg == &m_H) pReg = &m_IYh;
@@ -5629,7 +5629,7 @@ uint32 CZ80::ImplementADDAIXh(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00
 	//
-	IncrementR(1);
+	IncrementR(2);
 	++++m_PC;
 	m_A = HandleArithmeticAddFlags(m_A, m_IXh, false);
 	return 8;
@@ -5652,7 +5652,7 @@ uint32 CZ80::ImplementADDAIXl(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00
 	//
-	IncrementR(1);
+	IncrementR(2);
 	++++m_PC;
 	m_A = HandleArithmeticAddFlags(m_A, m_IXl, false);
 	return 8;
@@ -5675,7 +5675,7 @@ uint32 CZ80::ImplementADDAIYh(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00
 	//
-	IncrementR(1);
+	IncrementR(2);
 	++++m_PC;
 	m_A = HandleArithmeticAddFlags(m_A, m_IYh, false);
 	return 8;
@@ -5698,7 +5698,7 @@ uint32 CZ80::ImplementADDAIYl(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00
 	//
-	IncrementR(1);
+	IncrementR(2);
 	++++m_PC;
 	m_A = HandleArithmeticAddFlags(m_A, m_IYl, false);
 	return 8;
@@ -5846,7 +5846,7 @@ uint32 CZ80::ImplementADCAIXh(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00
 	//
-	IncrementR(1);
+	IncrementR(2);
 	++++m_PC;
 	m_A = HandleArithmeticAddFlags(m_A, m_IXh, true);
 	return 8;
@@ -5869,7 +5869,7 @@ uint32 CZ80::ImplementADCAIXl(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00
 	//
-	IncrementR(1);
+	IncrementR(2);
 	++++m_PC;
 	m_A = HandleArithmeticAddFlags(m_A, m_IXl, true);
 	return 8;
@@ -5892,7 +5892,7 @@ uint32 CZ80::ImplementADCAIYh(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00
 	//
-	IncrementR(1);
+	IncrementR(2);
 	++++m_PC;
 	m_A = HandleArithmeticAddFlags(m_A, m_IYh, true);
 	return 8;
@@ -5915,7 +5915,7 @@ uint32 CZ80::ImplementADCAIYl(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00
 	//
-	IncrementR(1);
+	IncrementR(2);
 	++++m_PC;
 	m_A = HandleArithmeticAddFlags(m_A, m_IYl, true);
 	return 8;
@@ -6063,7 +6063,7 @@ uint32 CZ80::ImplementSUBIXh(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00
 	//
-	IncrementR(1);
+	IncrementR(2);
 	++++m_PC;
 	m_A = HandleArithmeticSubtractFlags(m_A, m_IXh, false);
 	return 8;
@@ -6086,7 +6086,7 @@ uint32 CZ80::ImplementSUBIXl(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00
 	//
-	IncrementR(1);
+	IncrementR(2);
 	++++m_PC;
 	m_A = HandleArithmeticSubtractFlags(m_A, m_IXl, false);
 	return 8;
@@ -6109,7 +6109,7 @@ uint32 CZ80::ImplementSUBIYh(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00
 	//
-	IncrementR(1);
+	IncrementR(2);
 	++++m_PC;
 	m_A = HandleArithmeticSubtractFlags(m_A, m_IYh, false);
 	return 8;
@@ -6132,7 +6132,7 @@ uint32 CZ80::ImplementSUBIYl(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00
 	//
-	IncrementR(1);
+	IncrementR(2);
 	++++m_PC;
 	m_A = HandleArithmeticSubtractFlags(m_A, m_IYl, false);
 	return 8;
@@ -6280,7 +6280,7 @@ uint32 CZ80::ImplementSBCAIXh(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00
 	//
-	IncrementR(1);
+	IncrementR(2);
 	++++m_PC;
 	m_A = HandleArithmeticSubtractFlags(m_A, m_IXh, true);
 	return 8;
@@ -6303,7 +6303,7 @@ uint32 CZ80::ImplementSBCAIXl(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00
 	//
-	IncrementR(1);
+	IncrementR(2);
 	++++m_PC;
 	m_A = HandleArithmeticSubtractFlags(m_A, m_IXl, true);
 	return 8;
@@ -6326,7 +6326,7 @@ uint32 CZ80::ImplementSBCAIYh(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00
 	//
-	IncrementR(1);
+	IncrementR(2);
 	++++m_PC;
 	m_A = HandleArithmeticSubtractFlags(m_A, m_IYh, true);
 	return 8;
@@ -6349,7 +6349,7 @@ uint32 CZ80::ImplementSBCAIYl(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00
 	//
-	IncrementR(1);
+	IncrementR(2);
 	++++m_PC;
 	m_A = HandleArithmeticSubtractFlags(m_A, m_IYl, true);
 	return 8;
@@ -6499,7 +6499,7 @@ uint32 CZ80::ImplementANDIXh(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00
 	//
-	IncrementR(1);
+	IncrementR(2);
 	++++m_PC;
 	m_A &= m_IXh;
 	HandleLogicalFlags(m_A);
@@ -6524,7 +6524,7 @@ uint32 CZ80::ImplementANDIXl(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00
 	//
-	IncrementR(1);
+	IncrementR(2);
 	++++m_PC;
 	m_A &= m_IXl;
 	HandleLogicalFlags(m_A);
@@ -6549,7 +6549,7 @@ uint32 CZ80::ImplementANDIYh(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00
 	//
-	IncrementR(1);
+	IncrementR(2);
 	++++m_PC;
 	m_A &= m_IYh;
 	HandleLogicalFlags(m_A);
@@ -6574,7 +6574,7 @@ uint32 CZ80::ImplementANDIYl(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00
 	//
-	IncrementR(1);
+	IncrementR(2);
 	++++m_PC;
 	m_A &= m_IYl;
 	HandleLogicalFlags(m_A);
@@ -6733,7 +6733,7 @@ uint32 CZ80::ImplementORIXh(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00
 	//
-	IncrementR(1);
+	IncrementR(2);
 	++++m_PC;
 	m_A |= m_IXh;
 	HandleLogicalFlags(m_A);
@@ -6757,7 +6757,7 @@ uint32 CZ80::ImplementORIXl(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00
 	//
-	IncrementR(1);
+	IncrementR(2);
 	++++m_PC;
 	m_A |= m_IXl;
 	HandleLogicalFlags(m_A);
@@ -6781,7 +6781,7 @@ uint32 CZ80::ImplementORIYh(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00
 	//
-	IncrementR(1);
+	IncrementR(2);
 	++++m_PC;
 	m_A |= m_IYh;
 	HandleLogicalFlags(m_A);
@@ -6805,7 +6805,7 @@ uint32 CZ80::ImplementORIYl(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00
 	//
-	IncrementR(1);
+	IncrementR(2);
 	++++m_PC;
 	m_A |= m_IYl;
 	HandleLogicalFlags(m_A);
@@ -6959,7 +6959,7 @@ uint32 CZ80::ImplementXORIXh(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00
 	//
-	IncrementR(1);
+	IncrementR(2);
 	++++m_PC;
 	m_A ^= m_IXh;
 	HandleLogicalFlags(m_A);
@@ -6983,7 +6983,7 @@ uint32 CZ80::ImplementXORIXl(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00
 	//
-	IncrementR(1);
+	IncrementR(2);
 	++++m_PC;
 	m_A ^= m_IXl;
 	HandleLogicalFlags(m_A);
@@ -7007,7 +7007,7 @@ uint32 CZ80::ImplementXORIYh(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00
 	//
-	IncrementR(1);
+	IncrementR(2);
 	++++m_PC;
 	m_A ^= m_IYh;
 	HandleLogicalFlags(m_A);
@@ -7031,7 +7031,7 @@ uint32 CZ80::ImplementXORIYl(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00
 	//
-	IncrementR(1);
+	IncrementR(2);
 	++++m_PC;
 	m_A ^= m_IYl;
 	HandleLogicalFlags(m_A);
@@ -7188,7 +7188,7 @@ uint32 CZ80::ImplementCPIXh(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00
 	//
-	IncrementR(1);
+	IncrementR(2);
 	++++m_PC;
 	HandleArithmeticSubtractFlags(m_A, m_IXh, false);
 	// From The Undocumented Z80:
@@ -7214,7 +7214,7 @@ uint32 CZ80::ImplementCPIXl(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00
 	//
-	IncrementR(1);
+	IncrementR(2);
 	++++m_PC;
 	HandleArithmeticSubtractFlags(m_A, m_IXl, false);
 	// From The Undocumented Z80:
@@ -7240,7 +7240,7 @@ uint32 CZ80::ImplementCPIYh(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00
 	//
-	IncrementR(1);
+	IncrementR(2);
 	++++m_PC;
 	HandleArithmeticSubtractFlags(m_A, m_IYh, false);
 	// From The Undocumented Z80:
@@ -7266,7 +7266,7 @@ uint32 CZ80::ImplementCPIYl(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00
 	//
-	IncrementR(1);
+	IncrementR(2);
 	++++m_PC;
 	HandleArithmeticSubtractFlags(m_A, m_IYl, false);
 	// From The Undocumented Z80:
@@ -10346,7 +10346,7 @@ uint32 CZ80::ImplementINA_n_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								3						11 (4,3,4)				2.75
 	//
-	IncrementR(2);
+	IncrementR(1);
 	m_addresslo = ReadMemory(++m_PC);
 	m_addresshi = m_A;
 	++m_PC;
@@ -10381,7 +10381,7 @@ uint32 CZ80::ImplementINr_C_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								3						12 (4,4,4)				3.00
 	//
-	IncrementR(2);
+	IncrementR(1);
 	++m_PC;
 	m_addresslo = m_C;
 	m_addresshi = m_B;
@@ -10536,6 +10536,7 @@ uint32 CZ80::ImplementOUT_n_A(void)
 	//							M Cycles		T States					MHz E.T.
 	//								3						11 (4,3,4)				2.75
 	//
+	IncrementR(1);
 	m_addresslo = ReadMemory(++m_PC);
 	m_addresshi = m_A;
 	++m_PC;
@@ -10552,7 +10553,7 @@ uint32 CZ80::ImplementOUT_C_r(void)
 	// Op Code:		OUT
 	// Operands:	(C), r
 	//						+-+-+-+-+-+-+-+-+
-	//						|1x|1|1|0|1|1|0|1| ED
+	//						|1|1|1|0|1|1|0|1| ED
 	//						+-+-+-+-+-+-+-+-+
 	//						|0|1|r|r|r|0|0|1|
 	//						+-+-+-+-+-+-+-+-+
