@@ -572,6 +572,9 @@ void CZXSpectrum::UpdateTape(uint32 tstates)
 			if (feof(m_pFile))
 			{
 				fprintf(stdout, "[ZX Spectrum]: tape reached end - rewound and stopped\n");
+				m_clockRate = 1.0f;
+				m_frameTime = (1.0 / 50.0) / m_clockRate;
+				fprintf(stdout, "[ZX Spectrum]: emulation speed set to %.02f\n", m_clockRate);
 			}
 			else
 			{
