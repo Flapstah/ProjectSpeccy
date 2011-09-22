@@ -1990,6 +1990,7 @@ uint32 CZ80::Step(void)
 
 					case 0x4B: // LD BC,(nn)
 					case 0x5B: // LD DE,(nn)
+					case 0x6B: // LD HL,(nn)
 					case 0x7B: // LD SP,(nn)
 						return ImplementLDdd_nn_();
 						break;
