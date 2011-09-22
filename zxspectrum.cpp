@@ -282,7 +282,17 @@ void CZXSpectrum::WritePort(uint16 address, uint8 byte)
 
 uint8 CZXSpectrum::ReadPort(uint16 address) const
 {
-	m_readPortFE |= 0x1F;
+	if (address & 0x0001)
+	{
+		return 0xFF;
+	}
+
+	// +---+---+---+---+---+---+---+---+
+	// | 1 | E | 1 | <-half row keys-> |
+	// +---+---+---+---+---+---+---+---+
+	// keys: 0=pressed; 1=not pressed
+
+	m_readPortFE |= 0xBF;
 	uint8 mask = 0x00;
 	uint8 line = ~(address >> 8);
 
