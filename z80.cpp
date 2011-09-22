@@ -972,10 +972,6 @@ uint32 CZ80::Step(void)
 				return ImplementJP_HL_();
 				break;
 
-			case 0xF9:
-				return ImplementLDSPHL();
-				break;
-
 			case 0xCB: // Prefix CB
 				switch (ReadMemory(m_PC + 1))
 				{
@@ -1321,6 +1317,10 @@ uint32 CZ80::Step(void)
 				return ImplementEI();
 				break;
 
+			case 0xF9:
+				return ImplementLDSPHL();
+				break;
+
 			case 0xCD:
 				if (GetEnableProgramFlowBreakpoints())
 				{
@@ -1332,6 +1332,69 @@ uint32 CZ80::Step(void)
 			case 0xDD: // Prefix DD
 				switch (ReadMemory(m_PC + 1))
 				{
+					case 0x09: // ADD IX,BC
+					case 0x19: // ADD IX,DE
+					case 0x29: // ADD IX,HL
+					case 0x39: // ADD IX,SP
+						return ImplementADDIXdd();
+						break;
+
+					case 0x21:
+						return ImplementLDIXnn();
+						break;
+
+					case 0x22:
+						return ImplementLD_nn_IX();
+						break;
+
+					case 0x23:
+						return ImplementINCIX();
+						break;
+
+					case 0x24: // INC IXh
+						return ImplementINCIXh();
+						break;
+
+					case 0x25: // DEC IXh
+						return ImplementDECIXh();
+						break;
+
+					case 0x26: // LD IXh,n
+						return ImplementLDIXhn();
+						break;
+
+					case 0x2A:
+						return ImplementLDIX_nn_();
+						break;
+
+					case 0x2B:
+						return ImplementDECIX();
+						break;
+
+					case 0x2C: // INC IXl 
+						return ImplementINCIXl();
+						break;
+
+					case 0x2D: // DEC IXl
+						return ImplementDECIXl();
+						break;
+
+					case 0x2E: // LD IXl,n
+						return ImplementLDIXln();
+						break;
+
+					case 0x34:
+						return ImplementINC_IXd_();
+						break;
+
+					case 0x35:
+						return ImplementDEC_IXd_();
+						break;
+
+					case 0x36:
+						return ImplementLD_IXd_n();
+						break;
+
 					case 0x46: // LD B,(IX+d)
 					case 0x56: // LD D,(IX+d)
 					case 0x66: // LD H,(IX+d)
@@ -1380,28 +1443,8 @@ uint32 CZ80::Step(void)
 						return ImplementADDAIXl();
 						break;
 
-					case 0x94: // SUB IXh
-						return ImplementSUBIXh();
-						break;
-
-					case 0x95: // SUB IXl
-						return ImplementSUBIXl();
-						break;
-
-					case 0xA4: // AND IXh
-						return ImplementANDIXh();
-						break;
-
-					case 0xA5: // AND IXl
-						return ImplementANDIXl();
-						break;
-
-					case 0xB4: // OR IXh
-						return ImplementORIXh();
-						break;
-
-					case 0xB5: // OR IXl
-						return ImplementORIXl();
+					case 0x86:
+						return ImplementADDA_IXd_();
 						break;
 
 					case 0x8C: // ADC A,IXh
@@ -1412,12 +1455,51 @@ uint32 CZ80::Step(void)
 						return ImplementADCAIXl();
 						break;
 
+					case 0x8E:
+						return ImplementADCA_IXd_();
+						break;
+
+					case 0x94: // SUB IXh
+						return ImplementSUBIXh();
+						break;
+
+					case 0x95: // SUB IXl
+						return ImplementSUBIXl();
+						break;
+
 					case 0x9C: // SBC A,IXh
 						return ImplementSBCAIXh();
 						break;
 
 					case 0x9D: // SBC A,IXl
 						return ImplementSBCAIXl();
+						break;
+
+					case 0x96:
+						return ImplementSUB_IXd_();
+
+					case 0x9E:
+						return ImplementSBCA_IXd_();
+						break;
+
+					case 0xA4: // AND IXh
+						return ImplementANDIXh();
+						break;
+
+					case 0xA5: // AND IXl
+						return ImplementANDIXl();
+						break;
+
+					case 0xA6:
+						return ImplementAND_IXd_();
+						break;
+
+					case 0xB6:
+						return ImplementOR_IXd_();
+						break;
+
+					case 0xBE:
+						return ImplementCP_IXd_();
 						break;
 
 					case 0xAC: // XOR IXh
@@ -1428,114 +1510,24 @@ uint32 CZ80::Step(void)
 						return ImplementXORIXl();
 						break;
 
+					case 0xAE:
+						return ImplementXOR_IXd_();
+						break;
+
+					case 0xB4: // OR IXh
+						return ImplementORIXh();
+						break;
+
+					case 0xB5: // OR IXl
+						return ImplementORIXl();
+						break;
+
 					case 0xBC: // CP IXh
 						return ImplementCPIXh();
 						break;
 
 					case 0xBD: // CP IXl
 						return ImplementCPIXl();
-						break;
-
-					case 0x09: // ADD IX,BC
-					case 0x19: // ADD IX,DE
-					case 0x29: // ADD IX,HL
-					case 0x39: // ADD IX,SP
-						return ImplementADDIXdd();
-						break;
-
-					case 0x23:
-						return ImplementINCIX();
-						break;
-
-					case 0x26: // LD IXh,n
-						return ImplementLDIXhn();
-						break;
-
-					case 0x2E: // LD IXl,n
-						return ImplementLDIXln();
-						break;
-
-					case 0x2B:
-						return ImplementDECIX();
-						break;
-
-					case 0x34:
-						return ImplementINC_IXd_();
-						break;
-
-					case 0x35:
-						return ImplementDEC_IXd_();
-						break;
-
-					case 0x36:
-						return ImplementLD_IXd_n();
-						break;
-
-					case 0xE9:
-						if (GetEnableProgramFlowBreakpoints())
-						{
-							HitBreakpoint("program flow");
-						}
-						return ImplementJP_IX_();
-						break;
-
-					case 0x21:
-						return ImplementLDIXnn();
-						break;
-
-					case 0x22:
-						return ImplementLD_nn_IX();
-						break;
-
-					case 0x2A:
-						return ImplementLDIX_nn_();
-						break;
-
-					case 0xF9:
-						return ImplementLDSPIX();
-						break;
-
-					case 0xE5:
-						return ImplementPUSHIX();
-						break;
-
-					case 0xE1:
-						return ImplementPOPIX();
-						break;
-
-					case 0xE3:
-						return ImplementEX_SP_IX();
-						break;
-
-					case 0x86:
-						return ImplementADDA_IXd_();
-						break;
-
-					case 0x96:
-						return ImplementSUB_IXd_();
-
-					case 0xA6:
-						return ImplementAND_IXd_();
-						break;
-
-					case 0xB6:
-						return ImplementOR_IXd_();
-						break;
-
-					case 0x8E:
-						return ImplementADCA_IXd_();
-						break;
-
-					case 0x9E:
-						return ImplementSBCA_IXd_();
-						break;
-
-					case 0xAE:
-						return ImplementXOR_IXd_();
-						break;
-
-					case 0xBE:
-						return ImplementCP_IXd_();
 						break;
 
 					case 0xCB: // Prefix CB
@@ -1836,6 +1828,30 @@ uint32 CZ80::Step(void)
 								return 0;
 								break;
 						};
+						break;
+
+					case 0xE1:
+						return ImplementPOPIX();
+						break;
+
+					case 0xE3:
+						return ImplementEX_SP_IX();
+						break;
+
+					case 0xE5:
+						return ImplementPUSHIX();
+						break;
+
+					case 0xE9:
+						if (GetEnableProgramFlowBreakpoints())
+						{
+							HitBreakpoint("program flow");
+						}
+						return ImplementJP_IX_();
+						break;
+
+					case 0xF9:
+						return ImplementLDSPIX();
 						break;
 
 				default:
@@ -2222,6 +2238,69 @@ uint32 CZ80::Step(void)
 			case 0xFD: // Prefix FD
 				switch (ReadMemory(m_PC + 1))
 				{
+					case 0x09: // ADD IY,BC
+					case 0x19: // ADD IY,DE
+					case 0x29: // ADD IY,HL
+					case 0x39: // ADD IY,SP
+						return ImplementADDIYdd();
+						break;
+
+					case 0x21:
+						return ImplementLDIYnn();
+						break;
+
+					case 0x22:
+						return ImplementLD_nn_IY();
+						break;
+
+					case 0x23:
+						return ImplementINCIY();
+						break;
+
+					case 0x24: // INC IYh
+						return ImplementINCIYh();
+						break;
+
+					case 0x25: // DEC IYh
+						return ImplementDECIYh();
+						break;
+
+					case 0x26: // LD IYh,n
+						return ImplementLDIYhn();
+						break;
+
+					case 0x2A:
+						return ImplementLDIY_nn_();
+						break;
+
+					case 0x2B:
+						return ImplementDECIY();
+						break;
+
+					case 0x2C: // INC IYl 
+						return ImplementINCIYl();
+						break;
+
+					case 0x2D: // DEC IYl
+						return ImplementDECIYl();
+						break;
+
+					case 0x2E: // LD IYl,n
+						return ImplementLDIYln();
+						break;
+
+					case 0x34:
+						return ImplementINC_IYd_();
+						break;
+
+					case 0x35:
+						return ImplementDEC_IYd_();
+						break;
+
+					case 0x36:
+						return ImplementLD_IYd_n();
+						break;
+
 					case 0x46: // LD B,(IY+d)
 					case 0x56: // LD D,(IY+d)
 					case 0x66: // LD H,(IY+d)
@@ -2270,12 +2349,43 @@ uint32 CZ80::Step(void)
 						return ImplementADDAIYl();
 						break;
 
+					case 0x86:
+						return ImplementADDA_IYd_();
+						break;
+
+					case 0x8C: // ADC A,IYh
+						return ImplementADCAIYh();
+						break;
+
+					case 0x8D: // ADC A,IYl
+						return ImplementADCAIYl();
+						break;
+
+					case 0x8E:
+						return ImplementADCA_IYd_();
+						break;
+
 					case 0x94: // SUB IYh
 						return ImplementSUBIYh();
 						break;
 
 					case 0x95: // SUB IYl
 						return ImplementSUBIYl();
+						break;
+
+					case 0x96:
+						return ImplementSUB_IYd_();
+
+					case 0x9C: // SBC A,IYh
+						return ImplementSBCAIYh();
+						break;
+
+					case 0x9D: // SBC A,IYl
+						return ImplementSBCAIYl();
+						break;
+
+					case 0x9E:
+						return ImplementSBCA_IYd_();
 						break;
 
 					case 0xA4: // AND IYh
@@ -2294,20 +2404,8 @@ uint32 CZ80::Step(void)
 						return ImplementORIYl();
 						break;
 
-					case 0x8C: // ADC A,IYh
-						return ImplementADCAIYh();
-						break;
-
-					case 0x8D: // ADC A,IYl
-						return ImplementADCAIYl();
-						break;
-
-					case 0x9C: // SBC A,IYh
-						return ImplementSBCAIYh();
-						break;
-
-					case 0x9D: // SBC A,IYl
-						return ImplementSBCAIYl();
+					case 0xA6:
+						return ImplementAND_IYd_();
 						break;
 
 					case 0xAC: // XOR IYh
@@ -2318,6 +2416,14 @@ uint32 CZ80::Step(void)
 						return ImplementXORIYl();
 						break;
 
+					case 0xAE:
+						return ImplementXOR_IYd_();
+						break;
+
+					case 0xB6:
+						return ImplementOR_IYd_();
+						break;
+
 					case 0xBC: // CP IYh
 						return ImplementCPIYh();
 						break;
@@ -2326,67 +2432,8 @@ uint32 CZ80::Step(void)
 						return ImplementCPIYl();
 						break;
 
-					case 0x09: // ADD IY,BC
-					case 0x19: // ADD IY,DE
-					case 0x29: // ADD IY,HL
-					case 0x39: // ADD IY,SP
-						return ImplementADDIYdd();
-						break;
-
-					case 0x23:
-						return ImplementINCIY();
-						break;
-
-					case 0x26: // LD IYh,n
-						return ImplementLDIYhn();
-						break;
-
-					case 0x2E: // LD IYl,n
-						return ImplementLDIYln();
-						break;
-
-					case 0x2B:
-						return ImplementDECIY();
-						break;
-
-					case 0x34:
-						return ImplementINC_IYd_();
-						break;
-
-					case 0x35:
-						return ImplementDEC_IYd_();
-						break;
-
-					case 0x36:
-						return ImplementLD_IYd_n();
-						break;
-
-					case 0xE9:
-						if (GetEnableProgramFlowBreakpoints())
-						{
-							HitBreakpoint("program flow");
-						}
-						return ImplementJP_IY_();
-						break;
-
-					case 0x21:
-						return ImplementLDIYnn();
-						break;
-
-					case 0x22:
-						return ImplementLD_nn_IY();
-						break;
-
-					case 0x2A:
-						return ImplementLDIY_nn_();
-						break;
-
-					case 0xF9:
-						return ImplementLDSPIY();
-						break;
-
-					case 0xE5:
-						return ImplementPUSHIY();
+					case 0xBE:
+						return ImplementCP_IYd_();
 						break;
 
 					case 0xE1:
@@ -2397,35 +2444,16 @@ uint32 CZ80::Step(void)
 						return ImplementEX_SP_IY();
 						break;
 
-					case 0x86:
-						return ImplementADDA_IYd_();
+					case 0xE5:
+						return ImplementPUSHIY();
 						break;
 
-					case 0x96:
-						return ImplementSUB_IYd_();
-
-					case 0xA6:
-						return ImplementAND_IYd_();
-						break;
-
-					case 0xB6:
-						return ImplementOR_IYd_();
-						break;
-
-					case 0x8E:
-						return ImplementADCA_IYd_();
-						break;
-
-					case 0x9E:
-						return ImplementSBCA_IYd_();
-						break;
-
-					case 0xAE:
-						return ImplementXOR_IYd_();
-						break;
-
-					case 0xBE:
-						return ImplementCP_IYd_();
+					case 0xE9:
+						if (GetEnableProgramFlowBreakpoints())
+						{
+							HitBreakpoint("program flow");
+						}
+						return ImplementJP_IY_();
 						break;
 
 					case 0xCB: // Prefix CB
@@ -2726,6 +2754,10 @@ uint32 CZ80::Step(void)
 								return 0;
 								break;
 						};
+						break;
+
+					case 0xF9:
+						return ImplementLDSPIY();
 						break;
 
 				default:
@@ -3566,8 +3598,24 @@ void CZ80::Decode(uint16& address, char* pMnemonic) const
 						DecodeINCIX(address, pMnemonic);
 						break;
 
+					case 0x24: // INC IXh
+						DecodeINCIXh(address, pMnemonic);
+						break;
+
+					case 0x25: // DEC IXh
+						DecodeDECIXh(address, pMnemonic);
+						break;
+
 					case 0x26: // LD IXh,n
 						return DecodeLDIXhn(address, pMnemonic);
+						break;
+
+					case 0x2C: // INC IXl 
+						DecodeDECIXl(address, pMnemonic);
+						break;
+
+					case 0x2D: // DEC IXl
+						DecodeDECIXl(address, pMnemonic);
 						break;
 
 					case 0x2E: // LD IXl,n
@@ -4380,6 +4428,14 @@ void CZ80::Decode(uint16& address, char* pMnemonic) const
 						DecodeINCIY(address, pMnemonic);
 						break;
 
+					case 0x24: // INC IYh
+						DecodeINCIYh(address, pMnemonic);
+						break;
+
+					case 0x25: // DEC IYh
+						DecodeDECIYh(address, pMnemonic);
+						break;
+
 					case 0x26: // LD IYh,n
 						return DecodeLDIYhn(address, pMnemonic);
 						break;
@@ -4390,6 +4446,14 @@ void CZ80::Decode(uint16& address, char* pMnemonic) const
 
 					case 0x2B:
 						DecodeDECIY(address, pMnemonic);
+						break;
+
+					case 0x2C: // INC IYl 
+						DecodeDECIYl(address, pMnemonic);
+						break;
+
+					case 0x2D: // DEC IYl
+						DecodeDECIYl(address, pMnemonic);
 						break;
 
 					case 0x34:
@@ -8703,6 +8767,106 @@ uint32 CZ80::ImplementINCr(void)
 
 //=============================================================================
 
+uint32 CZ80::ImplementINCIXh(void)
+{
+	//
+	// Operation:	IXh <- IXh+1
+	// Op Code:		INC
+	// Operands:	IXh
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|1|1|1|0|1| DD
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|0|1|0|0|1|0|0| 24
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								1						8 (4,4)						2.00
+	//
+	IncrementR(2);
+	uint8 origF = m_F;
+	m_IXh = HandleArithmeticAddFlags(m_IXh, 1, false);
+	m_F &= ~eF_C;
+	m_F |= (origF & eF_C);
+	return 8;
+}
+
+//=============================================================================
+
+uint32 CZ80::ImplementINCIXl(void)
+{
+	//
+	// Operation:	IXl <- IXl+1
+	// Op Code:		INC
+	// Operands:	IXl
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|1|1|1|0|1| DD
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|0|1|0|1|1|0|0| 2C
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								1						8 (4,4)						2.00
+	//
+	IncrementR(2);
+	uint8 origF = m_F;
+	m_IXl = HandleArithmeticAddFlags(m_IXl, 1, false);
+	m_F &= ~eF_C;
+	m_F |= (origF & eF_C);
+	return 8;
+}
+
+//=============================================================================
+
+uint32 CZ80::ImplementINCIYh(void)
+{
+	//
+	// Operation:	IYh <- IYh+1
+	// Op Code:		INC
+	// Operands:	IYh
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|1|1|1|0|1| FD
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|0|1|0|0|1|0|0| 24
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								1						8 (4,4)						2.00
+	//
+	IncrementR(2);
+	uint8 origF = m_F;
+	m_IYh = HandleArithmeticAddFlags(m_IYh, 1, false);
+	m_F &= ~eF_C;
+	m_F |= (origF & eF_C);
+	return 8;
+}
+
+//=============================================================================
+
+uint32 CZ80::ImplementINCIYl(void)
+{
+	//
+	// Operation:	IYl <- IYl+1
+	// Op Code:		INC
+	// Operands:	IYl
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|1|1|1|0|1| FD
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|0|1|0|1|1|0|0| 2C
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								1						8 (4,4)						2.00
+	//
+	IncrementR(2);
+	uint8 origF = m_F;
+	m_IYl = HandleArithmeticAddFlags(m_IYl, 1, false);
+	m_F &= ~eF_C;
+	m_F |= (origF & eF_C);
+	return 8;
+}
+
+//=============================================================================
+
 uint32 CZ80::ImplementINC_HL_(void)
 {
 	//
@@ -8820,6 +8984,106 @@ uint32 CZ80::ImplementDECr(void)
 	m_F &= ~eF_C;
 	m_F |= (origF & eF_C);
 	return 4;
+}
+
+//=============================================================================
+
+uint32 CZ80::ImplementDECIXh(void)
+{
+	//
+	// Operation:	IXh <- IXh-1
+	// Op Code:		DEC
+	// Operands:	IXh
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|1|1|1|0|1| DD
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|0|1|0|0|1|0|1| 25
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								1						8	(4,4)						1.00
+	//
+	IncrementR(1);
+	uint8 origF = m_F;
+	m_IXh = HandleArithmeticSubtractFlags(m_IXh, 1, false);
+	m_F &= ~eF_C;
+	m_F |= (origF & eF_C);
+	return 8;
+}
+
+//=============================================================================
+
+uint32 CZ80::ImplementDECIXl(void)
+{
+	//
+	// Operation:	IXl <- IXl-1
+	// Op Code:		DEC
+	// Operands:	IXl
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|1|1|1|0|1| DD
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|0|1|0|1|1|0|1| 2D
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								1						8	(4,4)						1.00
+	//
+	IncrementR(1);
+	uint8 origF = m_F;
+	m_IXl = HandleArithmeticSubtractFlags(m_IXl, 1, false);
+	m_F &= ~eF_C;
+	m_F |= (origF & eF_C);
+	return 8;
+}
+
+//=============================================================================
+
+uint32 CZ80::ImplementDECIYh(void)
+{
+	//
+	// Operation:	IYh <- IYh-1
+	// Op Code:		DEC
+	// Operands:	IYh
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|1|1|1|0|1| FD
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|0|1|0|0|1|0|1| 25
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								1						8	(4,4)						1.00
+	//
+	IncrementR(1);
+	uint8 origF = m_F;
+	m_IYh = HandleArithmeticSubtractFlags(m_IYh, 1, false);
+	m_F &= ~eF_C;
+	m_F |= (origF & eF_C);
+	return 8;
+}
+
+//=============================================================================
+
+uint32 CZ80::ImplementDECIYl(void)
+{
+	//
+	// Operation:	IYl <- IYl-1
+	// Op Code:		DEC
+	// Operands:	IYl
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|1|1|1|0|1| FD
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|0|1|0|1|1|0|1| 2D
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								1						8	(4,4)						1.00
+	//
+	IncrementR(1);
+	uint8 origF = m_F;
+	m_IYl = HandleArithmeticSubtractFlags(m_IYl, 1, false);
+	m_F &= ~eF_C;
+	m_F |= (origF & eF_C);
+	return 8;
 }
 
 //=============================================================================
@@ -13110,6 +13374,38 @@ void CZ80::DecodeINCr(uint16& address, char* pMnemonic) const
 
 //=============================================================================
 
+void CZ80::DecodeINCIXh(uint16& address, char* pMnemonic) const
+{
+	sprintf(pMnemonic, "INC IXh");
+	address += 2;
+}
+
+//=============================================================================
+
+void CZ80::DecodeINCIXl(uint16& address, char* pMnemonic) const
+{
+	sprintf(pMnemonic, "INC IXl");
+	address += 2;
+}
+
+//=============================================================================
+
+void CZ80::DecodeINCIYh(uint16& address, char* pMnemonic) const
+{
+	sprintf(pMnemonic, "INC IYh");
+	address += 2;
+}
+
+//=============================================================================
+
+void CZ80::DecodeINCIYl(uint16& address, char* pMnemonic) const
+{
+	sprintf(pMnemonic, "INC IYl");
+	address += 2;
+}
+
+//=============================================================================
+
 void CZ80::DecodeINC_IXd_(uint16& address, char* pMnemonic) const
 {
 	sprintf(pMnemonic, "INC (IX+%02X)", ReadMemory(address + 2));
@@ -13129,6 +13425,38 @@ void CZ80::DecodeINC_IYd_(uint16& address, char* pMnemonic) const
 void CZ80::DecodeDECr(uint16& address, char* pMnemonic) const
 {
 	sprintf(pMnemonic, "DEC %s", Get8BitRegisterString(ReadMemory(address++) >> 3));
+}
+
+//=============================================================================
+
+void CZ80::DecodeDECIXh(uint16& address, char* pMnemonic) const
+{
+	sprintf(pMnemonic, "DEC IXh");
+	address += 2;
+}
+
+//=============================================================================
+
+void CZ80::DecodeDECIXl(uint16& address, char* pMnemonic) const
+{
+	sprintf(pMnemonic, "DEC IXl");
+	address += 2;
+}
+
+//=============================================================================
+
+void CZ80::DecodeDECIYh(uint16& address, char* pMnemonic) const
+{
+	sprintf(pMnemonic, "DEC IYh");
+	address += 2;
+}
+
+//=============================================================================
+
+void CZ80::DecodeDECIYl(uint16& address, char* pMnemonic) const
+{
+	sprintf(pMnemonic, "DEC IYl");
+	address += 2;
 }
 
 //=============================================================================
@@ -14058,12 +14386,12 @@ I/O devices 256*8bit or 64k*8bit (8bit or 16bit address space)
 	B C D E H L     register
 	BC DE HL SP AF  register pair
 	IX IY           index register pair
--nameless-      interrupt flag register (only EI/DI)
+	-nameless-      interrupt flag register (only EI/DI)
 	I               interrupt register
 	R               refresh register
 	n               immediate8
 	nn              immediate-extended16
-(n)             short-address8 (only IN/OUT instr)
+	(n)             short-address8 (only IN/OUT instr)
 	(nn)            extended-address16
 	(HL)            register pair indirect
 	(BC) (DE)       register pair indirect (only LD A, / LD ,A instr)
@@ -14071,7 +14399,7 @@ I/O devices 256*8bit or 64k*8bit (8bit or 16bit address space)
 	-nameless-      stack pointer indirect decrement/increment (only PUSH/POP)
 	(IX+d) (IY+d)   index register indirect + displacement8 (0..255)
 	e               PC + offset8 (-128..+127) (only JR instr)
-(IX) (IY)       index register indirect (only JP instr)
+	(IX) (IY)       index register indirect (only JP instr)
 
 
 	Instruction Formats, in Machine Code Bytes:
@@ -14080,24 +14408,24 @@ I/O devices 256*8bit or 64k*8bit (8bit or 16bit address space)
 
 	oo        opcode8
 	oonn      opcode8 immediate8 (only LD 8bit immed)
-oonnnn    opcode8 immed-low8 immed-high8 (= little endian) (only LD 16b immed)
+	oonnnn    opcode8 immed-low8 immed-high8 (= little endian) (only LD 16b immed)
 	or        opcode5+reg-address3
 	orbb      opcode5+reg-address3 immediate8
 	or        opcode6+regpair-address2
 	or        opcode2+destreg-address3+sourcereg-address3
-oonnnn    opcode8 address-low8 address-high8 (= little endian)
+	oonnnn    opcode8 address-low8 address-high8 (= little endian)
 	oonn      opcode8 in/out-address8
 	ocnnnn    opcode5+condi3 addr-low8 addr-high8 (= little endian) (only JP/CALL)
 	oc        opcode5+condition3 (only RET cond instr)
 	os        opcode5+address3 (only RST instr)
 	ooee      opcode8 offset8 (only JR instr)
-ocee      opcode6+condition2 offset8 (only JR instr)
+	ocee      opcode6+condition2 offset8 (only JR instr)
 	CBor      prefix-shift-or-bit8 opcode5+reg-address3
 	CBbr      prefix-shift-or-bit8 opcode2+bitindex3+reg-address3
 	EDoo      prefix-extend8 opcode8
 	EDor      prefix-extend8 opcode5+reg-address3
 	EDornnnn  prefix-extend8 opcode6+regpair-address2
-EDornnnn  prefix-extend8 opc6+regpair-addr2 ad-low8 ad-high8 (= little endian)
+	EDornnnn  prefix-extend8 opc6+regpair-addr2 ad-low8 ad-high8 (= little endian)
 	ii**      prefix-indexregswitch7+indexreg-addr1 above...
 	ii**dd**  prefix-indexregswitch7+indexreg-addr1 above-first displac8 ab-rest...
 
@@ -14131,9 +14459,9 @@ EDornnnn  prefix-extend8 opc6+regpair-addr2 ad-low8 ad-high8 (= little endian)
 	.0...101  L
 	.0...110  (HL)    mem[H,L]
 	with prefix 11011101 (HL) -> (IX+d)  mem[IX+mem[PC+]] (displace8)
-with prefix 11111101 (HL) -> (IY+d)  mem[IY+mem[PC+]] (displace8)
+	with prefix 11111101 (HL) -> (IY+d)  mem[IY+mem[PC+]] (displace8)
 	.0...111  A
-.1...110  n       mem[PC+] (immediate8)
+	.1...110  n       mem[PC+] (immediate8)
 
 	arithmetic 16bit
 	00ss1001  opcode   operation
@@ -14175,7 +14503,7 @@ with prefix 11111101 (HL) -> (IY+d)  mem[IY+mem[PC+]] (displace8)
 	..101...  L
 	..110...  (HL)    mem[H,L]
 	with prefix 11011101 (HL) -> (IX+d)  mem[IX+mem[PC+]] (displace8)
-with prefix 11111101 (HL) -> (IY+d)  mem[IY+mem[PC+]] (displace8)
+	with prefix 11111101 (HL) -> (IY+d)  mem[IY+mem[PC+]] (displace8)
 	..111...  A
 
 	increment/decrement 16bit
@@ -14228,7 +14556,7 @@ with prefix 11111101 (HL) -> (IY+d)  mem[IY+mem[PC+]] (displace8)
 	........ .....101  L
 	........ .....110  (HL)    mem[H,L]
 	with prefix 11011101 (HL) -> (IX+d)  mem[IX+mem[PC+]] (displace8)
-with prefix 11111101 (HL) -> (IY+d)  mem[IY+mem[PC+]] (displace8)
+	with prefix 11111101 (HL) -> (IY+d)  mem[IY+mem[PC+]] (displace8)
 	both cases displace8 as 3rd byte after 11001011 before 00oooddd
 	........ .....111  A
 
@@ -14264,16 +14592,16 @@ with prefix 11111101 (HL) -> (IY+d)  mem[IY+mem[PC+]] (displace8)
 	........ .....101  L
 	........ .....110  (HL)    mem[H,L]
 	with prefix 11011101 (HL) -> (IX+d)  mem[IX+mem[PC+]] (displace8)
-with prefix 11111101 (HL) -> (IY+d)  mem[IY+mem[PC+]] (displace8)
+	with prefix 11111101 (HL) -> (IY+d)  mem[IY+mem[PC+]] (displace8)
 	both cases displace8 as 3rd byte after 11001011 before 00oooddd
 	........ .....111  A
 
 	other specialised arithmetic
 	pppppppp oooooooo  opcode  operation
-00100111  DAA if FlagN = 0 (after addition/increment)
+	00100111  DAA if FlagN = 0 (after addition/increment)
 	if A(bit3..0) > 9 or FlagA = 1 then A = A + 6; FlagC
 	if A(bit7..4) > 9 or FlagC = 1 then A = A + 96
-if FlagN = 1 (after subraction/decrement/negate)
+	if FlagN = 1 (after subraction/decrement/negate)
 	if A(bit3..0) > 9 or FlagA = 1 then A = A - 6; FlagC
 	if A(bit7..4) > 9 or FlagC = 1 then A = A - 96
 	FlagsSZAPC                "Decimal Adjust Accumulator"
@@ -14288,7 +14616,7 @@ if FlagN = 1 (after subraction/decrement/negate)
 	..aa....  address, source or destination
 	..00....  (BC)    mem[B,C]
 	..01....  (DE)    mem[D,E]
-..11....  (nn)    mem[mem[PC++]] (address16)
+	..11....  (nn)    mem[mem[PC++]] (address16)
 
 	0sdddsss  opcode  operation
 	LD      destination = source                                 "LoaD"
@@ -14301,7 +14629,7 @@ if FlagN = 1 (after subraction/decrement/negate)
 	..101...  L,
 	..110...  (HL),   mem[H,L]
 	with prefix 11011101 (HL) -> (IX+d)  mem[IX+mem[PC+]] (displace8)
-with prefix 11111101 (HL) -> (IY+d)  mem[IY+mem[PC+]] (displace8)
+	with prefix 11111101 (HL) -> (IY+d)  mem[IY+mem[PC+]] (displace8)
 	..111...  A,OnSendException
 	.1...sss  source
 	.1...000  B
@@ -14312,9 +14640,9 @@ with prefix 11111101 (HL) -> (IY+d)  mem[IY+mem[PC+]] (displace8)
 	.1...101  L
 	.1...110  (HL)    mem[H,L]  (not with  LD (HL),  (HALT is there!))
 	with prefix 11011101 (HL) -> (IX+d)  mem[IX+mem[PC+]] (displace8)
-with prefix 11111101 (HL) -> (IY+d)  mem[IY+mem[PC+]] (displace8)
+	with prefix 11111101 (HL) -> (IY+d)  mem[IY+mem[PC+]] (displace8)
 	.1...111  A
-.0...110  n       mem[PC+] (immediate8)
+	.0...110  n       mem[PC+] (immediate8)
 
 	load/store/register 16bit
 	00dd0001  opcode  operation
@@ -14353,7 +14681,7 @@ with prefix 11111101 (HL) -> (IY+d)  mem[IY+mem[PC+]] (displace8)
 
 	stack push/pop
 	11aa0o01
-.....o..  opcode  operation (push pre-decr, pop post-incr)
+	.....o..  opcode  operation (push pre-decr, pop post-incr)
 	.....0..  POP     destination = mem[SP++]                              "POP"
 	.....1..  PUSH    mem[--SP] = source                                  "PUSH"
 	..aa....  address, source or destination
@@ -14434,7 +14762,7 @@ with prefix 11111101 (HL) -> (IY+d)  mem[IY+mem[PC+]] (displace8)
 	"RETurn from Non maskable interrupt"
 	11101101 01001101  RETI     PC = mem[SP++]; dev IF reset
 	"RETurn from Interrupt"
-01110110  HALT     NOP until RESET/INT (opc would be LD (HL),(HL)!)
+	01110110  HALT     NOP until RESET/INT (opc would be LD (HL),(HL)!)
 	"HALT processor"
 	11000011  JP nn    PC = mem[PC++] (address16)                 "JumP"
 	11001001  RET      PC = mem[SP++]           "RETurn from subroutine"
@@ -14442,11 +14770,11 @@ with prefix 11111101 (HL) -> (IY+d)  mem[IY+mem[PC+]] (displace8)
 	"CALL subroutine"
 	11101001  JP (HL)  PC = HL                                    "JumP"
 	with prefix 11011101 (HL) -> (IX)
-with prefix 11111101 (HL) -> (IY)
+	with prefix 11111101 (HL) -> (IY)
 
 	oooooooo  opcode   operation
 	11aaa111  RST      mem[--SP] = PC                                   "ReSTart"
-PC = 0(bit15..6),aaa(bit5..3),0(bit2..0)
+	PC = 0(bit15..6),aaa(bit5..3),0(bit2..0)
 	..aaa...  number   restart address
 	..000...  0        0000
 	..001...  8        0008
@@ -14461,7 +14789,7 @@ PC = 0(bit15..6),aaa(bit5..3),0(bit2..0)
 	---- pin  NMI        IFF2 = IFF1; IFF1 = 0; mem[--SP] = PC
 	PC = 0066                       "Non Maskable Interrupt"
 	---- pin  INT        IFF1 = IFF2 = 0                              "INTerrupt"
-if IM 0: next instr from extern (usually RST)
+	if IM 0: next instr from extern (usually RST)
 	if IM 1: mem[--SP] = PC; PC = 0038
 	if IM 2: mem[--SP] = PC; PC = mem[iidd]
 	ii from I register, dd from devices INT reg
@@ -14469,12 +14797,12 @@ if IM 0: next instr from extern (usually RST)
 	branches/conditionals
 	oooooooo  opcode   operation
 	00010000  DJNZ e   B = B - 1
-if B != 0 then PC = PC+mem[PC+] (offset8)
+	if B != 0 then PC = PC+mem[PC+] (offset8)
 	"Decrement and Jump if Not Zero"
 
 	oooccooo
 	ooo..ooo  opcode    operation
-001..000  JR cc ,e  if condition then PC = PC+mem[PC+] (offset8)
+	001..000  JR cc ,e  if condition then PC = PC+mem[PC+] (offset8)
 	"Jump Relative"
 	...cc...  cc  condition
 	...00...  NZ  Z = 0                                                 "No Zero"
@@ -14529,19 +14857,19 @@ if B != 0 then PC = PC+mem[PC+] (offset8)
 	02     LD (BC),A    12     LD (DE),A    22nnnn LD (nn),HL   32nnnn LD (nn),A
 	03     INC BC       13     INC DE       23     INC HL       33     INC SP
 	04     INC B        14     INC D        24     INC H        34     INC (HL)
-05     DEC B        15     DEC D        25     DEC H        35     DEC (HL)
+	05     DEC B        15     DEC D        25     DEC H        35     DEC (HL)
 	06nn   LD B,n       16nn   LD D,n       26nn   LD H,n       36nn   LD (HL),n
 	07     RLCA         17     RLA          27     DAA          37     SCF
 	08     EX AF,AF'    18ee   JR e         28ee   JR Z,e       38ee   JR C,e
 	09     ADD HL,BC    19     ADD HL,DE    29     ADD HL,HL    39     ADD HL,SP
-0A     LD A,(BC)    1A     LD A,(DE)    2Annnn LD HL,(nn)   3Annnn LD A,(nn)
+	0A     LD A,(BC)    1A     LD A,(DE)    2Annnn LD HL,(nn)   3Annnn LD A,(nn)
 	0B     DEC BC       1B     DEC DE       2B     DEC HL       3B     DEC SP
 	0C     INC C        1C     INC E        2C     INC L        3C     INC A
 	0D     DEC C        1D     DEC E        2D     DEC L        3D     DEC A
 	0Enn   LD C,n       1Enn   LD E,n       2Enn   LD L,n       3Enn   LD A,n
 	0F     RRCA         1F     RRA          2F     CPL          3F     CCF
 
-40     LD B,B       50     LD D,B       60     LD H,B       70     LD (HL)
+	40     LD B,B       50     LD D,B       60     LD H,B       70     LD (HL)
 	41     LD B,C       51     LD D,C       61     LD H,C       71     LD (HL),C
 	42     LD B,D       52     LD D,D       62     LD H,D       72     LD (HL),D
 	43     LD B,E       53     LD D,E       63     LD H,E       73     LD (HL),E
@@ -14555,7 +14883,7 @@ if B != 0 then PC = PC+mem[PC+] (offset8)
 	4B     LD C,E       5B     LD E,E       6B     LD L,E       7B     LD A,E
 	4C     LD C,H       5C     LD E,H       6C     LD L,H       7C     LD A,H
 	4D     LD C,L       5D     LD E,L       6D     LD L,L       7D     LD A,L
-4E     LD C,(HL)    5E     LD E,(HL)    6E     LD L,(HL)    7E     LD A,(HL)
+	4E     LD C,(HL)    5E     LD E,(HL)    6E     LD L,(HL)    7E     LD A,(HL)
 	4F     LD C,A       5F     LD E,A       6F     LD L,A       7F     LD A,A
 
 	40|49|52|5B|64|6D|7F: are all NOPs
@@ -14567,7 +14895,7 @@ if B != 0 then PC = PC+mem[PC+] (offset8)
 	83     ADD A,E      93     SUB E        A3     AND E        B3     OR E
 	84     ADD A,H      94     SUB H        A4     AND H        B4     OR H
 	85     ADD A,L      95     SUB L        A5     AND L        B5     OR L
-86     ADD A,(HL)   96     SUB (HL)     A6     AND (HL)     B6     OR (HL)
+	86     ADD A,(HL)   96     SUB (HL)     A6     AND (HL)     B6     OR (HL)
 	87     ADD A,A      97     SUB A        A7     AND A        B7     OR A
 	88     ADC A,B      98     SBC A,B      A8     XOR B        B8     CP B
 	89     ADC A,C      99     SBC A,C      A9     XOR C        B9     CP C
@@ -14575,7 +14903,7 @@ if B != 0 then PC = PC+mem[PC+] (offset8)
 	8B     ADC A,E      9B     SBC A,E      AB     XOR E        BB     CP E
 	8C     ADC A,H      9C     SBC A,H      AC     XOR H        BC     CP H
 	8D     ADC A,L      9D     SBC A,L      AD     XOR L        BD     CP L
-8E     ADC A,(HL)   9E     SBC A,(HL)   AE     XOR (HL)     BE     CP (HL)
+	8E     ADC A,(HL)   9E     SBC A,(HL)   AE     XOR (HL)     BE     CP (HL)
 	8F     ADC A,A      9F     SBC A,A      AF     XOR A        BF     CP A
 
 	C0     RET NZ       D0     RET NC       E0     RET PO       F0     RET P
@@ -14598,7 +14926,7 @@ if B != 0 then PC = PC+mem[PC+] (offset8)
 	CB**: prefixCB, selects further 256 extended "CB" opcodes, table below
 	ED**: prefixED, selects further 256 extended "ED" opcodes, table below
 	DD**: prefixDD, converts HL->IX, (HL)->(IX+d), JP (HL)->(IX)
-FD**: prefixFD, converts HL->IY, (HL)->(IY+d), JP (HL)->(IY)
+	FD**: prefixFD, converts HL->IY, (HL)->(IY+d), JP (HL)->(IY)
 
 	Extended "CB" Instructions:
 
@@ -14616,7 +14944,7 @@ FD**: prefixFD, converts HL->IY, (HL)->(IY+d), JP (HL)->(IY)
 	CB0B   RRC E        CB1B   RR E         CB2B   SRA E        CB3B   SRL E
 	CB0C   RRC H        CB1C   RR H         CB2C   SRA H        CB3C   SRL H
 	CB0D   RRC L        CB1D   RR L         CB2D   SRA L        CB3D   SRL L
-CB0E   RRC (HL)     CB1E   RR (HL)      CB2E   SRA (HL)     CB3E   SRL (HL)
+	CB0E   RRC (HL)     CB1E   RR (HL)      CB2E   SRA (HL)     CB3E   SRL (HL)
 	CB0F   RRC A        CB1F   RR A         CB2F   SRA A        CB3F   SRL A
 
 	CB40   BIT 0,B      CB50   BIT 2,B      CB60   BIT 4,B      CB70   BIT 6,B
@@ -14625,7 +14953,7 @@ CB0E   RRC (HL)     CB1E   RR (HL)      CB2E   SRA (HL)     CB3E   SRL (HL)
 	CB43   BIT 0,E      CB53   BIT 2,E      CB63   BIT 4,E      CB73   BIT 6,E
 	CB44   BIT 0,H      CB54   BIT 2,H      CB64   BIT 4,H      CB74   BIT 6,H
 	CB45   BIT 0,L      CB55   BIT 2,L      CB65   BIT 4,L      CB75   BIT 6,L
-CB46   BIT 0,(HL)   CB56   BIT 2,(HL)   CB66   BIT 4,(HL)   CB76   BIT 6,(HL)
+	CB46   BIT 0,(HL)   CB56   BIT 2,(HL)   CB66   BIT 4,(HL)   CB76   BIT 6,(HL)
 	CB47   BIT 0,A      CB57   BIT 2,A      CB67   BIT 4,A      CB77   BIT 6,A
 	CB48   BIT 1,B      CB58   BIT 3,B      CB68   BIT 5,B      CB78   BIT 7,B
 	CB49   BIT 1,C      CB59   BIT 3,C      CB69   BIT 5,C      CB79   BIT 7,C
@@ -14633,7 +14961,7 @@ CB46   BIT 0,(HL)   CB56   BIT 2,(HL)   CB66   BIT 4,(HL)   CB76   BIT 6,(HL)
 	CB4B   BIT 1,E      CB5B   BIT 3,E      CB6B   BIT 5,E      CB7B   BIT 7,E
 	CB4C   BIT 1,H      CB5C   BIT 3,H      CB6C   BIT 5,H      CB7C   BIT 7,H
 	CB4D   BIT 1,L      CB5D   BIT 3,L      CB6D   BIT 5,L      CB7D   BIT 7,L
-CB4E   BIT 1,(HL)   CB5E   BIT 3,(HL)   CB6E   BIT 5,(HL)   CB7E   BIT 7,(HL)
+	CB4E   BIT 1,(HL)   CB5E   BIT 3,(HL)   CB6E   BIT 5,(HL)   CB7E   BIT 7,(HL)
 	CB4F   BIT 1,A      CB5F   BIT 3,A      CB6F   BIT 5,A      CB7F   BIT 7,A
 
 	CB80   RES 0,B      CB90   RES 2,B      CBA0   RES 4,B      CBB0   RES 6,B
@@ -14642,7 +14970,7 @@ CB4E   BIT 1,(HL)   CB5E   BIT 3,(HL)   CB6E   BIT 5,(HL)   CB7E   BIT 7,(HL)
 	CB83   RES 0,E      CB93   RES 2,E      CBA3   RES 4,E      CBB3   RES 6,E
 	CB84   RES 0,H      CB94   RES 2,H      CBA4   RES 4,H      CBB4   RES 6,H
 	CB85   RES 0,L      CB95   RES 2,L      CBA5   RES 4,L      CBB5   RES 6,L
-CB86   RES 0,(HL)   CB96   RES 2,(HL)   CBA6   RES 4,(HL)   CBB6   RES 6,(HL)
+	CB86   RES 0,(HL)   CB96   RES 2,(HL)   CBA6   RES 4,(HL)   CBB6   RES 6,(HL)
 	CB87   RES 0,A      CB97   RES 2,A      CBA7   RES 4,A      CBB7   RES 6,A
 	CB88   RES 1,B      CB98   RES 3,B      CBA8   RES 5,B      CBB8   RES 7,B
 	CB89   RES 1,C      CB99   RES 3,C      CBA9   RES 5,C      CBB9   RES 7,C
@@ -14650,7 +14978,7 @@ CB86   RES 0,(HL)   CB96   RES 2,(HL)   CBA6   RES 4,(HL)   CBB6   RES 6,(HL)
 	CB8B   RES 1,E      CB9B   RES 3,E      CBAB   RES 5,E      CBBB   RES 7,E
 	CB8C   RES 1,H      CB9C   RES 3,H      CBAC   RES 5,H      CBBC   RES 7,H
 	CB8D   RES 1,L      CB9D   RES 3,L      CBAD   RES 5,L      CBBD   RES 7,L
-CB8E   RES 1,(HL)   CB9E   RES 3,(HL)   CBAE   RES 5,(HL)   CBBE   RES 7,(HL)
+	CB8E   RES 1,(HL)   CB9E   RES 3,(HL)   CBAE   RES 5,(HL)   CBBE   RES 7,(HL)
 	CB8F   RES 1,A      CB9F   RES 3,A      CBAF   RES 5,A      CBBF   RES 7,A
 
 	CBC0   SET 0,B      CBD0   SET 2,B      CBE0   SET 4,B      CBF0   SET 6,B
@@ -14659,7 +14987,7 @@ CB8E   RES 1,(HL)   CB9E   RES 3,(HL)   CBAE   RES 5,(HL)   CBBE   RES 7,(HL)
 	CBC3   SET 0,E      CBD3   SET 2,E      CBE3   SET 4,E      CBF3   SET 6,E
 	CBC4   SET 0,H      CBD4   SET 2,H      CBE4   SET 4,H      CBF4   SET 6,H
 	CBC5   SET 0,L      CBD5   SET 2,L      CBE5   SET 4,L      CBF5   SET 6,L
-CBC6   SET 0,(HL)   CBD6   SET 2,(HL)   CBE6   SET 4,(HL)   CBF6   SET 6,(HL)
+	CBC6   SET 0,(HL)   CBD6   SET 2,(HL)   CBE6   SET 4,(HL)   CBF6   SET 6,(HL)
 	CBC7   SET 0,A      CBD7   SET 2,A      CBE7   SET 4,A      CBF7   SET 6,A
 	CBC8   SET 1,B      CBD8   SET 3,B      CBE8   SET 5,B      CBF8   SET 7,B
 	CBC9   SET 1,C      CBD9   SET 3,C      CBE9   SET 5,C      CBF9   SET 7,C
@@ -14667,7 +14995,7 @@ CBC6   SET 0,(HL)   CBD6   SET 2,(HL)   CBE6   SET 4,(HL)   CBF6   SET 6,(HL)
 	CBCB   SET 1,E      CBDB   SET 3,E      CBEB   SET 5,E      CBFB   SET 7,E
 	CBCC   SET 1,H      CBDC   SET 3,H      CBEC   SET 5,H      CBFC   SET 7,H
 	CBCD   SET 1,L      CBDD   SET 3,L      CBED   SET 5,L      CBFD   SET 7,L
-CBCE   SET 1,(HL)   CBDE   SET 3,(HL)   CBEE   SET 5,(HL)   CBFE   SET 7,(HL)
+	CBCE   SET 1,(HL)   CBDE   SET 3,(HL)   CBEE   SET 5,(HL)   CBFE   SET 7,(HL)
 	CBCF   SET 1,A      CBDF   SET 3,A      CBEF   SET 5,A      CBFF   SET 7,A
 
 	Extended "ED" Instructions:
@@ -14682,10 +15010,10 @@ CBCE   SET 1,(HL)   CBDE   SET 3,(HL)   CBEE   SET 5,(HL)   CBFE   SET 7,(HL)
 	ED45   RETN         ----   -            ----   -            ----   -
 	ED46   IM 0         ED56   IM 1         ----   -            ----   -
 	ED47   LD I,A       ED57   LD A,I       ED67   RRD          ----   -
-ED48   IN C,(C)     ED58   IN E,(C)     ED68   IN L,(C)     ED78   IN A,(C)
+	ED48   IN C,(C)     ED58   IN E,(C)     ED68   IN L,(C)     ED78   IN A,(C)
 	ED49   OUT (C),C    ED59   OUT (C),E    ED69   OUT (C),L    ED79   OUT (C),A
 	ED4A   ADC HL,BC    ED5A   ADC HL,DE    ED6A   ADC HL,HL    ED7A   ADC HL,SP
-ED4B** LD BC,(nn)   ED5B** LD DE,(nn)   ----   -            ED7B** LD SP,(nn)
+	ED4B** LD BC,(nn)   ED5B** LD DE,(nn)   ----   -            ED7B** LD SP,(nn)
 	----   -            ----   -            ----   -            ----   -
 	ED4D   RETI         ----   -            ----   -            ----   -
 	----   -            ED5E   IM 2         ----   -            ----   -

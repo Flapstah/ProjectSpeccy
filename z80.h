@@ -213,10 +213,18 @@ class CZ80
 		uint32 ImplementCP_IXd_(void);
 		uint32 ImplementCP_IYd_(void);
 		uint32 ImplementINCr(void);
+		uint32 ImplementINCIXh(void);
+		uint32 ImplementINCIXl(void);
+		uint32 ImplementINCIYh(void);
+		uint32 ImplementINCIYl(void);
 		uint32 ImplementINC_HL_(void);
 		uint32 ImplementINC_IXd_(void);
 		uint32 ImplementINC_IYd_(void);
 		uint32 ImplementDECr(void);
+		uint32 ImplementDECIXh(void);
+		uint32 ImplementDECIXl(void);
+		uint32 ImplementDECIYh(void);
+		uint32 ImplementDECIYl(void);
 		uint32 ImplementDEC_HL_(void);
 		uint32 ImplementDEC_IXd_(void);
 		uint32 ImplementDEC_IYd_(void);
@@ -507,9 +515,17 @@ class CZ80
 		void DecodeCP_IXd_(uint16& address, char* pMnemonic) const;
 		void DecodeCP_IYd_(uint16& address, char* pMnemonic) const;
 		void DecodeINCr(uint16& address, char* pMnemonic) const;
+		void DecodeINCIXh(uint16& address, char* pMnemonic) const;
+		void DecodeINCIXl(uint16& address, char* pMnemonic) const;
+		void DecodeINCIYh(uint16& address, char* pMnemonic) const;
+		void DecodeINCIYl(uint16& address, char* pMnemonic) const;
 		void DecodeINC_IXd_(uint16& address, char* pMnemonic) const;
 		void DecodeINC_IYd_(uint16& address, char* pMnemonic) const;
 		void DecodeDECr(uint16& address, char* pMnemonic) const;
+		void DecodeDECIXh(uint16& address, char* pMnemonic) const;
+		void DecodeDECIXl(uint16& address, char* pMnemonic) const;
+		void DecodeDECIYh(uint16& address, char* pMnemonic) const;
+		void DecodeDECIYl(uint16& address, char* pMnemonic) const;
 		void DecodeDEC_IXd_(uint16& address, char* pMnemonic) const;
 		void DecodeDEC_IYd_(uint16& address, char* pMnemonic) const;
 
