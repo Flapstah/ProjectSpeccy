@@ -6548,8 +6548,8 @@ uint32 CZ80::ImplementEX_SP_HL(void)
 	++m_PC;
 	m_addresslo = ReadMemory(m_SP);
 	m_addresshi = ReadMemory(m_SP + 1);
-	WriteMemory(m_SP + 1, m_H);
 	WriteMemory(m_SP, m_L);
+	WriteMemory(m_SP + 1, m_H);
 	m_HL = m_address;
 	return 19;
 }
@@ -6575,8 +6575,8 @@ uint32 CZ80::ImplementEX_SP_IX(void)
 	++++m_PC;
 	m_addresslo = ReadMemory(m_SP);
 	m_addresshi = ReadMemory(m_SP + 1);
-	WriteMemory(m_SP++, m_IXl);
-	WriteMemory(m_SP++, m_IXh);
+	WriteMemory(m_SP, m_IXl);
+	WriteMemory(m_SP + 1, m_IXh);
 	m_IX = m_address;
 	return 23;
 }
@@ -6602,8 +6602,8 @@ uint32 CZ80::ImplementEX_SP_IY(void)
 	++++m_PC;
 	m_addresslo = ReadMemory(m_SP);
 	m_addresshi = ReadMemory(m_SP + 1);
-	WriteMemory(m_SP++, m_IYl);
-	WriteMemory(m_SP++, m_IYh);
+	WriteMemory(m_SP, m_IYl);
+	WriteMemory(m_SP + 1, m_IYh);
 	m_IY = m_address;
 	return 23;
 }
