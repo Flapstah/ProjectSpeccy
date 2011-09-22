@@ -1541,68 +1541,292 @@ uint32 CZ80::Step(void)
 					case 0xCB: // Prefix CB
 						switch (ReadMemory(m_PC + 3))
 						{
+							case 0x00:
+							case 0x01:
+							case 0x02:
+							case 0x03:
+							case 0x04:
+							case 0x05:
 							case 0x06:
+							case 0x07:
 								return ImplementRLC_IXd_();
 								break;
 
+							case 0x08:
+							case 0x09:
+							case 0x0A:
+							case 0x0B:
+							case 0x0C:
+							case 0x0D:
 							case 0x0E:
+							case 0x0F:
 								return ImplementRRC_IXd_();
 								break;
 
+							case 0x10:
+							case 0x11:
+							case 0x12:
+							case 0x13:
+							case 0x14:
+							case 0x15:
 							case 0x16:
+							case 0x17:
 								return ImplementRL_IXd_();
 								break;
 
+							case 0x18:
+							case 0x19:
+							case 0x1A:
+							case 0x1B:
+							case 0x1C:
+							case 0x1D:
 							case 0x1E:
+							case 0x1F:
 								return ImplementRR_IXd_();
 								break;
 
+							case 0x20:
+							case 0x21:
+							case 0x22:
+							case 0x23:
+							case 0x24:
+							case 0x25:
 							case 0x26:
+							case 0x27:
 								return ImplementSLA_IXd_();
 								break;
 
+							case 0x28:
+							case 0x29:
+							case 0x2A:
+							case 0x2B:
+							case 0x2C:
+							case 0x2D:
 							case 0x2E:
+							case 0x2F:
 								return ImplementSRA_IXd_();
 								break;
 
+							case 0x30:
+							case 0x31:
+							case 0x32:
+							case 0x33:
+							case 0x34:
+							case 0x35:
 							case 0x36:
+							case 0x37:
 								return ImplementSLL_IXd_();
 								break;
 
+							case 0x38:
+							case 0x39:
+							case 0x3A:
+							case 0x3B:
+							case 0x3C:
+							case 0x3D:
 							case 0x3E:
+							case 0x3F:
 								return ImplementSRL_IXd_();
 								break;
 
+							case 0x40:
+							case 0x41:
+							case 0x42:
+							case 0x43:
+							case 0x44:
+							case 0x45:
 							case 0x46: // BIT 0,(IX+d)
+							case 0x47:
+							case 0x48:
+							case 0x49:
+							case 0x4A:
+							case 0x4B:
+							case 0x4C:
+							case 0x4D:
 							case 0x4E: // BIT 1,(IX+d)
+							case 0x4F:
+							case 0x50:
+							case 0x51:
+							case 0x52:
+							case 0x53:
+							case 0x54:
+							case 0x55:
 							case 0x56: // BIT 2,(IX+d)
+							case 0x57:
+							case 0x58:
+							case 0x59:
+							case 0x5A:
+							case 0x5B:
+							case 0x5C:
+							case 0x5D:
 							case 0x5E: // BIT 3,(IX+d)
+							case 0x5F:
+							case 0x60:
+							case 0x61:
+							case 0x62:
+							case 0x63:
+							case 0x64:
+							case 0x65:
 							case 0x66: // BIT 4,(IX+d)
+							case 0x67:
+							case 0x68:
+							case 0x69:
+							case 0x6A:
+							case 0x6B:
+							case 0x6C:
+							case 0x6D:
 							case 0x6E: // BIT 5,(IX+d)
+							case 0x6F:
+							case 0x70:
+							case 0x71:
+							case 0x72:
+							case 0x73:
+							case 0x74:
+							case 0x75:
 							case 0x76: // BIT 6,(IX+d)
+							case 0x77:
+							case 0x78:
+							case 0x79:
+							case 0x7A:
+							case 0x7B:
+							case 0x7C:
+							case 0x7D:
 							case 0x7E: // BIT 7,(IX+d)
+							case 0x7F:
 								return ImplementBITb_IXd_();
 								break;
 
+							case 0x80:
+							case 0x81:
+							case 0x82:
+							case 0x83:
+							case 0x84:
+							case 0x85:
 							case 0x86: // RES 0,(IX+d)
+							case 0x87:
+							case 0x88:
+							case 0x89:
+							case 0x8A:
+							case 0x8B:
+							case 0x8C:
+							case 0x8D:
 							case 0x8E: // RES 1,(IX+d)
+							case 0x8F:
+							case 0x90:
+							case 0x91:
+							case 0x92:
+							case 0x93:
+							case 0x94:
+							case 0x95:
 							case 0x96: // RES 2,(IX+d)
+							case 0x97:
+							case 0x98:
+							case 0x99:
+							case 0x9A:
+							case 0x9B:
+							case 0x9C:
+							case 0x9D:
 							case 0x9E: // RES 3,(IX+d)
+							case 0x9F:
+							case 0xA0:
+							case 0xA1:
+							case 0xA2:
+							case 0xA3:
+							case 0xA4:
+							case 0xA5:
 							case 0xA6: // RES 4,(IX+d)
+							case 0xA7:
+							case 0xA8:
+							case 0xA9:
+							case 0xAA:
+							case 0xAB:
+							case 0xAC:
+							case 0xAD:
 							case 0xAE: // RES 5,(IX+d)
+							case 0xAF:
+							case 0xB0:
+							case 0xB1:
+							case 0xB2:
+							case 0xB3:
+							case 0xB4:
+							case 0xB5:
 							case 0xB6: // RES 6,(IX+d)
+							case 0xB7:
+							case 0xB8:
+							case 0xB9:
+							case 0xBA:
+							case 0xBB:
+							case 0xBC:
+							case 0xBD:
 							case 0xBE: // RES 7,(IX+d)
+							case 0xBF:
 								return ImplementRESb_IXd_();
 								break;
 
+							case 0xC0:
+							case 0xC1:
+							case 0xC2:
+							case 0xC3:
+							case 0xC4:
+							case 0xC5:
 							case 0xC6: // SET 0,(IX+d)
+							case 0xC7:
+							case 0xC8:
+							case 0xC9:
+							case 0xCA:
+							case 0xCB:
+							case 0xCC:
+							case 0xCD:
 							case 0xCE: // SET 1,(IX+d)
+							case 0xCF:
+							case 0xD0:
+							case 0xD1:
+							case 0xD2:
+							case 0xD3:
+							case 0xD4:
+							case 0xD5:
 							case 0xD6: // SET 2,(IX+d)
+							case 0xD7:
+							case 0xD8:
+							case 0xD9:
+							case 0xDA:
+							case 0xDB:
+							case 0xDC:
+							case 0xDD:
 							case 0xDE: // SET 3,(IX+d)
+							case 0xDF:
+							case 0xE0:
+							case 0xE1:
+							case 0xE2:
+							case 0xE3:
+							case 0xE4:
+							case 0xE5:
 							case 0xE6: // SET 4,(IX+d)
+							case 0xE7:
+							case 0xE8:
+							case 0xE9:
+							case 0xEA:
+							case 0xEB:
+							case 0xEC:
+							case 0xED:
 							case 0xEE: // SET 5,(IX+d)
+							case 0xEF:
+							case 0xF0:
+							case 0xF1:
+							case 0xF2:
+							case 0xF3:
+							case 0xF4:
+							case 0xF5:
 							case 0xF6: // SET 6,(IX+d)
+							case 0xF7:
+							case 0xF8:
+							case 0xF9:
+							case 0xFA:
+							case 0xFB:
+							case 0xFC:
+							case 0xFD:
 							case 0xFE: // SET 7,(IX+d)
+							case 0xFF:
 								return ImplementSETb_IXd_();
 								break;
 
@@ -2205,68 +2429,292 @@ uint32 CZ80::Step(void)
 					case 0xCB: // Prefix CB
 						switch (ReadMemory(m_PC + 3))
 						{
+							case 0x00:
+							case 0x01:
+							case 0x02:
+							case 0x03:
+							case 0x04:
+							case 0x05:
 							case 0x06:
+							case 0x07:
 								return ImplementRLC_IYd_();
 								break;
 
+							case 0x08:
+							case 0x09:
+							case 0x0A:
+							case 0x0B:
+							case 0x0C:
+							case 0x0D:
 							case 0x0E:
+							case 0x0F:
 								return ImplementRRC_IYd_();
 								break;
 
+							case 0x10:
+							case 0x11:
+							case 0x12:
+							case 0x13:
+							case 0x14:
+							case 0x15:
 							case 0x16:
+							case 0x17:
 								return ImplementRL_IYd_();
 								break;
 
+							case 0x18:
+							case 0x19:
+							case 0x1A:
+							case 0x1B:
+							case 0x1C:
+							case 0x1D:
 							case 0x1E:
+							case 0x1F:
 								return ImplementRR_IYd_();
 								break;
 
+							case 0x20:
+							case 0x21:
+							case 0x22:
+							case 0x23:
+							case 0x24:
+							case 0x25:
 							case 0x26:
+							case 0x27:
 								return ImplementSLA_IYd_();
 								break;
 
+							case 0x28:
+							case 0x29:
+							case 0x2A:
+							case 0x2B:
+							case 0x2C:
+							case 0x2D:
 							case 0x2E:
+							case 0x2F:
 								return ImplementSRA_IYd_();
 								break;
 
+							case 0x30:
+							case 0x31:
+							case 0x32:
+							case 0x33:
+							case 0x34:
+							case 0x35:
 							case 0x36:
+							case 0x37:
 								return ImplementSLL_IYd_();
 								break;
 
+							case 0x38:
+							case 0x39:
+							case 0x3A:
+							case 0x3B:
+							case 0x3C:
+							case 0x3D:
 							case 0x3E:
+							case 0x3F:
 								return ImplementSRL_IYd_();
 								break;
 
+							case 0x40:
+							case 0x41:
+							case 0x42:
+							case 0x43:
+							case 0x44:
+							case 0x45:
 							case 0x46: // BIT 0,(IY+d)
+							case 0x47:
+							case 0x48:
+							case 0x49:
+							case 0x4A:
+							case 0x4B:
+							case 0x4C:
+							case 0x4D:
 							case 0x4E: // BIT 1,(IY+d)
+							case 0x4F:
+							case 0x50:
+							case 0x51:
+							case 0x52:
+							case 0x53:
+							case 0x54:
+							case 0x55:
 							case 0x56: // BIT 2,(IY+d)
+							case 0x57:
+							case 0x58:
+							case 0x59:
+							case 0x5A:
+							case 0x5B:
+							case 0x5C:
+							case 0x5D:
 							case 0x5E: // BIT 3,(IY+d)
+							case 0x5F:
+							case 0x60:
+							case 0x61:
+							case 0x62:
+							case 0x63:
+							case 0x64:
+							case 0x65:
 							case 0x66: // BIT 4,(IY+d)
+							case 0x67:
+							case 0x68:
+							case 0x69:
+							case 0x6A:
+							case 0x6B:
+							case 0x6C:
+							case 0x6D:
 							case 0x6E: // BIT 5,(IY+d)
+							case 0x6F:
+							case 0x70:
+							case 0x71:
+							case 0x72:
+							case 0x73:
+							case 0x74:
+							case 0x75:
 							case 0x76: // BIT 6,(IY+d)
+							case 0x77:
+							case 0x78:
+							case 0x79:
+							case 0x7A:
+							case 0x7B:
+							case 0x7C:
+							case 0x7D:
 							case 0x7E: // BIT 7,(IY+d)
+							case 0x7F:
 								return ImplementBITb_IYd_();
 								break;
 
+							case 0x80:
+							case 0x81:
+							case 0x82:
+							case 0x83:
+							case 0x84:
+							case 0x85:
 							case 0x86: // RES 0,(IY+d)
+							case 0x87:
+							case 0x88:
+							case 0x89:
+							case 0x8A:
+							case 0x8B:
+							case 0x8C:
+							case 0x8D:
 							case 0x8E: // RES 1,(IY+d)
+							case 0x8F:
+							case 0x90:
+							case 0x91:
+							case 0x92:
+							case 0x93:
+							case 0x94:
+							case 0x95:
 							case 0x96: // RES 2,(IY+d)
+							case 0x97:
+							case 0x98:
+							case 0x99:
+							case 0x9A:
+							case 0x9B:
+							case 0x9C:
+							case 0x9D:
 							case 0x9E: // RES 3,(IY+d)
+							case 0x9F:
+							case 0xA0:
+							case 0xA1:
+							case 0xA2:
+							case 0xA3:
+							case 0xA4:
+							case 0xA5:
 							case 0xA6: // RES 4,(IY+d)
+							case 0xA7:
+							case 0xA8:
+							case 0xA9:
+							case 0xAA:
+							case 0xAB:
+							case 0xAC:
+							case 0xAD:
 							case 0xAE: // RES 5,(IY+d)
+							case 0xAF:
+							case 0xB0:
+							case 0xB1:
+							case 0xB2:
+							case 0xB3:
+							case 0xB4:
+							case 0xB5:
 							case 0xB6: // RES 6,(IY+d)
+							case 0xB7:
+							case 0xB8:
+							case 0xB9:
+							case 0xBA:
+							case 0xBB:
+							case 0xBC:
+							case 0xBD:
 							case 0xBE: // RES 7,(IY+d)
+							case 0xBF:
 								return ImplementRESb_IYd_();
 								break;
 
+							case 0xC0:
+							case 0xC1:
+							case 0xC2:
+							case 0xC3:
+							case 0xC4:
+							case 0xC5:
 							case 0xC6: // SET 0,(IY+d)
+							case 0xC7:
+							case 0xC8:
+							case 0xC9:
+							case 0xCA:
+							case 0xCB:
+							case 0xCC:
+							case 0xCD:
 							case 0xCE: // SET 1,(IY+d)
+							case 0xCF:
+							case 0xD0:
+							case 0xD1:
+							case 0xD2:
+							case 0xD3:
+							case 0xD4:
+							case 0xD5:
 							case 0xD6: // SET 2,(IY+d)
+							case 0xD7:
+							case 0xD8:
+							case 0xD9:
+							case 0xDA:
+							case 0xDB:
+							case 0xDC:
+							case 0xDD:
 							case 0xDE: // SET 3,(IY+d)
+							case 0xDF:
+							case 0xE0:
+							case 0xE1:
+							case 0xE2:
+							case 0xE3:
+							case 0xE4:
+							case 0xE5:
 							case 0xE6: // SET 4,(IY+d)
+							case 0xE7:
+							case 0xE8:
+							case 0xE9:
+							case 0xEA:
+							case 0xEB:
+							case 0xEC:
+							case 0xED:
 							case 0xEE: // SET 5,(IY+d)
+							case 0xEF:
+							case 0xF0:
+							case 0xF1:
+							case 0xF2:
+							case 0xF3:
+							case 0xF4:
+							case 0xF5:
 							case 0xF6: // SET 6,(IY+d)
+							case 0xF7:
+							case 0xF8:
+							case 0xF9:
+							case 0xFA:
+							case 0xFB:
+							case 0xFC:
+							case 0xFD:
 							case 0xFE: // SET 7,(IY+d)
+							case 0xFF:
 								return ImplementSETb_IYd_();
 								break;
 
@@ -3206,68 +3654,292 @@ void CZ80::Decode(uint16& address, char* pMnemonic) const
 					case 0xCB: // Prefix CB
 						switch (ReadMemory(address + 3))
 						{
+							case 0x00:
+							case 0x01:
+							case 0x02:
+							case 0x03:
+							case 0x04:
+							case 0x05:
 							case 0x06:
+							case 0x07:
 								DecodeRLC_IXd_(address, pMnemonic);
 								break;
 
+							case 0x08:
+							case 0x09:
+							case 0x0A:
+							case 0x0B:
+							case 0x0C:
+							case 0x0D:
 							case 0x0E:
+							case 0x0F:
 								DecodeRRC_IXd_(address, pMnemonic);
 								break;
 
+							case 0x10:
+							case 0x11:
+							case 0x12:
+							case 0x13:
+							case 0x14:
+							case 0x15:
 							case 0x16:
+							case 0x17:
 								DecodeRL_IXd_(address, pMnemonic);
 								break;
 
+							case 0x18:
+							case 0x19:
+							case 0x1A:
+							case 0x1B:
+							case 0x1C:
+							case 0x1D:
 							case 0x1E:
+							case 0x1F:
 								DecodeRR_IXd_(address, pMnemonic);
 								break;
 
+							case 0x20:
+							case 0x21:
+							case 0x22:
+							case 0x23:
+							case 0x24:
+							case 0x25:
 							case 0x26:
+							case 0x27:
 								DecodeSLA_IXd_(address, pMnemonic);
 								break;
 
+							case 0x28:
+							case 0x29:
+							case 0x2A:
+							case 0x2B:
+							case 0x2C:
+							case 0x2D:
 							case 0x2E:
+							case 0x2F:
 								DecodeSRA_IXd_(address, pMnemonic);
 								break;
 
+							case 0x30:
+							case 0x31:
+							case 0x32:
+							case 0x33:
+							case 0x34:
+							case 0x35:
 							case 0x36:
+							case 0x37:
 								DecodeSLL_IXd_(address, pMnemonic);
 								break;
 
+							case 0x38:
+							case 0x39:
+							case 0x3A:
+							case 0x3B:
+							case 0x3C:
+							case 0x3D:
 							case 0x3E:
+							case 0x3F:
 								DecodeSRL_IXd_(address, pMnemonic);
 								break;
 
+							case 0x40:
+							case 0x41:
+							case 0x42:
+							case 0x43:
+							case 0x44:
+							case 0x45:
 							case 0x46: // BIT 0,(IX+d)
+							case 0x47:
+							case 0x48:
+							case 0x49:
+							case 0x4A:
+							case 0x4B:
+							case 0x4C:
+							case 0x4D:
 							case 0x4E: // BIT 1,(IX+d)
+							case 0x4F:
+							case 0x50:
+							case 0x51:
+							case 0x52:
+							case 0x53:
+							case 0x54:
+							case 0x55:
 							case 0x56: // BIT 2,(IX+d)
+							case 0x57:
+							case 0x58:
+							case 0x59:
+							case 0x5A:
+							case 0x5B:
+							case 0x5C:
+							case 0x5D:
 							case 0x5E: // BIT 3,(IX+d)
+							case 0x5F:
+							case 0x60:
+							case 0x61:
+							case 0x62:
+							case 0x63:
+							case 0x64:
+							case 0x65:
 							case 0x66: // BIT 4,(IX+d)
+							case 0x67:
+							case 0x68:
+							case 0x69:
+							case 0x6A:
+							case 0x6B:
+							case 0x6C:
+							case 0x6D:
 							case 0x6E: // BIT 5,(IX+d)
+							case 0x6F:
+							case 0x70:
+							case 0x71:
+							case 0x72:
+							case 0x73:
+							case 0x74:
+							case 0x75:
 							case 0x76: // BIT 6,(IX+d)
+							case 0x77:
+							case 0x78:
+							case 0x79:
+							case 0x7A:
+							case 0x7B:
+							case 0x7C:
+							case 0x7D:
 							case 0x7E: // BIT 7,(IX+d)
+							case 0x7F:
 								DecodeBITb_IXd_(address, pMnemonic);
 								break;
 
+							case 0x80:
+							case 0x81:
+							case 0x82:
+							case 0x83:
+							case 0x84:
+							case 0x85:
 							case 0x86: // RES 0,(IX+d)
+							case 0x87:
+							case 0x88:
+							case 0x89:
+							case 0x8A:
+							case 0x8B:
+							case 0x8C:
+							case 0x8D:
 							case 0x8E: // RES 1,(IX+d)
+							case 0x8F:
+							case 0x90:
+							case 0x91:
+							case 0x92:
+							case 0x93:
+							case 0x94:
+							case 0x95:
 							case 0x96: // RES 2,(IX+d)
+							case 0x97:
+							case 0x98:
+							case 0x99:
+							case 0x9A:
+							case 0x9B:
+							case 0x9C:
+							case 0x9D:
 							case 0x9E: // RES 3,(IX+d)
+							case 0x9F:
+							case 0xA0:
+							case 0xA1:
+							case 0xA2:
+							case 0xA3:
+							case 0xA4:
+							case 0xA5:
 							case 0xA6: // RES 4,(IX+d)
+							case 0xA7:
+							case 0xA8:
+							case 0xA9:
+							case 0xAA:
+							case 0xAB:
+							case 0xAC:
+							case 0xAD:
 							case 0xAE: // RES 5,(IX+d)
+							case 0xAF:
+							case 0xB0:
+							case 0xB1:
+							case 0xB2:
+							case 0xB3:
+							case 0xB4:
+							case 0xB5:
 							case 0xB6: // RES 6,(IX+d)
+							case 0xB7:
+							case 0xB8:
+							case 0xB9:
+							case 0xBA:
+							case 0xBB:
+							case 0xBC:
+							case 0xBD:
 							case 0xBE: // RES 7,(IX+d)
+							case 0xBF:
 								DecodeRESb_IXd_(address, pMnemonic);
 								break;
 
+							case 0xC0:
+							case 0xC1:
+							case 0xC2:
+							case 0xC3:
+							case 0xC4:
+							case 0xC5:
 							case 0xC6: // SET 0,(IX+d)
+							case 0xC7:
+							case 0xC8:
+							case 0xC9:
+							case 0xCA:
+							case 0xCB:
+							case 0xCC:
+							case 0xCD:
 							case 0xCE: // SET 1,(IX+d)
+							case 0xCF:
+							case 0xD0:
+							case 0xD1:
+							case 0xD2:
+							case 0xD3:
+							case 0xD4:
+							case 0xD5:
 							case 0xD6: // SET 2,(IX+d)
+							case 0xD7:
+							case 0xD8:
+							case 0xD9:
+							case 0xDA:
+							case 0xDB:
+							case 0xDC:
+							case 0xDD:
 							case 0xDE: // SET 3,(IX+d)
+							case 0xDF:
+							case 0xE0:
+							case 0xE1:
+							case 0xE2:
+							case 0xE3:
+							case 0xE4:
+							case 0xE5:
 							case 0xE6: // SET 4,(IX+d)
+							case 0xE7:
+							case 0xE8:
+							case 0xE9:
+							case 0xEA:
+							case 0xEB:
+							case 0xEC:
+							case 0xED:
 							case 0xEE: // SET 5,(IX+d)
+							case 0xEF:
+							case 0xF0:
+							case 0xF1:
+							case 0xF2:
+							case 0xF3:
+							case 0xF4:
+							case 0xF5:
 							case 0xF6: // SET 6,(IX+d)
+							case 0xF7:
+							case 0xF8:
+							case 0xF9:
+							case 0xFA:
+							case 0xFB:
+							case 0xFC:
+							case 0xFD:
 							case 0xFE: // SET 7,(IX+d)
+							case 0xFF:
 								DecodeSETb_IXd_(address, pMnemonic);
 								break;
 
@@ -3795,68 +4467,292 @@ void CZ80::Decode(uint16& address, char* pMnemonic) const
 					case 0xCB: // Prefix CB
 						switch (ReadMemory(address + 3))
 						{
+							case 0x00:
+							case 0x01:
+							case 0x02:
+							case 0x03:
+							case 0x04:
+							case 0x05:
 							case 0x06:
+							case 0x07:
 								DecodeRLC_IYd_(address, pMnemonic);
 								break;
 
+							case 0x08:
+							case 0x09:
+							case 0x0A:
+							case 0x0B:
+							case 0x0C:
+							case 0x0D:
 							case 0x0E:
+							case 0x0F:
 								DecodeRRC_IYd_(address, pMnemonic);
 								break;
 
+							case 0x10:
+							case 0x11:
+							case 0x12:
+							case 0x13:
+							case 0x14:
+							case 0x15:
 							case 0x16:
+							case 0x17:
 								DecodeRL_IYd_(address, pMnemonic);
 								break;
 
+							case 0x18:
+							case 0x19:
+							case 0x1A:
+							case 0x1B:
+							case 0x1C:
+							case 0x1D:
 							case 0x1E:
+							case 0x1F:
 								DecodeRR_IYd_(address, pMnemonic);
 								break;
 
+							case 0x20:
+							case 0x21:
+							case 0x22:
+							case 0x23:
+							case 0x24:
+							case 0x25:
 							case 0x26:
+							case 0x27:
 								DecodeSLA_IYd_(address, pMnemonic);
 								break;
 
+							case 0x28:
+							case 0x29:
+							case 0x2A:
+							case 0x2B:
+							case 0x2C:
+							case 0x2D:
 							case 0x2E:
+							case 0x2F:
 								DecodeSRA_IYd_(address, pMnemonic);
 								break;
 
+							case 0x30:
+							case 0x31:
+							case 0x32:
+							case 0x33:
+							case 0x34:
+							case 0x35:
 							case 0x36:
+							case 0x37:
 								DecodeSLL_IYd_(address, pMnemonic);
 								break;
 
+							case 0x38:
+							case 0x39:
+							case 0x3A:
+							case 0x3B:
+							case 0x3C:
+							case 0x3D:
 							case 0x3E:
+							case 0x3F:
 								DecodeSRL_IYd_(address, pMnemonic);
 								break;
 
+							case 0x40:
+							case 0x41:
+							case 0x42:
+							case 0x43:
+							case 0x44:
+							case 0x45:
 							case 0x46: // BIT 0,(IY+d)
+							case 0x47:
+							case 0x48:
+							case 0x49:
+							case 0x4A:
+							case 0x4B:
+							case 0x4C:
+							case 0x4D:
 							case 0x4E: // BIT 1,(IY+d)
+							case 0x4F:
+							case 0x50:
+							case 0x51:
+							case 0x52:
+							case 0x53:
+							case 0x54:
+							case 0x55:
 							case 0x56: // BIT 2,(IY+d)
+							case 0x57:
+							case 0x58:
+							case 0x59:
+							case 0x5A:
+							case 0x5B:
+							case 0x5C:
+							case 0x5D:
 							case 0x5E: // BIT 3,(IY+d)
+							case 0x5F:
+							case 0x60:
+							case 0x61:
+							case 0x62:
+							case 0x63:
+							case 0x64:
+							case 0x65:
 							case 0x66: // BIT 4,(IY+d)
+							case 0x67:
+							case 0x68:
+							case 0x69:
+							case 0x6A:
+							case 0x6B:
+							case 0x6C:
+							case 0x6D:
 							case 0x6E: // BIT 5,(IY+d)
+							case 0x6F:
+							case 0x70:
+							case 0x71:
+							case 0x72:
+							case 0x73:
+							case 0x74:
+							case 0x75:
 							case 0x76: // BIT 6,(IY+d)
+							case 0x77:
+							case 0x78:
+							case 0x79:
+							case 0x7A:
+							case 0x7B:
+							case 0x7C:
+							case 0x7D:
 							case 0x7E: // BIT 7,(IY+d)
+							case 0x7F:
 								DecodeBITb_IYd_(address, pMnemonic);
 								break;
 
+							case 0x80:
+							case 0x81:
+							case 0x82:
+							case 0x83:
+							case 0x84:
+							case 0x85:
 							case 0x86: // RES 0,(IY+d)
+							case 0x87:
+							case 0x88:
+							case 0x89:
+							case 0x8A:
+							case 0x8B:
+							case 0x8C:
+							case 0x8D:
 							case 0x8E: // RES 1,(IY+d)
+							case 0x8F:
+							case 0x90:
+							case 0x91:
+							case 0x92:
+							case 0x93:
+							case 0x94:
+							case 0x95:
 							case 0x96: // RES 2,(IY+d)
+							case 0x97:
+							case 0x98:
+							case 0x99:
+							case 0x9A:
+							case 0x9B:
+							case 0x9C:
+							case 0x9D:
 							case 0x9E: // RES 3,(IY+d)
+							case 0x9F:
+							case 0xA0:
+							case 0xA1:
+							case 0xA2:
+							case 0xA3:
+							case 0xA4:
+							case 0xA5:
 							case 0xA6: // RES 4,(IY+d)
+							case 0xA7:
+							case 0xA8:
+							case 0xA9:
+							case 0xAA:
+							case 0xAB:
+							case 0xAC:
+							case 0xAD:
 							case 0xAE: // RES 5,(IY+d)
+							case 0xAF:
+							case 0xB0:
+							case 0xB1:
+							case 0xB2:
+							case 0xB3:
+							case 0xB4:
+							case 0xB5:
 							case 0xB6: // RES 6,(IY+d)
+							case 0xB7:
+							case 0xB8:
+							case 0xB9:
+							case 0xBA:
+							case 0xBB:
+							case 0xBC:
+							case 0xBD:
 							case 0xBE: // RES 7,(IY+d)
+							case 0xBF:
 								DecodeRESb_IYd_(address, pMnemonic);
 								break;
 
+							case 0xC0:
+							case 0xC1:
+							case 0xC2:
+							case 0xC3:
+							case 0xC4:
+							case 0xC5:
 							case 0xC6: // SET 0,(IY+d)
+							case 0xC7:
+							case 0xC8:
+							case 0xC9:
+							case 0xCA:
+							case 0xCB:
+							case 0xCC:
+							case 0xCD:
 							case 0xCE: // SET 1,(IY+d)
+							case 0xCF:
+							case 0xD0:
+							case 0xD1:
+							case 0xD2:
+							case 0xD3:
+							case 0xD4:
+							case 0xD5:
 							case 0xD6: // SET 2,(IY+d)
+							case 0xD7:
+							case 0xD8:
+							case 0xD9:
+							case 0xDA:
+							case 0xDB:
+							case 0xDC:
+							case 0xDD:
 							case 0xDE: // SET 3,(IY+d)
+							case 0xDF:
+							case 0xE0:
+							case 0xE1:
+							case 0xE2:
+							case 0xE3:
+							case 0xE4:
+							case 0xE5:
 							case 0xE6: // SET 4,(IY+d)
+							case 0xE7:
+							case 0xE8:
+							case 0xE9:
+							case 0xEA:
+							case 0xEB:
+							case 0xEC:
+							case 0xED:
 							case 0xEE: // SET 5,(IY+d)
+							case 0xEF:
+							case 0xF0:
+							case 0xF1:
+							case 0xF2:
+							case 0xF3:
+							case 0xF4:
+							case 0xF5:
 							case 0xF6: // SET 6,(IY+d)
+							case 0xF7:
+							case 0xF8:
+							case 0xF9:
+							case 0xFA:
+							case 0xFB:
+							case 0xFC:
+							case 0xFD:
 							case 0xFE: // SET 7,(IY+d)
+							case 0xFF:
 								DecodeSETb_IYd_(address, pMnemonic);
 								break;
 
@@ -8802,13 +9698,18 @@ uint32 CZ80::ImplementRLC_IXd_(void)
 	IncrementR(2);
 	++++m_PC;
 	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
-	++m_PC;
+	uint8 opcode = ReadMemory(m_PC++);
 	uint8 byte = ReadMemory(m_IX + displacement);
 	uint8 carry = (byte & eF_S) >> 7;
 	byte = (byte << 1) | carry;
 	WriteMemory(m_IX + displacement, byte);
 	HandleLogicalFlags(byte);
 	m_F |= carry;
+	// From The Undocumented Z80:
+	if ((opcode & 0x07) != 0x06)
+	{
+		REGISTER_8BIT(opcode) = byte;	
+	}
 	return 23;
 }
 
@@ -8837,13 +9738,18 @@ uint32 CZ80::ImplementRLC_IYd_(void)
 	IncrementR(2);
 	++++m_PC;
 	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
-	++m_PC;
+	uint8 opcode = ReadMemory(m_PC++);
 	uint8 byte = ReadMemory(m_IY + displacement);
 	uint8 carry = (byte & eF_S) >> 7;
 	byte = (byte << 1) | carry;
 	WriteMemory(m_IY + displacement, byte);
 	HandleLogicalFlags(byte);
 	m_F |= carry;
+	// From The Undocumented Z80:
+	if ((opcode & 0x07) != 0x06)
+	{
+		REGISTER_8BIT(opcode) = byte;	
+	}
 	return 23;
 }
 
@@ -8929,13 +9835,18 @@ uint32 CZ80::ImplementRL_IXd_(void)
 	IncrementR(2);
 	++++m_PC;
 	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
-	++m_PC;
+	uint8 opcode = ReadMemory(m_PC++);
 	uint8 byte = ReadMemory(m_IX + displacement);
 	uint8 carry = (byte & eF_S) >> 7;
 	byte = (byte << 1) | (m_F & eF_C);
 	WriteMemory(m_IX + displacement, byte);
 	HandleLogicalFlags(byte);
 	m_F |= carry;
+	// From The Undocumented Z80:
+	if ((opcode & 0x07) != 0x06)
+	{
+		REGISTER_8BIT(opcode) = byte;	
+	}
 	return 23;
 }
 
@@ -8964,13 +9875,18 @@ uint32 CZ80::ImplementRL_IYd_(void)
 	IncrementR(2);
 	++++m_PC;
 	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
-	++m_PC;
+	uint8 opcode = ReadMemory(m_PC++);
 	uint8 byte = ReadMemory(m_IY + displacement);
 	uint8 carry = (byte & eF_S) >> 7;
 	byte = (byte << 1) | (m_F & eF_C);
 	WriteMemory(m_IY + displacement, byte);
 	HandleLogicalFlags(byte);
 	m_F |= carry;
+	// From The Undocumented Z80:
+	if ((opcode & 0x07) != 0x06)
+	{
+		REGISTER_8BIT(opcode) = byte;	
+	}
 	return 23;
 }
 
@@ -9056,13 +9972,18 @@ uint32 CZ80::ImplementRRC_IXd_(void)
 	IncrementR(2);
 	++++m_PC;
 	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
-	++m_PC;
+	uint8 opcode = ReadMemory(m_PC++);
 	uint8 byte = ReadMemory(m_IX + displacement);
 	uint8 carry = (byte & eF_C);
 	byte = (byte >> 1) | (carry << 7);
 	WriteMemory(m_IX + displacement, byte);
 	HandleLogicalFlags(byte);
 	m_F |= carry;
+	// From The Undocumented Z80:
+	if ((opcode & 0x07) != 0x06)
+	{
+		REGISTER_8BIT(opcode) = byte;	
+	}
 	return 23;
 }
 
@@ -9091,13 +10012,18 @@ uint32 CZ80::ImplementRRC_IYd_(void)
 	IncrementR(2);
 	++++m_PC;
 	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
-	++m_PC;
+	uint8 opcode = ReadMemory(m_PC++);
 	uint8 byte = ReadMemory(m_IY + displacement);
 	uint8 carry = (byte & eF_C);
 	byte = (byte >> 1) | (carry << 7);
 	WriteMemory(m_IY + displacement, byte);
 	HandleLogicalFlags(byte);
 	m_F |= carry;
+	// From The Undocumented Z80:
+	if ((opcode & 0x07) != 0x06)
+	{
+		REGISTER_8BIT(opcode) = byte;	
+	}
 	return 23;
 }
 
@@ -9183,13 +10109,18 @@ uint32 CZ80::ImplementRR_IXd_(void)
 	IncrementR(2);
 	++++m_PC;
 	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
-	++m_PC;
+	uint8 opcode = ReadMemory(m_PC++);
 	uint8 byte = ReadMemory(m_IX + displacement);
 	uint8 carry = (byte & eF_C);
 	byte = (byte >> 1) | ((m_F & eF_C) << 7);
 	WriteMemory(m_IX + displacement, byte);
 	HandleLogicalFlags(byte);
 	m_F |= carry;
+	// From The Undocumented Z80:
+	if ((opcode & 0x07) != 0x06)
+	{
+		REGISTER_8BIT(opcode) = byte;	
+	}
 	return 23;
 }
 
@@ -9218,13 +10149,18 @@ uint32 CZ80::ImplementRR_IYd_(void)
 	IncrementR(2);
 	++++m_PC;
 	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
-	++m_PC;
+	uint8 opcode = ReadMemory(m_PC++);
 	uint8 byte = ReadMemory(m_IY + displacement);
 	uint8 carry = (byte & eF_C);
 	byte = (byte >> 1) | ((m_F & eF_C) << 7);
 	WriteMemory(m_IY + displacement, byte);
 	HandleLogicalFlags(byte);
 	m_F |= carry;
+	// From The Undocumented Z80:
+	if ((opcode & 0x07) != 0x06)
+	{
+		REGISTER_8BIT(opcode) = byte;	
+	}
 	return 23;
 }
 
@@ -9307,13 +10243,18 @@ uint32 CZ80::ImplementSLA_IXd_(void)
 	IncrementR(2);
 	++++m_PC;
 	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
-	++m_PC;
+	uint8 opcode = ReadMemory(m_PC++);
 	uint8 byte = ReadMemory(m_IX + displacement);
 	uint8 carry = (byte & eF_S) >> 7;
 	byte = (byte << 1);
 	WriteMemory(m_IX + displacement, byte);
 	HandleLogicalFlags(byte);
 	m_F |= carry;
+	// From The Undocumented Z80:
+	if ((opcode & 0x07) != 0x06)
+	{
+		REGISTER_8BIT(opcode) = byte;	
+	}
 	return 23;
 }
 
@@ -9341,13 +10282,18 @@ uint32 CZ80::ImplementSLA_IYd_(void)
 	IncrementR(2);
 	++++m_PC;
 	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
-	++m_PC;
+	uint8 opcode = ReadMemory(m_PC++);
 	uint8 byte = ReadMemory(m_IY + displacement);
 	uint8 carry = (byte & eF_S) >> 7;
 	byte = (byte << 1);
 	WriteMemory(m_IY + displacement, byte);
 	HandleLogicalFlags(byte);
 	m_F |= carry;
+	// From The Undocumented Z80:
+	if ((opcode & 0x07) != 0x06)
+	{
+		REGISTER_8BIT(opcode) = byte;	
+	}
 	return 23;
 }
 
@@ -9435,7 +10381,7 @@ uint32 CZ80::ImplementSRA_IXd_(void)
 	IncrementR(2);
 	++++m_PC;
 	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
-	++m_PC;
+	uint8 opcode = ReadMemory(m_PC++);
 	uint8 byte = ReadMemory(m_IX + displacement);
 	uint8 sign = (byte & eF_S);
 	uint8 carry = (byte & eF_C);
@@ -9443,6 +10389,11 @@ uint32 CZ80::ImplementSRA_IXd_(void)
 	WriteMemory(m_IX + displacement, byte);
 	HandleLogicalFlags(byte);
 	m_F |= carry;
+	// From The Undocumented Z80:
+	if ((opcode & 0x07) != 0x06)
+	{
+		REGISTER_8BIT(opcode) = byte;	
+	}
 	return 23;
 }
 
@@ -9471,7 +10422,7 @@ uint32 CZ80::ImplementSRA_IYd_(void)
 	IncrementR(2);
 	++++m_PC;
 	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
-	++m_PC;
+	uint8 opcode = ReadMemory(m_PC++);
 	uint8 byte = ReadMemory(m_IY + displacement);
 	uint8 sign = (byte & eF_S);
 	uint8 carry = (byte & eF_C);
@@ -9479,6 +10430,11 @@ uint32 CZ80::ImplementSRA_IYd_(void)
 	WriteMemory(m_IY + displacement, byte);
 	HandleLogicalFlags(byte);
 	m_F |= carry;
+	// From The Undocumented Z80:
+	if ((opcode & 0x07) != 0x06)
+	{
+		REGISTER_8BIT(opcode) = byte;	
+	}
 	return 23;
 }
 
@@ -9561,13 +10517,18 @@ uint32 CZ80::ImplementSLL_IXd_(void)
 	IncrementR(2);
 	++++m_PC;
 	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
-	++m_PC;
+	uint8 opcode = ReadMemory(m_PC++);
 	uint8 byte = ReadMemory(m_IX + displacement);
 	uint8 carry = (byte & eF_S) >> 7;
 	byte = (byte << 1) | 0x01;
 	WriteMemory(m_IX + displacement, byte);
 	HandleLogicalFlags(byte);
 	m_F |= carry;
+	// From The Undocumented Z80:
+	if ((opcode & 0x07) != 0x06)
+	{
+		REGISTER_8BIT(opcode) = byte;	
+	}
 	return 23;
 }
 
@@ -9595,13 +10556,18 @@ uint32 CZ80::ImplementSLL_IYd_(void)
 	IncrementR(2);
 	++++m_PC;
 	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
-	++m_PC;
+	uint8 opcode = ReadMemory(m_PC++);
 	uint8 byte = ReadMemory(m_IY + displacement);
 	uint8 carry = (byte & eF_S) >> 7;
 	byte = (byte << 1) | 0x01;
 	WriteMemory(m_IY + displacement, byte);
 	HandleLogicalFlags(byte);
 	m_F |= carry;
+	// From The Undocumented Z80:
+	if ((opcode & 0x07) != 0x06)
+	{
+		REGISTER_8BIT(opcode) = byte;	
+	}
 	return 23;
 }
 
@@ -9685,13 +10651,18 @@ uint32 CZ80::ImplementSRL_IXd_(void)
 	IncrementR(2);
 	++++m_PC;
 	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
-	++m_PC;
+	uint8 opcode = ReadMemory(m_PC++);
 	uint8 byte = ReadMemory(m_IX + displacement);
 	uint8 carry = (byte & eF_C);
 	byte = (byte >> 1);
 	WriteMemory(m_IX + displacement, byte);
 	HandleLogicalFlags(byte);
 	m_F |= carry;
+	// From The Undocumented Z80:
+	if ((opcode & 0x07) != 0x06)
+	{
+		REGISTER_8BIT(opcode) = byte;	
+	}
 	return 23;
 }
 
@@ -9719,13 +10690,18 @@ uint32 CZ80::ImplementSRL_IYd_(void)
 	IncrementR(2);
 	++++m_PC;
 	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
-	++m_PC;
+	uint8 opcode = ReadMemory(m_PC++);
 	uint8 byte = ReadMemory(m_IY + displacement);
 	uint8 carry = (byte & eF_C);
 	byte = (byte >> 1);
 	WriteMemory(m_IY + displacement, byte);
 	HandleLogicalFlags(byte);
 	m_F |= carry;
+	// From The Undocumented Z80:
+	if ((opcode & 0x07) != 0x06)
+	{
+		REGISTER_8BIT(opcode) = byte;	
+	}
 	return 23;
 }
 
@@ -9993,7 +10969,7 @@ uint32 CZ80::ImplementSETb_IXd_(void)
 {
 	//
 	// Operation:	(IX+d)b <- 1
-	// Op Code:		BIT
+	// Op Code:		SET
 	// Operands:	b, (IX+d)
 	//						+-+-+-+-+-+-+-+-+
 	//						|1|1|0|1|1|1|0|1| DD
@@ -10011,10 +10987,16 @@ uint32 CZ80::ImplementSETb_IXd_(void)
 	IncrementR(2);
 	++++m_PC;
 	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
-	uint8 mask = 1 << ((ReadMemory(m_PC++) & 0x38) >> 3);
+	uint8 opcode = ReadMemory(m_PC++);
+	uint8 mask = 1 << ((opcode & 0x38) >> 3);
 	uint8 byte = ReadMemory(m_IX + displacement);
 	byte |= mask;
 	WriteMemory(m_IX + displacement, byte);
+	// From The Undocumented Z80:
+	if ((opcode & 0x07) != 0x06)
+	{
+		REGISTER_8BIT(opcode) = byte;	
+	}
 	return 20;
 }
 
@@ -10024,7 +11006,7 @@ uint32 CZ80::ImplementSETb_IYd_(void)
 {
 	//
 	// Operation:	(IY+d)b <- 1
-	// Op Code:		BIT
+	// Op Code:		SET
 	// Operands:	b, (IY+d)
 	//						+-+-+-+-+-+-+-+-+
 	//						|1|1|1|1|1|1|0|1| FD
@@ -10042,10 +11024,16 @@ uint32 CZ80::ImplementSETb_IYd_(void)
 	IncrementR(2);
 	++++m_PC;
 	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
-	uint8 mask = 1 << ((ReadMemory(m_PC++) & 0x38) >> 3);
+	uint8 opcode = ReadMemory(m_PC++);
+	uint8 mask = 1 << ((opcode & 0x38) >> 3);
 	uint8 byte = ReadMemory(m_IY + displacement);
 	byte |= mask;
 	WriteMemory(m_IY + displacement, byte);
+	// From The Undocumented Z80:
+	if ((opcode & 0x07) != 0x06)
+	{
+		REGISTER_8BIT(opcode) = byte;	
+	}
 	return 20;
 }
 
@@ -10116,7 +11104,7 @@ uint32 CZ80::ImplementRESb_IXd_(void)
 {
 	//
 	// Operation:	(IX+d)b <- 1
-	// Op Code:		BIT
+	// Op Code:		RES
 	// Operands:	b, (IX+d)
 	//						+-+-+-+-+-+-+-+-+
 	//						|1|1|0|1|1|1|0|1| DD
@@ -10134,10 +11122,16 @@ uint32 CZ80::ImplementRESb_IXd_(void)
 	IncrementR(2);
 	++++m_PC;
 	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
-	uint8 mask = 1 << ((ReadMemory(m_PC++) & 0x38) >> 3);
+	uint8 opcode = ReadMemory(m_PC++);
+	uint8 mask = 1 << ((opcode & 0x38) >> 3);
 	uint8 byte = ReadMemory(m_IX + displacement);
 	byte &= ~mask;
 	WriteMemory(m_IX + displacement, byte);
+	// From The Undocumented Z80:
+	if ((opcode & 0x07) != 0x06)
+	{
+		REGISTER_8BIT(opcode) = byte;	
+	}
 	return 20;
 }
 
@@ -10147,7 +11141,7 @@ uint32 CZ80::ImplementRESb_IYd_(void)
 {
 	//
 	// Operation:	(IY+d)b <- 1
-	// Op Code:		BIT
+	// Op Code:		RES
 	// Operands:	b, (IY+d)
 	//						+-+-+-+-+-+-+-+-+
 	//						|1|1|1|1|1|1|0|1| FD
@@ -10165,10 +11159,16 @@ uint32 CZ80::ImplementRESb_IYd_(void)
 	IncrementR(2);
 	++++m_PC;
 	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
-	uint8 mask = 1 << ((ReadMemory(m_PC++) & 0x38) >> 3);
+	uint8 opcode = ReadMemory(m_PC++);
+	uint8 mask = 1 << ((opcode & 0x38) >> 3);
 	uint8 byte = ReadMemory(m_IY + displacement);
 	byte &= ~mask;
 	WriteMemory(m_IY + displacement, byte);
+	// From The Undocumented Z80:
+	if ((opcode & 0x07) != 0x06)
+	{
+		REGISTER_8BIT(opcode) = byte;	
+	}
 	return 20;
 }
 
