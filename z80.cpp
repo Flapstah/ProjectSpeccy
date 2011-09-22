@@ -1945,6 +1945,7 @@ uint32 CZ80::Step(void)
 
 					case 0x43: // LD (nn),BC
 					case 0x53: // LD (nn),DE
+					case 0x63: // LD (nn),HL
 					case 0x73: // LD (nn),SP
 						return ImplementLD_nn_dd();
 						break;
@@ -4059,6 +4060,7 @@ void CZ80::Decode(uint16& address, char* pMnemonic) const
 
 					case 0x43: // LD (nn),BC
 					case 0x53: // LD (nn),DE
+					case 0x63: // LD (nn),HL
 					case 0x73: // LD (nn),SP
 						DecodeLD_nn_dd(address, pMnemonic);
 						break;
@@ -4100,6 +4102,7 @@ void CZ80::Decode(uint16& address, char* pMnemonic) const
 
 					case 0x4B: // LD BC,(nn)
 					case 0x5B: // LD DE,(nn)
+					case 0x6B: // LD HL,(nn)
 					case 0x7B: // LD SP,(nn)
 						DecodeLDdd_nn_(address, pMnemonic);
 						break;
