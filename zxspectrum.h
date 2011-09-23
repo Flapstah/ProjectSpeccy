@@ -34,11 +34,12 @@ class CZXSpectrum : public IMemory, public IScreenMemory
 						bool				LoadROM(const char* fileName);
 						bool				LoadSNA(const char* fileName);
 						bool				LoadRAW(const char* fileName);
+						bool				LoadTAP(const char* fileName);
 
 	protected:
 						void				DisplayHelp(void) const;
 
-		enum SpectrumConstants
+		enum eSpectrumConstant
 		{
 			SC_TOP_BORDER = 64,
 			SC_BOTTOM_BORDER = 56,
@@ -130,6 +131,29 @@ class CZXSpectrum : public IMemory, public IScreenMemory
 			PC_OUTPUT_MASK	= PC_EAR_OUT | PC_MIC_OUT | PC_BORDER_MASK
 		};
 
+		enum eTapeConstant
+		{
+			TC_FORMAT_UNKNOWN = 64,
+			TC_FORMAT_RAW = 65,
+			TC_FORMAT_TAP = 66,
+
+			TC_STATE_READING_FORMAT = 32,
+			TC_STATE_GENERATING_PILOT = 33,
+			TC_STATE_GENERATING_SYNC_PULSE_0 = 34,
+			TC_STATE_GENERATING_SYNC_PULSE_1 = 35,
+			TC_STATE_GENERATING_DATA = 36,
+			TC_STATE_GENERATING_DATA_BIT_0 = 37,
+			TC_STATE_GENERATING_DATA_BIT_1 = 38,
+
+			TC_BLOCK_TYPE_HEADER = 0,
+			TC_BLOCK_TYPE_DATA = 1,
+
+			TC_DATA_TYPE_PROGRAM = 0,
+			TC_DATA_TYPE_NUMBER_ARRAY = 1,
+			TC_DATA_TYPE_CHARACTER_ARRAY = 2,
+			TC_DATA_TYPE_CODE = 3,
+		};
+
 		// Memory for the OpenGL texture used to represent the ZX Spectrum screen
 		uint32			m_videoMemory[SC_VIDEO_MEMORY_WIDTH * SC_VIDEO_MEMORY_HEIGHT];
 		// Main memory for the 48K ZX Spectrum
@@ -148,6 +172,13 @@ class CZXSpectrum : public IMemory, public IScreenMemory
 		uint8				m_writePortFE;
 		mutable uint8				m_readPortFE;
 		bool				m_tapePlaying;
+		eTapeConstant m_tapeFormat;
+		eTapeConstant m_tapeState;
+		uint16			m_tapeBlockSize;
+		uint8				m_tapeBlockType;
+		uint8				m_tapeBitMask;
+		uint8				m_tapeByte;
+		uint16			m_tapePulseCounter;
 
 	private:
 };
