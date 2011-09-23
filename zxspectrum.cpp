@@ -583,7 +583,9 @@ void CZXSpectrum::UpdateTape(uint32 tstates)
 	bool stopTape = false;
 
 	if (!m_tapePlaying)
+	{
 		return;
+	}
 	
 	// RAW images are 44100 Hz => 44100 bytes/sec (1 byte in file = 1 bit)
 	// Screen refresh is (64+192+56)*224=69888 T states long
@@ -612,7 +614,7 @@ void CZXSpectrum::UpdateTape(uint32 tstates)
 				{
 					if (feof(m_pFile))
 					{
-						fprintf(stdout, "[ZX Spectrum]: tape reached end - rewound and stopped\n");
+						fprintf(stdout, "[ZX Spectrum]: tape reached end\n");
 						m_clockRate = 1.0f;
 						m_frameTime = (1.0 / 50.0) / m_clockRate;
 						fprintf(stdout, "[ZX Spectrum]: emulation speed set to %.02f\n", m_clockRate);
@@ -631,15 +633,17 @@ void CZXSpectrum::UpdateTape(uint32 tstates)
 			switch (m_tapeState)
 			{
 				case TC_STATE_READING_FORMAT:
-					printf("TC_STATE_READING_FORMAT\n");
+//					printf("TC_STATE_READING_FORMAT\n");
 					if (fread(&m_tapeByte, sizeof(m_tapeByte), 1, m_pFile))
 					{
 						m_tapeBlockSize = m_tapeByte;
 						if (fread(&m_tapeByte, sizeof(m_tapeByte), 1, m_pFile))
 						{
 							m_tapeBlockSize |= m_tapeByte << 8;
+//							printf("Blocksize %d\n", m_tapeBlockSize);
 							if (fread(&m_tapeBlockType, sizeof(m_tapeBlockType), 1, m_pFile))
 							{
+//								printf("Blocktype %02X\n", m_tapeBlockType);
 								switch (m_tapeBlockType)
 								{
 									case TC_BLOCK_TYPE_HEADER:
@@ -648,24 +652,34 @@ void CZXSpectrum::UpdateTape(uint32 tstates)
 									case TC_BLOCK_TYPE_DATA:
 										m_tapePulseCounter = 3223;
 										break;
+									default:
+										fprintf(stderr, "Unknown blocktype %02X\n", m_tapeBlockType);
+										m_tapeState = TC_STATE_STOP_TAPE;
+										break;
 								}
 							}
 							else
 							{
 								tapeError = ferror(m_pFile);
+								m_tapeState = TC_STATE_STOP_TAPE;
+								break;
 							}
 						}
 						else
 						{
 							tapeError = ferror(m_pFile);
+							m_tapeState = TC_STATE_STOP_TAPE;
+							break;
 						}
 					}
 					else
 					{
 						tapeError = ferror(m_pFile);
+						m_tapeState = TC_STATE_STOP_TAPE;
+						break;
 					}
 					m_tapeState = TC_STATE_GENERATING_PILOT;
-					printf("TC_STATE_GENERATING_PILOT\n");
+//					printf("TC_STATE_GENERATING_PILOT\n");
 					// intentional fall-through
 
 				case TC_STATE_GENERATING_PILOT:
@@ -673,10 +687,10 @@ void CZXSpectrum::UpdateTape(uint32 tstates)
 					{
 						m_tapeTstates -= 2168;
 						m_readPortFE ^= PC_EAR_IN;
-						if (m_tapePulseCounter-- == 0)
+						if (--m_tapePulseCounter == 0)
 						{
 							m_tapeState = TC_STATE_GENERATING_SYNC_PULSE_0;
-							printf("TC_STATE_GENERATING_SYNC_PULSE_0\n");
+//							printf("TC_STATE_GENERATING_SYNC_PULSE_0\n");
 						}
 					}
 					break;
@@ -687,7 +701,7 @@ void CZXSpectrum::UpdateTape(uint32 tstates)
 						m_tapeTstates -= 667;
 						m_readPortFE ^= PC_EAR_IN;
 						m_tapeState = TC_STATE_GENERATING_SYNC_PULSE_1;
-						printf("TC_STATE_GENERATING_SYNC_PULSE_1\n");
+//						printf("TC_STATE_GENERATING_SYNC_PULSE_1\n");
 					}
 					break;
 
@@ -697,31 +711,35 @@ void CZXSpectrum::UpdateTape(uint32 tstates)
 						m_tapeTstates -= 735;
 						m_readPortFE ^= PC_EAR_IN;
 
+						m_tapePulseCounter = 2;
 						m_tapeByte = m_tapeBlockType;
 						m_tapeBitMask = 0x80;
 						m_tapeState = TC_STATE_GENERATING_DATA;
-						printf("TC_STATE_GENERATING_DATA\n");
+//						printf("TC_STATE_GENERATING_DATA\n");
 					}
 					break;
 
 				case TC_STATE_GENERATING_DATA:
 					if (m_tapeBitMask == 0)
 					{
-						if (m_tapeBlockSize-- > 0)
+						if (--m_tapeBlockSize > 0)
 						{
 							if (fread(&m_tapeByte, sizeof(m_tapeByte), 1, m_pFile))
 							{
+//								printf("Byte %02X '%c'\n", m_tapeByte, m_tapeByte);
 								m_tapeBitMask = 0x80;
 								m_tapePulseCounter = 2;
 							}
 							else
 							{
 								tapeError = ferror(m_pFile);
+								m_tapeState = TC_STATE_STOP_TAPE;
 								break;
 							}
 						}
 						else
 						{
+//							printf("End of block (tape tstates %d)\n", m_tapeTstates);
 							m_tapeState = TC_STATE_READING_FORMAT;
 							break;
 						}
@@ -734,7 +752,7 @@ void CZXSpectrum::UpdateTape(uint32 tstates)
 						{
 							m_tapeTstates -= 1710;
 							m_readPortFE ^= PC_EAR_IN;
-							if (m_tapePulseCounter-- == 0)
+							if (--m_tapePulseCounter == 0)
 							{
 								m_tapePulseCounter = 2;
 								m_tapeBitMask >>= 1;
@@ -748,7 +766,7 @@ void CZXSpectrum::UpdateTape(uint32 tstates)
 						{
 							m_tapeTstates -= 855;
 							m_readPortFE ^= PC_EAR_IN;
-							if (m_tapePulseCounter-- == 0)
+							if (--m_tapePulseCounter == 0)
 							{
 								m_tapePulseCounter = 2;
 								m_tapeBitMask >>= 1;
@@ -756,24 +774,35 @@ void CZXSpectrum::UpdateTape(uint32 tstates)
 						}
 					}
 					break;
+
+				case TC_STATE_STOP_TAPE:
+//					printf("TC_STATE_STOP_TAPE\n");
+					stopTape = true;
+					break;
 			}
 			break;
 
 		default:
-			fprintf(stdout, "[ZX Spectrum]: unknown tape format - rewound and stopped\n");
 			stopTape = true;
 			break;
 	}
 
 	if (tapeError != 0)
 	{
-		m_tapeFormat = TC_FORMAT_UNKNOWN;
-		fprintf(stdout, "[ZX Spectrum]: tape error %d - rewound and stopped\n", tapeError);
+		fprintf(stdout, "[ZX Spectrum]: tape error %d\n", tapeError);
 		stopTape = true;
 	}
 
 	if (stopTape)
 	{
+		if (feof(m_pFile))
+		{
+			fprintf(stdout, "[ZX Spectrum]: tape reached end\n");
+			m_clockRate = 1.0f;
+			m_frameTime = (1.0 / 50.0) / m_clockRate;
+			fprintf(stdout, "[ZX Spectrum]: emulation speed set to %.02f\n", m_clockRate);
+		}
+		fprintf(stdout, "[ZX Spectrum]: tape rewound and stopped\n");
 		fseek(m_pFile, 0, SEEK_SET);
 		m_tapePlaying	= false;
 	}
