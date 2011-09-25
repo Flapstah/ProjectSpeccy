@@ -11,7 +11,11 @@
 
 //=============================================================================
 // TODO:
-// Implement the undocumented opcodes
+// Fix:
+// bit n,<b,c,d,e,h,l,(hl),a>
+// cpd <r>
+// cpi <r>
+// Missing DD 40
 //=============================================================================
 
 // Helper macros to determine 8 and 16 bit registers from opcodes
@@ -6814,9 +6818,6 @@ uint32 CZ80::ImplementCPI(void)
 	IncrementR(2);
 	++++m_PC;
 	uint8 _HL_ = ReadMemory(m_HL++);
-	uint8 origA = m_A;
-	uint8 result = origA - _HL_;
-	uint8 half_result = (origA & 0x0F) - (_HL_ & 0x0F);
 	--m_BC;
 	// From The Undocumented Z80:
 	uint8 origF = m_F;
@@ -6878,9 +6879,6 @@ uint32 CZ80::ImplementCPD(void)
 	IncrementR(2);
 	++++m_PC;
 	uint8 _HL_ = ReadMemory(m_HL--);
-	uint8 origA = m_A;
-	uint8 result = origA - _HL_;
-	uint8 half_result = (origA & 0x0F) - (_HL_ & 0x0F);
 	--m_BC;
 	// From The Undocumented Z80:
 	uint8 origF = m_F;
@@ -8783,6 +8781,7 @@ uint32 CZ80::ImplementINCIXh(void)
 	//								1						8 (4,4)						2.00
 	//
 	IncrementR(2);
+	++++m_PC;
 	uint8 origF = m_F;
 	m_IXh = HandleArithmeticAddFlags(m_IXh, 1, false);
 	m_F &= ~eF_C;
@@ -8808,6 +8807,7 @@ uint32 CZ80::ImplementINCIXl(void)
 	//								1						8 (4,4)						2.00
 	//
 	IncrementR(2);
+	++++m_PC;
 	uint8 origF = m_F;
 	m_IXl = HandleArithmeticAddFlags(m_IXl, 1, false);
 	m_F &= ~eF_C;
@@ -8833,6 +8833,7 @@ uint32 CZ80::ImplementINCIYh(void)
 	//								1						8 (4,4)						2.00
 	//
 	IncrementR(2);
+	++++m_PC;
 	uint8 origF = m_F;
 	m_IYh = HandleArithmeticAddFlags(m_IYh, 1, false);
 	m_F &= ~eF_C;
@@ -8858,6 +8859,7 @@ uint32 CZ80::ImplementINCIYl(void)
 	//								1						8 (4,4)						2.00
 	//
 	IncrementR(2);
+	++++m_PC;
 	uint8 origF = m_F;
 	m_IYl = HandleArithmeticAddFlags(m_IYl, 1, false);
 	m_F &= ~eF_C;
@@ -9003,7 +9005,8 @@ uint32 CZ80::ImplementDECIXh(void)
 	//							M Cycles		T States					MHz E.T.
 	//								1						8	(4,4)						1.00
 	//
-	IncrementR(1);
+	IncrementR(2);
+	++++m_PC;
 	uint8 origF = m_F;
 	m_IXh = HandleArithmeticSubtractFlags(m_IXh, 1, false);
 	m_F &= ~eF_C;
@@ -9028,7 +9031,8 @@ uint32 CZ80::ImplementDECIXl(void)
 	//							M Cycles		T States					MHz E.T.
 	//								1						8	(4,4)						1.00
 	//
-	IncrementR(1);
+	IncrementR(2);
+	++++m_PC;
 	uint8 origF = m_F;
 	m_IXl = HandleArithmeticSubtractFlags(m_IXl, 1, false);
 	m_F &= ~eF_C;
@@ -9053,7 +9057,8 @@ uint32 CZ80::ImplementDECIYh(void)
 	//							M Cycles		T States					MHz E.T.
 	//								1						8	(4,4)						1.00
 	//
-	IncrementR(1);
+	IncrementR(2);
+	++++m_PC;
 	uint8 origF = m_F;
 	m_IYh = HandleArithmeticSubtractFlags(m_IYh, 1, false);
 	m_F &= ~eF_C;
@@ -9078,7 +9083,8 @@ uint32 CZ80::ImplementDECIYl(void)
 	//							M Cycles		T States					MHz E.T.
 	//								1						8	(4,4)						1.00
 	//
-	IncrementR(1);
+	IncrementR(2);
+	++++m_PC;
 	uint8 origF = m_F;
 	m_IYl = HandleArithmeticSubtractFlags(m_IYl, 1, false);
 	m_F &= ~eF_C;
@@ -11135,6 +11141,10 @@ uint32 CZ80::ImplementBITb_IXd_(void)
 	uint8 origF = m_F;
 	HandleLogicalFlags(byte & mask);
 	m_F |= (eF_H | (origF & eF_C));
+	// From The Undocumented Z80:
+	uint8 temp = (m_IX + displacement) >> 8;
+	m_F &= ~(eF_Y | eF_X);
+	m_F |= (temp & (eF_Y | eF_X));
 	return 20;
 }
 
@@ -11167,6 +11177,10 @@ uint32 CZ80::ImplementBITb_IYd_(void)
 	uint8 origF = m_F;
 	HandleLogicalFlags(byte & mask);
 	m_F |= (eF_H | (origF & eF_C));
+	// From The Undocumented Z80:
+	uint8 temp = (m_IX + displacement) >> 8;
+	m_F &= ~(eF_Y | eF_X);
+	m_F |= (temp & (eF_Y | eF_X));
 	return 20;
 }
 
