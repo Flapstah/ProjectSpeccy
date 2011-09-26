@@ -1399,6 +1399,51 @@ uint32 CZ80::Step(void)
 						return ImplementLD_IXd_n();
 						break;
 
+					case 0x40: // LD B,B
+					case 0x41: // LD B,C
+					case 0x42: // LD B,D
+					case 0x43: // LD B,E
+					case 0x47: // LD B,A
+					case 0x50: // LD D,B
+					case 0x51: // LD D,C
+					case 0x52: // LD D,D
+					case 0x53: // LD D,E
+					case 0x57: // LD D,A
+					case 0x48: // LD C,B
+					case 0x49: // LD C,C
+					case 0x4A: // LD C,D
+					case 0x4B: // LD C,E
+					case 0x4F: // LD C,A
+					case 0x58: // LD E,B
+					case 0x59: // LD E,C
+					case 0x5A: // LD E,D
+					case 0x5B: // LD E,E
+					case 0x5F: // LD E,A
+					case 0x78: // LD A,B
+					case 0x79: // LD A,C
+					case 0x7A: // LD A,D
+					case 0x7B: // LD A,E
+					case 0x7F: // LD A,A
+						IncrementR(1);
+						return 4 + ImplementLDrr();
+						break;
+
+					case 0x44: // LD B,IXh
+					case 0x54: // LD D,IXh
+					case 0x4C: // LD C,IXh
+					case 0x5C: // LD E,IXh
+					case 0x7C: // LD A,IXh
+						ImplementLDrIXh();
+						break;
+
+					case 0x45: // LD B,IXl
+					case 0x55: // LD D,IXl
+					case 0x4D: // LD C,IXl
+					case 0x5D: // LD E,IXl
+					case 0x7D: // LD A,IXl
+						ImplementLDrIXl();
+						break;
+
 					case 0x46: // LD B,(IX+d)
 					case 0x56: // LD D,(IX+d)
 					case 0x66: // LD H,(IX+d)
@@ -2303,6 +2348,51 @@ uint32 CZ80::Step(void)
 
 					case 0x36:
 						return ImplementLD_IYd_n();
+						break;
+
+					case 0x40: // LD B,B
+					case 0x41: // LD B,C
+					case 0x42: // LD B,D
+					case 0x43: // LD B,E
+					case 0x47: // LD B,A
+					case 0x50: // LD D,B
+					case 0x51: // LD D,C
+					case 0x52: // LD D,D
+					case 0x53: // LD D,E
+					case 0x57: // LD D,A
+					case 0x48: // LD C,B
+					case 0x49: // LD C,C
+					case 0x4A: // LD C,D
+					case 0x4B: // LD C,E
+					case 0x4F: // LD C,A
+					case 0x58: // LD E,B
+					case 0x59: // LD E,C
+					case 0x5A: // LD E,D
+					case 0x5B: // LD E,E
+					case 0x5F: // LD E,A
+					case 0x78: // LD A,B
+					case 0x79: // LD A,C
+					case 0x7A: // LD A,D
+					case 0x7B: // LD A,E
+					case 0x7F: // LD A,A
+						IncrementR(1);
+						return 4 + ImplementLDrr();
+						break;
+
+					case 0x44: // LD B,IYh
+					case 0x54: // LD D,IYh
+					case 0x4C: // LD C,IYh
+					case 0x5C: // LD E,IYh
+					case 0x7C: // LD A,IYh
+						ImplementLDrIYh();
+						break;
+
+					case 0x45: // LD B,IYl
+					case 0x55: // LD D,IYl
+					case 0x4D: // LD C,IYl
+					case 0x5D: // LD E,IYl
+					case 0x7D: // LD A,IYl
+						ImplementLDrIYl();
 						break;
 
 					case 0x46: // LD B,(IY+d)
@@ -5102,6 +5192,138 @@ uint32 CZ80::ImplementLDrr(void)
 	REGISTER_8BIT(opcode >> 3) = REGISTER_8BIT(opcode);
 	++m_PC;
 	return 4;
+}
+
+//=============================================================================
+
+uint32 CZ80::ImplementLDrIXh(void)
+{
+	//
+	// Operation:	r <- IXh
+	// Op Code:		LD
+	// Operands:	r, IXh
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|1|1|1|0|1| DD
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|1|d|d|d|1|0|0|
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//						where ddd is any of:
+	//								B						000
+	//								C						001
+	//								D						010
+	//								E						011
+	//								H						100
+	//								L						101
+	//								A						111
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								1						8 (4,4)						2.00
+	//
+	IncrementR(2);
+	uint8 opcode = ReadMemory(m_PC);
+	REGISTER_8BIT(opcode >> 3) = m_IXh;
+	++++m_PC;
+	return 8;
+}
+
+//=============================================================================
+
+uint32 CZ80::ImplementLDrIXl(void)
+{
+	//
+	// Operation:	r <- IXl
+	// Op Code:		LD
+	// Operands:	r, IXl
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|0|1|1|1|0|1| DD
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|1|d|d|d|1|0|1|
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//						where ddd is any of:
+	//								B						000
+	//								C						001
+	//								D						010
+	//								E						011
+	//								H						100
+	//								L						101
+	//								A						111
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								1						8 (4,4)						2.00
+	//
+	IncrementR(2);
+	uint8 opcode = ReadMemory(m_PC);
+	REGISTER_8BIT(opcode >> 3) = m_IXl;
+	++++m_PC;
+	return 8;
+}
+
+//=============================================================================
+
+uint32 CZ80::ImplementLDrIYh(void)
+{
+	//
+	// Operation:	r <- IYh
+	// Op Code:		LD
+	// Operands:	r, IYh
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|1|1|1|0|1| FD
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|1|d|d|d|1|0|0|
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//						where ddd is any of:
+	//								B						000
+	//								C						001
+	//								D						010
+	//								E						011
+	//								H						100
+	//								L						101
+	//								A						111
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								1						8 (4,4)						2.00
+	//
+	IncrementR(2);
+	uint8 opcode = ReadMemory(m_PC);
+	REGISTER_8BIT(opcode >> 3) = m_IYh;
+	++++m_PC;
+	return 8;
+}
+
+//=============================================================================
+
+uint32 CZ80::ImplementLDrIYl(void)
+{
+	//
+	// Operation:	r <- IYl
+	// Op Code:		LD
+	// Operands:	r, IYl
+	//						+-+-+-+-+-+-+-+-+
+	//						|1|1|1|1|1|1|0|1| FD
+	//						+-+-+-+-+-+-+-+-+
+	//						|0|1|d|d|d|1|0|1|
+	//						+-+-+-+-+-+-+-+-+
+	//
+	//						where ddd is any of:
+	//								B						000
+	//								C						001
+	//								D						010
+	//								E						011
+	//								H						100
+	//								L						101
+	//								A						111
+	//
+	//							M Cycles		T States					MHz E.T.
+	//								1						8 (4,4)						2.00
+	//
+	IncrementR(2);
+	uint8 opcode = ReadMemory(m_PC);
+	REGISTER_8BIT(opcode >> 3) = m_IYl;
+	++++m_PC;
+	return 8;
 }
 
 //=============================================================================
@@ -12384,6 +12606,38 @@ void CZ80::DecodeLDrr(uint16& address, char* pMnemonic) const
 {
 	sprintf(pMnemonic, "LD %s,%s", Get8BitRegisterString(ReadMemory(address) >> 3), Get8BitRegisterString(ReadMemory(address)));
 	++address;
+}
+
+//=============================================================================
+
+void CZ80::DecodeLDrIXh(uint16& address, char* pMnemonic) const
+{
+	sprintf(pMnemonic, "LD %s,IXh", Get8BitRegisterString(ReadMemory(address) >> 3));
+	++++address;
+}
+
+//=============================================================================
+
+void CZ80::DecodeLDrIXl(uint16& address, char* pMnemonic) const
+{
+	sprintf(pMnemonic, "LD %s,IXl", Get8BitRegisterString(ReadMemory(address) >> 3));
+	++++address;
+}
+
+//=============================================================================
+
+void CZ80::DecodeLDrIYh(uint16& address, char* pMnemonic) const
+{
+	sprintf(pMnemonic, "LD %s,IYh", Get8BitRegisterString(ReadMemory(address) >> 3));
+	++++address;
+}
+
+//=============================================================================
+
+void CZ80::DecodeLDrIYl(uint16& address, char* pMnemonic) const
+{
+	sprintf(pMnemonic, "LD %s,IYl", Get8BitRegisterString(ReadMemory(address) >> 3));
+	++++address;
 }
 
 //=============================================================================

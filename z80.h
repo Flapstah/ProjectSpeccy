@@ -62,6 +62,10 @@ class CZ80
 		//-----------------------------------------------------------------------------
 
 		uint32 ImplementLDrr(void);
+		uint32 ImplementLDrIXh(void);
+		uint32 ImplementLDrIXl(void);
+		uint32 ImplementLDrIYh(void);
+		uint32 ImplementLDrIYl(void);
 		uint32 ImplementLDrn(void);
 		uint32 ImplementLDIXhn(void);
 		uint32 ImplementLDIXhr(void);
@@ -372,6 +376,10 @@ class CZ80
 		//-----------------------------------------------------------------------------
 
 		void DecodeLDrr(uint16& address, char* pMnemonic) const;
+		void DecodeLDrIXh(uint16& address, char* pMnemonic) const;
+		void DecodeLDrIXl(uint16& address, char* pMnemonic) const;
+		void DecodeLDrIYh(uint16& address, char* pMnemonic) const;
+		void DecodeLDrIYl(uint16& address, char* pMnemonic) const;
 		void DecodeLDrn(uint16& address, char* pMnemonic) const;
 		void DecodeLDIXhn(uint16& address, char* pMnemonic) const;
 		void DecodeLDIXhr(uint16& address, char* pMnemonic) const;
