@@ -11400,7 +11400,7 @@ uint32 CZ80::ImplementBITb_IYd_(void)
 	HandleLogicalFlags(byte & mask);
 	m_F |= (eF_H | (origF & eF_C));
 	// From The Undocumented Z80:
-	uint8 temp = (m_IX + displacement) >> 8;
+	uint8 temp = (m_IY + displacement) >> 8;
 	m_F &= ~(eF_Y | eF_X);
 	m_F |= (temp & (eF_Y | eF_X));
 	return 20;
