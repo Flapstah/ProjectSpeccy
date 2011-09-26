@@ -463,2430 +463,2433 @@ void CZ80::HandleIllegalOpcode(void) const
 
 uint32 CZ80::Step(void)
 {
-		switch (ReadMemory(m_PC))
-		{
-			case 0x00:
-				return ImplementNOP();
-				break;
-
-			case 0x10:
-				if (GetEnableProgramFlowBreakpoints())
-				{
-					HitBreakpoint("program flow");
-				}
-				return ImplementDJNZe();
-				break;
-
-			case 0x20:
-				if (GetEnableProgramFlowBreakpoints())
-				{
-					HitBreakpoint("program flow");
-				}
-				return ImplementJRNZe();
-				break;
-
-			case 0x30:
-				if (GetEnableProgramFlowBreakpoints())
-				{
-					HitBreakpoint("program flow");
-				}
-				return ImplementJRNCe();
-				break;
-
-			case 0x01: // LD BC,nn
-			case 0x11: // LD DE,nn
-			case 0x21: // LD HL,nn
-			case 0x31: // LD SP,nn
-				return ImplementLDddnn();
-				break;
-
-			case 0x02:
-				return ImplementLD_BC_A();
-				break;
-
-			case 0x12:
-				return ImplementLD_DE_A();
-				break;
-
-			case 0x22:
-				return ImplementLD_nn_HL();
-				break;
-
-			case 0x32:
-				return ImplementLD_nn_A();
-				break;
-
-			case 0x03: // INC BC
-			case 0x13: // INC DE
-			case 0x23: // INC HL
-			case 0x33: // INC SP
-				return ImplementINCdd();
-				break;
-
-			case 0x04: // INC B
-			case 0x14: // INC D
-			case 0x24: // INC H
-			case 0x0C: // INC C
-			case 0x1C: // INC E
-			case 0x2C: // INC L
-			case 0x3C: // INC A
-				return ImplementINCr();
-				break;
-
-			case 0x34:
-				return ImplementINC_HL_();
-				break;
-
-			case 0x05: // DEC B
-			case 0x15: // DEC D
-			case 0x25: // DEC H
-			case 0x0D: // DEC C
-			case 0x1D: // DEC E
-			case 0x2D: // DEC L
-			case 0x3D: // DEC A
-				return ImplementDECr();
-				break;
-
-			case 0x35:
-				return ImplementDEC_HL_();
-				break;
-
-			case 0x06: // LD B,n
-			case 0x16: // LD D,n
-			case 0x26: // LD H,n
-			case 0x0E: // LD C,n
-			case 0x1E: // LD E,n
-			case 0x2E: // LD L,n
-			case 0x3E: // LD A,n
-				return ImplementLDrn();
-				break;
-
-			case 0x36:
-				return ImplementLD_HL_n();
-				break;
-
-			case 0x07:
-				return ImplementRLCA();
-				break;
-
-			case 0x17:
-				return ImplementRLA();
-				break;
-
-			case 0x27:
-				return ImplementDAA();
-				break;
-
-			case 0x37:
-				return ImplementSCF();
-				break;
-
-			case 0x08:
-				return ImplementEXAFAF();
-				break;
-
-			case 0x18:
-				if (GetEnableProgramFlowBreakpoints())
-				{
-					HitBreakpoint("program flow");
-				}
-				return ImplementJRe();
-				break;
-
-			case 0x28:
-				if (GetEnableProgramFlowBreakpoints())
-				{
-					HitBreakpoint("program flow");
-				}
-				return ImplementJRZe();
-				break;
-
-			case 0x38:
-				if (GetEnableProgramFlowBreakpoints())
-				{
-					HitBreakpoint("program flow");
-				}
-				return ImplementJRCe();
-				break;
-
-			case 0x09: // ADD HL,BC
-			case 0x19: // ADD HL,DE
-			case 0x29: // ADD HL,HL
-			case 0x39: // ADD HL,SP
-				return ImplementADDHLdd();
-				break;
-
-			case 0x0A:
-				return ImplementLDA_BC_();
-				break;
-
-			case 0x1A:
-				return ImplementLDA_DE_();
-				break;
-
-			case 0x2A:
-				return ImplementLDHL_nn_();
-				break;
-
-			case 0x3A:
-				return ImplementLDA_nn_();
-				break;
-
-			case 0x0B: // DEC BC
-			case 0x1B: // DEC DE
-			case 0x2B: // DEC HL
-			case 0x3B: // DEC SP
-				return ImplementDECdd();
-				break;
-
-			case 0x0F:
-				return ImplementRRCA();
-				break;
-
-			case 0x1F:
-				return ImplementRRA();
-				break;
-
-			case 0x2F:
-				return ImplementCPL();
-				break;
-
-			case 0x3F:
-				return ImplementCCF();
-				break;
-
-			case 0x40: // LD B,B
-			case 0x41: // LD B,C
-			case 0x42: // LD B,D
-			case 0x43: // LD B,E
-			case 0x44: // LD B,H
-			case 0x45: // LD B,L
-			case 0x47: // LD B,A
-			case 0x50: // LD D,B
-			case 0x51: // LD D,C
-			case 0x52: // LD D,D
-			case 0x53: // LD D,E
-			case 0x54: // LD D,H
-			case 0x55: // LD D,L
-			case 0x57: // LD D,A
-			case 0x60: // LD H,B
-			case 0x61: // LD H,C
-			case 0x62: // LD H,D
-			case 0x63: // LD H,E
-			case 0x64: // LD H,H
-			case 0x65: // LD H,L
-			case 0x67: // LD H,A
-			case 0x48: // LD C,B
-			case 0x49: // LD C,C
-			case 0x4A: // LD C,D
-			case 0x4B: // LD C,E
-			case 0x4C: // LD C,H
-			case 0x4D: // LD C,L
-			case 0x4F: // LD C,A
-			case 0x58: // LD E,B
-			case 0x59: // LD E,C
-			case 0x5A: // LD E,D
-			case 0x5B: // LD E,E
-			case 0x5C: // LD E,H
-			case 0x5D: // LD E,L
-			case 0x5F: // LD E,A
-			case 0x68: // LD L,B
-			case 0x69: // LD L,C
-			case 0x6A: // LD L,D
-			case 0x6B: // LD L,E
-			case 0x6C: // LD L,H
-			case 0x6D: // LD L,L
-			case 0x6F: // LD L,A
-			case 0x78: // LD A,B
-			case 0x79: // LD A,C
-			case 0x7A: // LD A,D
-			case 0x7B: // LD A,E
-			case 0x7C: // LD A,H
-			case 0x7D: // LD A,L
-			case 0x7F: // LD A,A
-				return ImplementLDrr();
-				break;
-
-			case 0x46: // LD B,(HL)
-			case 0x56: // LD D,(HL)
-			case 0x66: // LD H,(HL)
-			case 0x4E: // LD C,(HL)
-			case 0x5E: // LD E,(HL)
-			case 0x6E: // LD L,(HL)
-			case 0x7E: // LD A,(HL)
-				return ImplementLDr_HL_();
-				break;
-
-			case 0x70: // LD (HL),B
-			case 0x71: // LD (HL),C
-			case 0x72: // LD (HL),D
-			case 0x73: // LD (HL),E
-			case 0x74: // LD (HL),H
-			case 0x75: // LD (HL),L
-			case 0x77: // LD (HL),A
-				return ImplementLD_HL_r();
-				break;
-
-			case 0x76:
-				return ImplementHALT();
-				break;
-
-			case 0x80: // ADD A,B
-			case 0x81: // ADD A,C
-			case 0x82: // ADD A,D
-			case 0x83: // ADD A,E
-			case 0x84: // ADD A,H
-			case 0x85: // ADD A,L
-			case 0x87: // ADD A,A
-				return ImplementADDAr();
-				break;
-
-			case 0x86:
-				return ImplementADDA_HL_();
-				break;
-
-			case 0x90: // SUB A,B
-			case 0x91: // SUB A,C
-			case 0x92: // SUB A,D
-			case 0x93: // SUB A,E
-			case 0x94: // SUB A,H
-			case 0x95: // SUB A,L
-			case 0x97: // SUB A,A
-				return ImplementSUBr();
-				break;
-
-			case 0x96:
-				return ImplementSUB_HL_();
-				break;
-
-			case 0xA0: // AND A,B
-			case 0xA1: // AND A,C
-			case 0xA2: // AND A,D
-			case 0xA3: // AND A,E
-			case 0xA4: // AND A,H
-			case 0xA5: // AND A,L
-			case 0xA7: // AND A,A
-				return ImplementANDr();
-				break;
-
-			case 0xA6:
-				return ImplementAND_HL_();
-				break;
-
-			case 0xB0: // OR A,B
-			case 0xB1: // OR A,C
-			case 0xB2: // OR A,D
-			case 0xB3: // OR A,E
-			case 0xB4: // OR A,H
-			case 0xB5: // OR A,L
-			case 0xB7: // OR A,A
-				return ImplementORr();
-				break;
-
-			case 0xB6:
-				return ImplementOR_HL_();
-				break;
-
-			case 0x88: // ADC A,B
-			case 0x89: // ADC A,C
-			case 0x8A: // ADC A,D
-			case 0x8B: // ADC A,E
-			case 0x8C: // ADC A,H
-			case 0x8D: // ADC A,L
-			case 0x8F: // ADC A,A
-				return ImplementADCAr();
-				break;
-
-			case 0x8E:
-				return ImplementADCA_HL_();
-				break;
-
-			case 0x98: // SBC A,B
-			case 0x99: // SBC A,C
-			case 0x9A: // SBC A,D
-			case 0x9B: // SBC A,E
-			case 0x9C: // SBC A,H
-			case 0x9D: // SBC A,L
-			case 0x9F: // SBC A,A
-				return ImplementSBCAr();
-				break;
-
-			case 0x9E:
-				return ImplementSBCA_HL_();
-				break;
-
-			case 0xA8: // XOR A,B
-			case 0xA9: // XOR A,C
-			case 0xAA: // XOR A,D
-			case 0xAB: // XOR A,E
-			case 0xAC: // XOR A,H
-			case 0xAD: // XOR A,L
-			case 0xAF: // XOR A,A
-				return ImplementXORr();
-				break;
-
-			case 0xAE:
-				return ImplementXOR_HL_();
-				break;
-
-			case 0xB8: // CP A,B
-			case 0xB9: // CP A,C
-			case 0xBA: // CP A,D
-			case 0xBB: // CP A,E
-			case 0xBC: // CP A,H
-			case 0xBD: // CP A,L
-			case 0xBF: // CP A,A
-				return ImplementCPr();
-				break;
-
-			case 0xBE:
-				return ImplementCP_HL_();
-				break;
-
-			case 0xC0: // RET NZ
-			case 0xD0: // RET NC
-			case 0xE0: // RET PO
-			case 0xF0: // RET P
-			case 0xC8: // RET Z
-			case 0xD8: // RET C
-			case 0xE8: // RET PE
-			case 0xF8: // RET M
-				if (GetEnableProgramFlowBreakpoints())
-				{
-					HitBreakpoint("program flow");
-				}
-				return ImplementRETcc();
-				break;
-
-			case 0xC1: // POP BC
-			case 0xD1: // POP DE
-			case 0xE1: // POP HL
-				return ImplementPOPqq();
-				break;
-
-			case 0xF1: // POP AF
-				return ImplementPOPAF();
-				break;
-
-			case 0xC2: // JP NZ,nn
-			case 0xD2: // JP NC,nn
-			case 0xE2: // JP PO,nn
-			case 0xF2: // JP P,nn
-			case 0xCA: // JP Z,nn
-			case 0xDA: // JP C,nn
-			case 0xEA: // JP PE,nn
-			case 0xFA: // JP M,nn
-				if (GetEnableProgramFlowBreakpoints())
-				{
-					HitBreakpoint("program flow");
-				}
-				return ImplementJPccnn();
-				break;
-
-			case 0xC3:
-				if (GetEnableProgramFlowBreakpoints())
-				{
-					HitBreakpoint("program flow");
-				}
-				return ImplementJPnn();
-				break;
-
-			case 0xD3:
-				return ImplementOUT_n_A();
-				break;
-
-			case 0xE3:
-				return ImplementEX_SP_HL();
-				break;
-
-			case 0xF3:
-				return ImplementDI();
-				break;
-
-			case 0xC4: // CALL NZ,nn
-			case 0xD4: // CALL NC,nn
-			case 0xE4: // CALL PO,nn
-			case 0xF4: // CALL P,nn
-			case 0xCC: // CALL Z,nn
-			case 0xDC: // CALL C,nn
-			case 0xEC: // CALL PE,nn
-			case 0xFC: // CALL M,nn
-				if (GetEnableProgramFlowBreakpoints())
-				{
-					HitBreakpoint("program flow");
-				}
-				return ImplementCALLccnn();
-				break;
-
-			case 0xC5: // PUSH BC
-			case 0xD5: // PUSH DE
-			case 0xE5: // PUSH HL
-				return ImplementPUSHqq();
-				break;
-
-			case 0xF5: // PUSH AF
-				return ImplementPUSHAF();
-				break;
-
-			case 0xC6:
-				return ImplementADDAn();
-				break;
-
-			case 0xD6:
-				return ImplementSUBn();
-				break;
-
-			case 0xE6:
-				return ImplementANDn();
-				break;
-
-			case 0xF6:
-				return ImplementORn();
-				break;
-
-			case 0xC7: // RST 0
-			case 0xCF: // RST 8
-			case 0xD7: // RST 16
-			case 0xDF: // RST 24
-			case 0xE7: // RST 32
-			case 0xEF: // RST 40
-			case 0xF7: // RST 48
-			case 0xFF: // RST 56
-				if (GetEnableProgramFlowBreakpoints())
-				{
-					HitBreakpoint("program flow");
-				}
-				return ImplementRSTp();
-				break;
-
-			case 0xC9:
-				if (GetEnableProgramFlowBreakpoints())
-				{
-					HitBreakpoint("program flow");
-				}
-				return ImplementRET();
-				break;
-
-			case 0xD9:
-				return ImplementEXX();
-				break;
-
-			case 0xE9:
-				if (GetEnableProgramFlowBreakpoints())
-				{
-					HitBreakpoint("program flow");
-				}
-				return ImplementJP_HL_();
-				break;
-
-			case 0xCB: // Prefix CB
-				switch (ReadMemory(m_PC + 1))
-				{
-					case 0x00: // RLC B
-					case 0x01: // RLC C
-					case 0x02: // RLC D
-					case 0x03: // RLC E
-					case 0x04: // RLC H
-					case 0x05: // RLC L
-					case 0x07: // RLC A
-						return ImplementRLCr();
-						break;
-
-					case 0x06:
-						return ImplementRLC_HL_();
-						break;
-
-					case 0x08: // RRC B
-					case 0x09: // RRC C
-					case 0x0A: // RRC D
-					case 0x0B: // RRC E
-					case 0x0C: // RRC H
-					case 0x0D: // RRC L
-					case 0x0F: // RRC A
-						return ImplementRRCr();
-						break;
-
-					case 0x0E:
-						return ImplementRRC_HL_();
-						break;
-
-					case 0x10: // RL B
-					case 0x11: // RL C
-					case 0x12: // RL D
-					case 0x13: // RL E
-					case 0x14: // RL H
-					case 0x15: // RL L
-					case 0x17: // RL A
-						return ImplementRLr();
-						break;
-
-					case 0x16:
-						return ImplementRL_HL_();
-						break;
-
-					case 0x18: // RR B
-					case 0x19: // RR C
-					case 0x1A: // RR D
-					case 0x1B: // RR E
-					case 0x1C: // RR H
-					case 0x1D: // RR L
-					case 0x1F: // RR A
-						return ImplementRRr();
-						break;
-
-					case 0x1E:
-						return ImplementRR_HL_();
-						break;
-
-					case 0x20: // SLA B
-					case 0x21: // SLA C
-					case 0x22: // SLA D
-					case 0x23: // SLA E
-					case 0x24: // SLA H
-					case 0x25: // SLA L
-					case 0x27: // SLA A
-						return ImplementSLAr();
-						break;
-
-					case 0x26:
-						return ImplementSLA_HL_();
-						break;
-
-					case 0x28: // SRA B
-					case 0x29: // SRA C
-					case 0x2A: // SRA D
-					case 0x2B: // SRA E
-					case 0x2C: // SRA H
-					case 0x2D: // SRA L
-					case 0x2F: // SRA A
-						return ImplementSRAr();
-						break;
-
-					case 0x2E:
-						return ImplementSRA_HL_();
-						break;
-
-					case 0x30: // SLL B
-					case 0x31: // SLL C
-					case 0x32: // SLL D
-					case 0x33: // SLL E
-					case 0x34: // SLL H
-					case 0x35: // SLL L
-					case 0x37: // SLL A
-						return ImplementSLLr();
-						break;
-
-					case 0x36:
-						return ImplementSLL_HL_();
-						break;
-
-					case 0x38: // SRL B
-					case 0x39: // SRL C
-					case 0x3A: // SRL D
-					case 0x3B: // SRL E
-					case 0x3C: // SRL H
-					case 0x3D: // SRL L
-					case 0x3F: // SRL A
-						return ImplementSRLr();
-						break;
-
-					case 0x3E:
-						return ImplementSRL_HL_();
-						break;
-
-					case 0x40: // BIT 0,B
-					case 0x41: // BIT 0,C
-					case 0x42: // BIT 0,D
-					case 0x43: // BIT 0,E
-					case 0x44: // BIT 0,H
-					case 0x45: // BIT 0,L
-					case 0x47: // BIT 0,A
-					case 0x48: // BIT 1,B
-					case 0x49: // BIT 1,C
-					case 0x4A: // BIT 1,D
-					case 0x4B: // BIT 1,E
-					case 0x4C: // BIT 1,H
-					case 0x4D: // BIT 1,L
-					case 0x4F: // BIT 1,A
-					case 0x50: // BIT 2,B
-					case 0x51: // BIT 2,C
-					case 0x52: // BIT 2,D
-					case 0x53: // BIT 2,E
-					case 0x54: // BIT 2,H
-					case 0x55: // BIT 2,L
-					case 0x57: // BIT 2,A
-					case 0x58: // BIT 3,B
-					case 0x59: // BIT 3,C
-					case 0x5A: // BIT 3,D
-					case 0x5B: // BIT 3,E
-					case 0x5C: // BIT 3,H
-					case 0x5D: // BIT 3,L
-					case 0x5F: // BIT 3,A
-					case 0x60: // BIT 4,B
-					case 0x61: // BIT 4,C
-					case 0x62: // BIT 4,D
-					case 0x63: // BIT 4,E
-					case 0x64: // BIT 4,H
-					case 0x65: // BIT 4,L
-					case 0x67: // BIT 4,A
-					case 0x68: // BIT 5,B
-					case 0x69: // BIT 5,C
-					case 0x6A: // BIT 5,D
-					case 0x6B: // BIT 5,E
-					case 0x6C: // BIT 5,H
-					case 0x6D: // BIT 5,L
-					case 0x6F: // BIT 5,A
-					case 0x70: // BIT 6,B
-					case 0x71: // BIT 6,C
-					case 0x72: // BIT 6,D
-					case 0x73: // BIT 6,E
-					case 0x74: // BIT 6,H
-					case 0x75: // BIT 6,L
-					case 0x77: // BIT 6,A
-					case 0x78: // BIT 7,B
-					case 0x79: // BIT 7,C
-					case 0x7A: // BIT 7,D
-					case 0x7B: // BIT 7,E
-					case 0x7C: // BIT 7,H
-					case 0x7D: // BIT 7,L
-					case 0x7F: // BIT 7,A
-						return ImplementBITbr();
-						break;
-
-					case 0x46: // BIT 0,(HL)
-					case 0x4E: // BIT 1,(HL)
-					case 0x56: // BIT 2,(HL)
-					case 0x5E: // BIT 3,(HL)
-					case 0x66: // BIT 4,(HL)
-					case 0x6E: // BIT 5,(HL)
-					case 0x76: // BIT 6,(HL)
-					case 0x7E: // BIT 7,(HL)
-						return ImplementBITb_HL_();
-						break;
-
-					case 0x80: // RES 0,B
-					case 0x81: // RES 0,C
-					case 0x82: // RES 0,D
-					case 0x83: // RES 0,E
-					case 0x84: // RES 0,H
-					case 0x85: // RES 0,L
-					case 0x87: // RES 0,A
-					case 0x88: // RES 1,B
-					case 0x89: // RES 1,C
-					case 0x8A: // RES 1,D
-					case 0x8B: // RES 1,E
-					case 0x8C: // RES 1,H
-					case 0x8D: // RES 1,L
-					case 0x8F: // RES 1,A
-					case 0x90: // RES 2,B
-					case 0x91: // RES 2,C
-					case 0x92: // RES 2,D
-					case 0x93: // RES 2,E
-					case 0x94: // RES 2,H
-					case 0x95: // RES 2,L
-					case 0x97: // RES 2,A
-					case 0x98: // RES 3,B
-					case 0x99: // RES 3,C
-					case 0x9A: // RES 3,D
-					case 0x9B: // RES 3,E
-					case 0x9C: // RES 3,H
-					case 0x9D: // RES 3,L
-					case 0x9F: // RES 3,A
-					case 0xA0: // RES 4,B
-					case 0xA1: // RES 4,C
-					case 0xA2: // RES 4,D
-					case 0xA3: // RES 4,E
-					case 0xA4: // RES 4,H
-					case 0xA5: // RES 4,L
-					case 0xA7: // RES 4,A
-					case 0xA8: // RES 5,B
-					case 0xA9: // RES 5,C
-					case 0xAA: // RES 5,D
-					case 0xAB: // RES 5,E
-					case 0xAC: // RES 5,H
-					case 0xAD: // RES 5,L
-					case 0xAF: // RES 5,A
-					case 0xB0: // RES 6,B
-					case 0xB1: // RES 6,C
-					case 0xB2: // RES 6,D
-					case 0xB3: // RES 6,E
-					case 0xB4: // RES 6,H
-					case 0xB5: // RES 6,L
-					case 0xB7: // RES 6,A
-					case 0xB8: // RES 7,B
-					case 0xB9: // RES 7,C
-					case 0xBA: // RES 7,D
-					case 0xBB: // RES 7,E
-					case 0xBC: // RES 7,H
-					case 0xBD: // RES 7,L
-					case 0xBF: // RES 7,A
-						return ImplementRESbr();
-						break;
-
-					case 0x86: // RES 0,(HL)
-					case 0x8E: // RES 1,(HL)
-					case 0x96: // RES 2,(HL)
-					case 0x9E: // RES 3,(HL)
-					case 0xA6: // RES 4,(HL)
-					case 0xAE: // RES 5,(HL)
-					case 0xB6: // RES 6,(HL)
-					case 0xBE: // RES 7,(HL)
-						return ImplementRESb_HL_();
-						break;
-
-					case 0xC0: // SET 0,B
-					case 0xC1: // SET 0,C
-					case 0xC2: // SET 0,D
-					case 0xC3: // SET 0,E
-					case 0xC4: // SET 0,H
-					case 0xC5: // SET 0,L
-					case 0xC7: // SET 0,A
-					case 0xC8: // SET 1,B
-					case 0xC9: // SET 1,C
-					case 0xCA: // SET 1,D
-					case 0xCB: // SET 1,E
-					case 0xCC: // SET 1,H
-					case 0xCD: // SET 1,L
-					case 0xCF: // SET 1,A
-					case 0xD0: // SET 2,B
-					case 0xD1: // SET 2,C
-					case 0xD2: // SET 2,D
-					case 0xD3: // SET 2,E
-					case 0xD4: // SET 2,H
-					case 0xD5: // SET 2,L
-					case 0xD7: // SET 2,A
-					case 0xD8: // SET 3,B
-					case 0xD9: // SET 3,C
-					case 0xDA: // SET 3,D
-					case 0xDB: // SET 3,E
-					case 0xDC: // SET 3,H
-					case 0xDD: // SET 3,L
-					case 0xDF: // SET 3,A
-					case 0xE0: // SET 4,B
-					case 0xE1: // SET 4,C
-					case 0xE2: // SET 4,D
-					case 0xE3: // SET 4,E
-					case 0xE4: // SET 4,H
-					case 0xE5: // SET 4,L
-					case 0xE7: // SET 4,A
-					case 0xE8: // SET 5,B
-					case 0xE9: // SET 5,C
-					case 0xEA: // SET 5,D
-					case 0xEB: // SET 5,E
-					case 0xEC: // SET 5,H
-					case 0xED: // SET 5,L
-					case 0xEF: // SET 5,A
-					case 0xF0: // SET 6,B
-					case 0xF1: // SET 6,C
-					case 0xF2: // SET 6,D
-					case 0xF3: // SET 6,E
-					case 0xF4: // SET 6,H
-					case 0xF5: // SET 6,L
-					case 0xF7: // SET 6,A
-					case 0xF8: // SET 7,B
-					case 0xF9: // SET 7,C
-					case 0xFA: // SET 7,D
-					case 0xFB: // SET 7,E
-					case 0xFC: // SET 7,H
-					case 0xFD: // SET 7,L
-					case 0xFF: // SET 7,A
-						return ImplementSETbr();
-						break;
-
-					case 0xC6: // SET 0,(HL)
-					case 0xCE: // SET 1,(HL)
-					case 0xD6: // SET 2,(HL)
-					case 0xDE: // SET 3,(HL)
-					case 0xE6: // SET 4,(HL)
-					case 0xEE: // SET 5,(HL)
-					case 0xF6: // SET 6,(HL)
-					case 0xFE: // SET 7,(HL)
-						return ImplementSETb_HL_();
-						break;
+	IncrementR(1);
+	switch (ReadMemory(m_PC))
+	{
+		case 0x00:
+			return ImplementNOP();
+			break;
+
+		case 0x10:
+			if (GetEnableProgramFlowBreakpoints())
+			{
+				HitBreakpoint("program flow");
+			}
+			return ImplementDJNZe();
+			break;
+
+		case 0x20:
+			if (GetEnableProgramFlowBreakpoints())
+			{
+				HitBreakpoint("program flow");
+			}
+			return ImplementJRNZe();
+			break;
+
+		case 0x30:
+			if (GetEnableProgramFlowBreakpoints())
+			{
+				HitBreakpoint("program flow");
+			}
+			return ImplementJRNCe();
+			break;
+
+		case 0x01: // LD BC,nn
+		case 0x11: // LD DE,nn
+		case 0x21: // LD HL,nn
+		case 0x31: // LD SP,nn
+			return ImplementLDddnn();
+			break;
+
+		case 0x02:
+			return ImplementLD_BC_A();
+			break;
+
+		case 0x12:
+			return ImplementLD_DE_A();
+			break;
+
+		case 0x22:
+			return ImplementLD_nn_HL();
+			break;
+
+		case 0x32:
+			return ImplementLD_nn_A();
+			break;
+
+		case 0x03: // INC BC
+		case 0x13: // INC DE
+		case 0x23: // INC HL
+		case 0x33: // INC SP
+			return ImplementINCdd();
+			break;
+
+		case 0x04: // INC B
+		case 0x14: // INC D
+		case 0x24: // INC H
+		case 0x0C: // INC C
+		case 0x1C: // INC E
+		case 0x2C: // INC L
+		case 0x3C: // INC A
+			return ImplementINCr();
+			break;
+
+		case 0x34:
+			return ImplementINC_HL_();
+			break;
+
+		case 0x05: // DEC B
+		case 0x15: // DEC D
+		case 0x25: // DEC H
+		case 0x0D: // DEC C
+		case 0x1D: // DEC E
+		case 0x2D: // DEC L
+		case 0x3D: // DEC A
+			return ImplementDECr();
+			break;
+
+		case 0x35:
+			return ImplementDEC_HL_();
+			break;
+
+		case 0x06: // LD B,n
+		case 0x16: // LD D,n
+		case 0x26: // LD H,n
+		case 0x0E: // LD C,n
+		case 0x1E: // LD E,n
+		case 0x2E: // LD L,n
+		case 0x3E: // LD A,n
+			return ImplementLDrn();
+			break;
+
+		case 0x36:
+			return ImplementLD_HL_n();
+			break;
+
+		case 0x07:
+			return ImplementRLCA();
+			break;
+
+		case 0x17:
+			return ImplementRLA();
+			break;
+
+		case 0x27:
+			return ImplementDAA();
+			break;
+
+		case 0x37:
+			return ImplementSCF();
+			break;
+
+		case 0x08:
+			return ImplementEXAFAF();
+			break;
+
+		case 0x18:
+			if (GetEnableProgramFlowBreakpoints())
+			{
+				HitBreakpoint("program flow");
+			}
+			return ImplementJRe();
+			break;
+
+		case 0x28:
+			if (GetEnableProgramFlowBreakpoints())
+			{
+				HitBreakpoint("program flow");
+			}
+			return ImplementJRZe();
+			break;
+
+		case 0x38:
+			if (GetEnableProgramFlowBreakpoints())
+			{
+				HitBreakpoint("program flow");
+			}
+			return ImplementJRCe();
+			break;
+
+		case 0x09: // ADD HL,BC
+		case 0x19: // ADD HL,DE
+		case 0x29: // ADD HL,HL
+		case 0x39: // ADD HL,SP
+			return ImplementADDHLdd();
+			break;
+
+		case 0x0A:
+			return ImplementLDA_BC_();
+			break;
+
+		case 0x1A:
+			return ImplementLDA_DE_();
+			break;
+
+		case 0x2A:
+			return ImplementLDHL_nn_();
+			break;
+
+		case 0x3A:
+			return ImplementLDA_nn_();
+			break;
+
+		case 0x0B: // DEC BC
+		case 0x1B: // DEC DE
+		case 0x2B: // DEC HL
+		case 0x3B: // DEC SP
+			return ImplementDECdd();
+			break;
+
+		case 0x0F:
+			return ImplementRRCA();
+			break;
+
+		case 0x1F:
+			return ImplementRRA();
+			break;
+
+		case 0x2F:
+			return ImplementCPL();
+			break;
+
+		case 0x3F:
+			return ImplementCCF();
+			break;
+
+		case 0x40: // LD B,B
+		case 0x41: // LD B,C
+		case 0x42: // LD B,D
+		case 0x43: // LD B,E
+		case 0x44: // LD B,H
+		case 0x45: // LD B,L
+		case 0x47: // LD B,A
+		case 0x50: // LD D,B
+		case 0x51: // LD D,C
+		case 0x52: // LD D,D
+		case 0x53: // LD D,E
+		case 0x54: // LD D,H
+		case 0x55: // LD D,L
+		case 0x57: // LD D,A
+		case 0x60: // LD H,B
+		case 0x61: // LD H,C
+		case 0x62: // LD H,D
+		case 0x63: // LD H,E
+		case 0x64: // LD H,H
+		case 0x65: // LD H,L
+		case 0x67: // LD H,A
+		case 0x48: // LD C,B
+		case 0x49: // LD C,C
+		case 0x4A: // LD C,D
+		case 0x4B: // LD C,E
+		case 0x4C: // LD C,H
+		case 0x4D: // LD C,L
+		case 0x4F: // LD C,A
+		case 0x58: // LD E,B
+		case 0x59: // LD E,C
+		case 0x5A: // LD E,D
+		case 0x5B: // LD E,E
+		case 0x5C: // LD E,H
+		case 0x5D: // LD E,L
+		case 0x5F: // LD E,A
+		case 0x68: // LD L,B
+		case 0x69: // LD L,C
+		case 0x6A: // LD L,D
+		case 0x6B: // LD L,E
+		case 0x6C: // LD L,H
+		case 0x6D: // LD L,L
+		case 0x6F: // LD L,A
+		case 0x78: // LD A,B
+		case 0x79: // LD A,C
+		case 0x7A: // LD A,D
+		case 0x7B: // LD A,E
+		case 0x7C: // LD A,H
+		case 0x7D: // LD A,L
+		case 0x7F: // LD A,A
+			return ImplementLDrr();
+			break;
+
+		case 0x46: // LD B,(HL)
+		case 0x56: // LD D,(HL)
+		case 0x66: // LD H,(HL)
+		case 0x4E: // LD C,(HL)
+		case 0x5E: // LD E,(HL)
+		case 0x6E: // LD L,(HL)
+		case 0x7E: // LD A,(HL)
+			return ImplementLDr_HL_();
+			break;
+
+		case 0x70: // LD (HL),B
+		case 0x71: // LD (HL),C
+		case 0x72: // LD (HL),D
+		case 0x73: // LD (HL),E
+		case 0x74: // LD (HL),H
+		case 0x75: // LD (HL),L
+		case 0x77: // LD (HL),A
+			return ImplementLD_HL_r();
+			break;
+
+		case 0x76:
+			return ImplementHALT();
+			break;
+
+		case 0x80: // ADD A,B
+		case 0x81: // ADD A,C
+		case 0x82: // ADD A,D
+		case 0x83: // ADD A,E
+		case 0x84: // ADD A,H
+		case 0x85: // ADD A,L
+		case 0x87: // ADD A,A
+			return ImplementADDAr();
+			break;
+
+		case 0x86:
+			return ImplementADDA_HL_();
+			break;
+
+		case 0x90: // SUB A,B
+		case 0x91: // SUB A,C
+		case 0x92: // SUB A,D
+		case 0x93: // SUB A,E
+		case 0x94: // SUB A,H
+		case 0x95: // SUB A,L
+		case 0x97: // SUB A,A
+			return ImplementSUBr();
+			break;
+
+		case 0x96:
+			return ImplementSUB_HL_();
+			break;
+
+		case 0xA0: // AND A,B
+		case 0xA1: // AND A,C
+		case 0xA2: // AND A,D
+		case 0xA3: // AND A,E
+		case 0xA4: // AND A,H
+		case 0xA5: // AND A,L
+		case 0xA7: // AND A,A
+			return ImplementANDr();
+			break;
+
+		case 0xA6:
+			return ImplementAND_HL_();
+			break;
+
+		case 0xB0: // OR A,B
+		case 0xB1: // OR A,C
+		case 0xB2: // OR A,D
+		case 0xB3: // OR A,E
+		case 0xB4: // OR A,H
+		case 0xB5: // OR A,L
+		case 0xB7: // OR A,A
+			return ImplementORr();
+			break;
+
+		case 0xB6:
+			return ImplementOR_HL_();
+			break;
+
+		case 0x88: // ADC A,B
+		case 0x89: // ADC A,C
+		case 0x8A: // ADC A,D
+		case 0x8B: // ADC A,E
+		case 0x8C: // ADC A,H
+		case 0x8D: // ADC A,L
+		case 0x8F: // ADC A,A
+			return ImplementADCAr();
+			break;
+
+		case 0x8E:
+			return ImplementADCA_HL_();
+			break;
+
+		case 0x98: // SBC A,B
+		case 0x99: // SBC A,C
+		case 0x9A: // SBC A,D
+		case 0x9B: // SBC A,E
+		case 0x9C: // SBC A,H
+		case 0x9D: // SBC A,L
+		case 0x9F: // SBC A,A
+			return ImplementSBCAr();
+			break;
+
+		case 0x9E:
+			return ImplementSBCA_HL_();
+			break;
+
+		case 0xA8: // XOR A,B
+		case 0xA9: // XOR A,C
+		case 0xAA: // XOR A,D
+		case 0xAB: // XOR A,E
+		case 0xAC: // XOR A,H
+		case 0xAD: // XOR A,L
+		case 0xAF: // XOR A,A
+			return ImplementXORr();
+			break;
+
+		case 0xAE:
+			return ImplementXOR_HL_();
+			break;
+
+		case 0xB8: // CP A,B
+		case 0xB9: // CP A,C
+		case 0xBA: // CP A,D
+		case 0xBB: // CP A,E
+		case 0xBC: // CP A,H
+		case 0xBD: // CP A,L
+		case 0xBF: // CP A,A
+			return ImplementCPr();
+			break;
+
+		case 0xBE:
+			return ImplementCP_HL_();
+			break;
+
+		case 0xC0: // RET NZ
+		case 0xD0: // RET NC
+		case 0xE0: // RET PO
+		case 0xF0: // RET P
+		case 0xC8: // RET Z
+		case 0xD8: // RET C
+		case 0xE8: // RET PE
+		case 0xF8: // RET M
+			if (GetEnableProgramFlowBreakpoints())
+			{
+				HitBreakpoint("program flow");
+			}
+			return ImplementRETcc();
+			break;
+
+		case 0xC1: // POP BC
+		case 0xD1: // POP DE
+		case 0xE1: // POP HL
+			return ImplementPOPqq();
+			break;
+
+		case 0xF1: // POP AF
+			return ImplementPOPAF();
+			break;
+
+		case 0xC2: // JP NZ,nn
+		case 0xD2: // JP NC,nn
+		case 0xE2: // JP PO,nn
+		case 0xF2: // JP P,nn
+		case 0xCA: // JP Z,nn
+		case 0xDA: // JP C,nn
+		case 0xEA: // JP PE,nn
+		case 0xFA: // JP M,nn
+			if (GetEnableProgramFlowBreakpoints())
+			{
+				HitBreakpoint("program flow");
+			}
+			return ImplementJPccnn();
+			break;
+
+		case 0xC3:
+			if (GetEnableProgramFlowBreakpoints())
+			{
+				HitBreakpoint("program flow");
+			}
+			return ImplementJPnn();
+			break;
+
+		case 0xD3:
+			return ImplementOUT_n_A();
+			break;
+
+		case 0xE3:
+			return ImplementEX_SP_HL();
+			break;
+
+		case 0xF3:
+			return ImplementDI();
+			break;
+
+		case 0xC4: // CALL NZ,nn
+		case 0xD4: // CALL NC,nn
+		case 0xE4: // CALL PO,nn
+		case 0xF4: // CALL P,nn
+		case 0xCC: // CALL Z,nn
+		case 0xDC: // CALL C,nn
+		case 0xEC: // CALL PE,nn
+		case 0xFC: // CALL M,nn
+			if (GetEnableProgramFlowBreakpoints())
+			{
+				HitBreakpoint("program flow");
+			}
+			return ImplementCALLccnn();
+			break;
+
+		case 0xC5: // PUSH BC
+		case 0xD5: // PUSH DE
+		case 0xE5: // PUSH HL
+			return ImplementPUSHqq();
+			break;
+
+		case 0xF5: // PUSH AF
+			return ImplementPUSHAF();
+			break;
+
+		case 0xC6:
+			return ImplementADDAn();
+			break;
+
+		case 0xD6:
+			return ImplementSUBn();
+			break;
+
+		case 0xE6:
+			return ImplementANDn();
+			break;
+
+		case 0xF6:
+			return ImplementORn();
+			break;
+
+		case 0xC7: // RST 0
+		case 0xCF: // RST 8
+		case 0xD7: // RST 16
+		case 0xDF: // RST 24
+		case 0xE7: // RST 32
+		case 0xEF: // RST 40
+		case 0xF7: // RST 48
+		case 0xFF: // RST 56
+			if (GetEnableProgramFlowBreakpoints())
+			{
+				HitBreakpoint("program flow");
+			}
+			return ImplementRSTp();
+			break;
+
+		case 0xC9:
+			if (GetEnableProgramFlowBreakpoints())
+			{
+				HitBreakpoint("program flow");
+			}
+			return ImplementRET();
+			break;
+
+		case 0xD9:
+			return ImplementEXX();
+			break;
+
+		case 0xE9:
+			if (GetEnableProgramFlowBreakpoints())
+			{
+				HitBreakpoint("program flow");
+			}
+			return ImplementJP_HL_();
+			break;
+
+		case 0xCB: // Prefix CB
+			IncrementR(1);
+			switch (ReadMemory(m_PC + 1))
+			{
+				case 0x00: // RLC B
+				case 0x01: // RLC C
+				case 0x02: // RLC D
+				case 0x03: // RLC E
+				case 0x04: // RLC H
+				case 0x05: // RLC L
+				case 0x07: // RLC A
+					return ImplementRLCr();
+					break;
+
+				case 0x06:
+					return ImplementRLC_HL_();
+					break;
+
+				case 0x08: // RRC B
+				case 0x09: // RRC C
+				case 0x0A: // RRC D
+				case 0x0B: // RRC E
+				case 0x0C: // RRC H
+				case 0x0D: // RRC L
+				case 0x0F: // RRC A
+					return ImplementRRCr();
+					break;
+
+				case 0x0E:
+					return ImplementRRC_HL_();
+					break;
+
+				case 0x10: // RL B
+				case 0x11: // RL C
+				case 0x12: // RL D
+				case 0x13: // RL E
+				case 0x14: // RL H
+				case 0x15: // RL L
+				case 0x17: // RL A
+					return ImplementRLr();
+					break;
+
+				case 0x16:
+					return ImplementRL_HL_();
+					break;
+
+				case 0x18: // RR B
+				case 0x19: // RR C
+				case 0x1A: // RR D
+				case 0x1B: // RR E
+				case 0x1C: // RR H
+				case 0x1D: // RR L
+				case 0x1F: // RR A
+					return ImplementRRr();
+					break;
+
+				case 0x1E:
+					return ImplementRR_HL_();
+					break;
+
+				case 0x20: // SLA B
+				case 0x21: // SLA C
+				case 0x22: // SLA D
+				case 0x23: // SLA E
+				case 0x24: // SLA H
+				case 0x25: // SLA L
+				case 0x27: // SLA A
+					return ImplementSLAr();
+					break;
+
+				case 0x26:
+					return ImplementSLA_HL_();
+					break;
+
+				case 0x28: // SRA B
+				case 0x29: // SRA C
+				case 0x2A: // SRA D
+				case 0x2B: // SRA E
+				case 0x2C: // SRA H
+				case 0x2D: // SRA L
+				case 0x2F: // SRA A
+					return ImplementSRAr();
+					break;
+
+				case 0x2E:
+					return ImplementSRA_HL_();
+					break;
+
+				case 0x30: // SLL B
+				case 0x31: // SLL C
+				case 0x32: // SLL D
+				case 0x33: // SLL E
+				case 0x34: // SLL H
+				case 0x35: // SLL L
+				case 0x37: // SLL A
+					return ImplementSLLr();
+					break;
+
+				case 0x36:
+					return ImplementSLL_HL_();
+					break;
+
+				case 0x38: // SRL B
+				case 0x39: // SRL C
+				case 0x3A: // SRL D
+				case 0x3B: // SRL E
+				case 0x3C: // SRL H
+				case 0x3D: // SRL L
+				case 0x3F: // SRL A
+					return ImplementSRLr();
+					break;
+
+				case 0x3E:
+					return ImplementSRL_HL_();
+					break;
+
+				case 0x40: // BIT 0,B
+				case 0x41: // BIT 0,C
+				case 0x42: // BIT 0,D
+				case 0x43: // BIT 0,E
+				case 0x44: // BIT 0,H
+				case 0x45: // BIT 0,L
+				case 0x47: // BIT 0,A
+				case 0x48: // BIT 1,B
+				case 0x49: // BIT 1,C
+				case 0x4A: // BIT 1,D
+				case 0x4B: // BIT 1,E
+				case 0x4C: // BIT 1,H
+				case 0x4D: // BIT 1,L
+				case 0x4F: // BIT 1,A
+				case 0x50: // BIT 2,B
+				case 0x51: // BIT 2,C
+				case 0x52: // BIT 2,D
+				case 0x53: // BIT 2,E
+				case 0x54: // BIT 2,H
+				case 0x55: // BIT 2,L
+				case 0x57: // BIT 2,A
+				case 0x58: // BIT 3,B
+				case 0x59: // BIT 3,C
+				case 0x5A: // BIT 3,D
+				case 0x5B: // BIT 3,E
+				case 0x5C: // BIT 3,H
+				case 0x5D: // BIT 3,L
+				case 0x5F: // BIT 3,A
+				case 0x60: // BIT 4,B
+				case 0x61: // BIT 4,C
+				case 0x62: // BIT 4,D
+				case 0x63: // BIT 4,E
+				case 0x64: // BIT 4,H
+				case 0x65: // BIT 4,L
+				case 0x67: // BIT 4,A
+				case 0x68: // BIT 5,B
+				case 0x69: // BIT 5,C
+				case 0x6A: // BIT 5,D
+				case 0x6B: // BIT 5,E
+				case 0x6C: // BIT 5,H
+				case 0x6D: // BIT 5,L
+				case 0x6F: // BIT 5,A
+				case 0x70: // BIT 6,B
+				case 0x71: // BIT 6,C
+				case 0x72: // BIT 6,D
+				case 0x73: // BIT 6,E
+				case 0x74: // BIT 6,H
+				case 0x75: // BIT 6,L
+				case 0x77: // BIT 6,A
+				case 0x78: // BIT 7,B
+				case 0x79: // BIT 7,C
+				case 0x7A: // BIT 7,D
+				case 0x7B: // BIT 7,E
+				case 0x7C: // BIT 7,H
+				case 0x7D: // BIT 7,L
+				case 0x7F: // BIT 7,A
+					return ImplementBITbr();
+					break;
+
+				case 0x46: // BIT 0,(HL)
+				case 0x4E: // BIT 1,(HL)
+				case 0x56: // BIT 2,(HL)
+				case 0x5E: // BIT 3,(HL)
+				case 0x66: // BIT 4,(HL)
+				case 0x6E: // BIT 5,(HL)
+				case 0x76: // BIT 6,(HL)
+				case 0x7E: // BIT 7,(HL)
+					return ImplementBITb_HL_();
+					break;
+
+				case 0x80: // RES 0,B
+				case 0x81: // RES 0,C
+				case 0x82: // RES 0,D
+				case 0x83: // RES 0,E
+				case 0x84: // RES 0,H
+				case 0x85: // RES 0,L
+				case 0x87: // RES 0,A
+				case 0x88: // RES 1,B
+				case 0x89: // RES 1,C
+				case 0x8A: // RES 1,D
+				case 0x8B: // RES 1,E
+				case 0x8C: // RES 1,H
+				case 0x8D: // RES 1,L
+				case 0x8F: // RES 1,A
+				case 0x90: // RES 2,B
+				case 0x91: // RES 2,C
+				case 0x92: // RES 2,D
+				case 0x93: // RES 2,E
+				case 0x94: // RES 2,H
+				case 0x95: // RES 2,L
+				case 0x97: // RES 2,A
+				case 0x98: // RES 3,B
+				case 0x99: // RES 3,C
+				case 0x9A: // RES 3,D
+				case 0x9B: // RES 3,E
+				case 0x9C: // RES 3,H
+				case 0x9D: // RES 3,L
+				case 0x9F: // RES 3,A
+				case 0xA0: // RES 4,B
+				case 0xA1: // RES 4,C
+				case 0xA2: // RES 4,D
+				case 0xA3: // RES 4,E
+				case 0xA4: // RES 4,H
+				case 0xA5: // RES 4,L
+				case 0xA7: // RES 4,A
+				case 0xA8: // RES 5,B
+				case 0xA9: // RES 5,C
+				case 0xAA: // RES 5,D
+				case 0xAB: // RES 5,E
+				case 0xAC: // RES 5,H
+				case 0xAD: // RES 5,L
+				case 0xAF: // RES 5,A
+				case 0xB0: // RES 6,B
+				case 0xB1: // RES 6,C
+				case 0xB2: // RES 6,D
+				case 0xB3: // RES 6,E
+				case 0xB4: // RES 6,H
+				case 0xB5: // RES 6,L
+				case 0xB7: // RES 6,A
+				case 0xB8: // RES 7,B
+				case 0xB9: // RES 7,C
+				case 0xBA: // RES 7,D
+				case 0xBB: // RES 7,E
+				case 0xBC: // RES 7,H
+				case 0xBD: // RES 7,L
+				case 0xBF: // RES 7,A
+					return ImplementRESbr();
+					break;
+
+				case 0x86: // RES 0,(HL)
+				case 0x8E: // RES 1,(HL)
+				case 0x96: // RES 2,(HL)
+				case 0x9E: // RES 3,(HL)
+				case 0xA6: // RES 4,(HL)
+				case 0xAE: // RES 5,(HL)
+				case 0xB6: // RES 6,(HL)
+				case 0xBE: // RES 7,(HL)
+					return ImplementRESb_HL_();
+					break;
+
+				case 0xC0: // SET 0,B
+				case 0xC1: // SET 0,C
+				case 0xC2: // SET 0,D
+				case 0xC3: // SET 0,E
+				case 0xC4: // SET 0,H
+				case 0xC5: // SET 0,L
+				case 0xC7: // SET 0,A
+				case 0xC8: // SET 1,B
+				case 0xC9: // SET 1,C
+				case 0xCA: // SET 1,D
+				case 0xCB: // SET 1,E
+				case 0xCC: // SET 1,H
+				case 0xCD: // SET 1,L
+				case 0xCF: // SET 1,A
+				case 0xD0: // SET 2,B
+				case 0xD1: // SET 2,C
+				case 0xD2: // SET 2,D
+				case 0xD3: // SET 2,E
+				case 0xD4: // SET 2,H
+				case 0xD5: // SET 2,L
+				case 0xD7: // SET 2,A
+				case 0xD8: // SET 3,B
+				case 0xD9: // SET 3,C
+				case 0xDA: // SET 3,D
+				case 0xDB: // SET 3,E
+				case 0xDC: // SET 3,H
+				case 0xDD: // SET 3,L
+				case 0xDF: // SET 3,A
+				case 0xE0: // SET 4,B
+				case 0xE1: // SET 4,C
+				case 0xE2: // SET 4,D
+				case 0xE3: // SET 4,E
+				case 0xE4: // SET 4,H
+				case 0xE5: // SET 4,L
+				case 0xE7: // SET 4,A
+				case 0xE8: // SET 5,B
+				case 0xE9: // SET 5,C
+				case 0xEA: // SET 5,D
+				case 0xEB: // SET 5,E
+				case 0xEC: // SET 5,H
+				case 0xED: // SET 5,L
+				case 0xEF: // SET 5,A
+				case 0xF0: // SET 6,B
+				case 0xF1: // SET 6,C
+				case 0xF2: // SET 6,D
+				case 0xF3: // SET 6,E
+				case 0xF4: // SET 6,H
+				case 0xF5: // SET 6,L
+				case 0xF7: // SET 6,A
+				case 0xF8: // SET 7,B
+				case 0xF9: // SET 7,C
+				case 0xFA: // SET 7,D
+				case 0xFB: // SET 7,E
+				case 0xFC: // SET 7,H
+				case 0xFD: // SET 7,L
+				case 0xFF: // SET 7,A
+					return ImplementSETbr();
+					break;
+
+				case 0xC6: // SET 0,(HL)
+				case 0xCE: // SET 1,(HL)
+				case 0xD6: // SET 2,(HL)
+				case 0xDE: // SET 3,(HL)
+				case 0xE6: // SET 4,(HL)
+				case 0xEE: // SET 5,(HL)
+				case 0xF6: // SET 6,(HL)
+				case 0xFE: // SET 7,(HL)
+					return ImplementSETb_HL_();
+					break;
 
 				default:
 					fprintf(stderr, "[Z80] Unhandled opcode CB %02X at address %04X\n", ReadMemory(m_PC + 1), m_PC);
 					HandleIllegalOpcode();
 					return 0;
 					break;
-				};
-				break;
-
-			case 0xDB:
-				return ImplementINA_n_();
-				break;
-
-			case 0xEB:
-				return ImplementEXDEHL();
-				break;
-
-			case 0xFB:
-				return ImplementEI();
-				break;
-
-			case 0xF9:
-				return ImplementLDSPHL();
-				break;
-
-			case 0xCD:
-				if (GetEnableProgramFlowBreakpoints())
-				{
-					HitBreakpoint("program flow");
-				}
-				return ImplementCALLnn();
-				break;
-
-			case 0xDD: // Prefix DD
-				switch (ReadMemory(m_PC + 1))
-				{
-					case 0x09: // ADD IX,BC
-					case 0x19: // ADD IX,DE
-					case 0x29: // ADD IX,HL
-					case 0x39: // ADD IX,SP
-						return ImplementADDIXdd();
-						break;
-
-					case 0x21:
-						return ImplementLDIXnn();
-						break;
-
-					case 0x22:
-						return ImplementLD_nn_IX();
-						break;
-
-					case 0x23:
-						return ImplementINCIX();
-						break;
-
-					case 0x24: // INC IXh
-						return ImplementINCIXh();
-						break;
-
-					case 0x25: // DEC IXh
-						return ImplementDECIXh();
-						break;
-
-					case 0x26: // LD IXh,n
-						return ImplementLDIXhn();
-						break;
-
-					case 0x2A:
-						return ImplementLDIX_nn_();
-						break;
-
-					case 0x2B:
-						return ImplementDECIX();
-						break;
-
-					case 0x2C: // INC IXl 
-						return ImplementINCIXl();
-						break;
-
-					case 0x2D: // DEC IXl
-						return ImplementDECIXl();
-						break;
-
-					case 0x2E: // LD IXl,n
-						return ImplementLDIXln();
-						break;
-
-					case 0x34:
-						return ImplementINC_IXd_();
-						break;
-
-					case 0x35:
-						return ImplementDEC_IXd_();
-						break;
-
-					case 0x36:
-						return ImplementLD_IXd_n();
-						break;
-
-					case 0x40: // LD B,B
-					case 0x41: // LD B,C
-					case 0x42: // LD B,D
-					case 0x43: // LD B,E
-					case 0x47: // LD B,A
-					case 0x50: // LD D,B
-					case 0x51: // LD D,C
-					case 0x52: // LD D,D
-					case 0x53: // LD D,E
-					case 0x57: // LD D,A
-					case 0x48: // LD C,B
-					case 0x49: // LD C,C
-					case 0x4A: // LD C,D
-					case 0x4B: // LD C,E
-					case 0x4F: // LD C,A
-					case 0x58: // LD E,B
-					case 0x59: // LD E,C
-					case 0x5A: // LD E,D
-					case 0x5B: // LD E,E
-					case 0x5F: // LD E,A
-					case 0x78: // LD A,B
-					case 0x79: // LD A,C
-					case 0x7A: // LD A,D
-					case 0x7B: // LD A,E
-					case 0x7F: // LD A,A
-						IncrementR(1);
-						return 4 + ImplementLDrr();
-						break;
-
-					case 0x44: // LD B,IXh
-					case 0x54: // LD D,IXh
-					case 0x4C: // LD C,IXh
-					case 0x5C: // LD E,IXh
-					case 0x7C: // LD A,IXh
-						ImplementLDrIXh();
-						break;
-
-					case 0x45: // LD B,IXl
-					case 0x55: // LD D,IXl
-					case 0x4D: // LD C,IXl
-					case 0x5D: // LD E,IXl
-					case 0x7D: // LD A,IXl
-						ImplementLDrIXl();
-						break;
-
-					case 0x46: // LD B,(IX+d)
-					case 0x56: // LD D,(IX+d)
-					case 0x66: // LD H,(IX+d)
-					case 0x4E: // LD C,(IX+d)
-					case 0x5E: // LD E,(IX+d)
-					case 0x6E: // LD L,(IX+d)
-					case 0x7E: // LD A,(IX+d)
-						return ImplementLDr_IXd_();
-						break;
-
-					case 0x60: // LD IXh,B
-					case 0x61: // LD IXh,C
-					case 0x62: // LD IXh,D
-					case 0x63: // LD IXh,E
-					case 0x64: // LD IXh,IXh
-					case 0x65: // LD IXh,IXl
-					case 0x67: // LD IXh,A
-						return ImplementLDIXhr();
-						break;
-
-					case 0x68: // LD IXl,B
-					case 0x69: // LD IXl,C
-					case 0x6A: // LD IXl,D
-					case 0x6B: // LD IXl,E
-					case 0x6C: // LD IXl,IXh
-					case 0x6D: // LD IXl,IXl
-					case 0x6F: // LD IXl,A
-						return ImplementLDIXlr();
-						break;
-
-					case 0x70: // LD (IX+d),B
-					case 0x71: // LD (IX+d),C
-					case 0x72: // LD (IX+d),D
-					case 0x73: // LD (IX+d),E
-					case 0x74: // LD (IX+d),H
-					case 0x75: // LD (IX+d),L
-					case 0x77: // LD (IX+d),A
-						return ImplementLD_IXd_r();
-						break;
-
-					case 0x84: // ADD A,IXh
-						return ImplementADDAIXh();
-						break;
-
-					case 0x85: // ADD A,IXl
-						return ImplementADDAIXl();
-						break;
-
-					case 0x86:
-						return ImplementADDA_IXd_();
-						break;
-
-					case 0x8C: // ADC A,IXh
-						return ImplementADCAIXh();
-						break;
-
-					case 0x8D: // ADC A,IXl
-						return ImplementADCAIXl();
-						break;
-
-					case 0x8E:
-						return ImplementADCA_IXd_();
-						break;
-
-					case 0x94: // SUB IXh
-						return ImplementSUBIXh();
-						break;
-
-					case 0x95: // SUB IXl
-						return ImplementSUBIXl();
-						break;
-
-					case 0x9C: // SBC A,IXh
-						return ImplementSBCAIXh();
-						break;
-
-					case 0x9D: // SBC A,IXl
-						return ImplementSBCAIXl();
-						break;
-
-					case 0x96:
-						return ImplementSUB_IXd_();
-
-					case 0x9E:
-						return ImplementSBCA_IXd_();
-						break;
-
-					case 0xA4: // AND IXh
-						return ImplementANDIXh();
-						break;
-
-					case 0xA5: // AND IXl
-						return ImplementANDIXl();
-						break;
-
-					case 0xA6:
-						return ImplementAND_IXd_();
-						break;
-
-					case 0xB6:
-						return ImplementOR_IXd_();
-						break;
-
-					case 0xBE:
-						return ImplementCP_IXd_();
-						break;
-
-					case 0xAC: // XOR IXh
-						return ImplementXORIXh();
-						break;
-
-					case 0xAD: // XOR IXl
-						return ImplementXORIXl();
-						break;
-
-					case 0xAE:
-						return ImplementXOR_IXd_();
-						break;
-
-					case 0xB4: // OR IXh
-						return ImplementORIXh();
-						break;
-
-					case 0xB5: // OR IXl
-						return ImplementORIXl();
-						break;
-
-					case 0xBC: // CP IXh
-						return ImplementCPIXh();
-						break;
-
-					case 0xBD: // CP IXl
-						return ImplementCPIXl();
-						break;
-
-					case 0xCB: // Prefix CB
-						switch (ReadMemory(m_PC + 3))
-						{
-							case 0x00:
-							case 0x01:
-							case 0x02:
-							case 0x03:
-							case 0x04:
-							case 0x05:
-							case 0x06:
-							case 0x07:
-								return ImplementRLC_IXd_();
-								break;
-
-							case 0x08:
-							case 0x09:
-							case 0x0A:
-							case 0x0B:
-							case 0x0C:
-							case 0x0D:
-							case 0x0E:
-							case 0x0F:
-								return ImplementRRC_IXd_();
-								break;
-
-							case 0x10:
-							case 0x11:
-							case 0x12:
-							case 0x13:
-							case 0x14:
-							case 0x15:
-							case 0x16:
-							case 0x17:
-								return ImplementRL_IXd_();
-								break;
-
-							case 0x18:
-							case 0x19:
-							case 0x1A:
-							case 0x1B:
-							case 0x1C:
-							case 0x1D:
-							case 0x1E:
-							case 0x1F:
-								return ImplementRR_IXd_();
-								break;
-
-							case 0x20:
-							case 0x21:
-							case 0x22:
-							case 0x23:
-							case 0x24:
-							case 0x25:
-							case 0x26:
-							case 0x27:
-								return ImplementSLA_IXd_();
-								break;
-
-							case 0x28:
-							case 0x29:
-							case 0x2A:
-							case 0x2B:
-							case 0x2C:
-							case 0x2D:
-							case 0x2E:
-							case 0x2F:
-								return ImplementSRA_IXd_();
-								break;
-
-							case 0x30:
-							case 0x31:
-							case 0x32:
-							case 0x33:
-							case 0x34:
-							case 0x35:
-							case 0x36:
-							case 0x37:
-								return ImplementSLL_IXd_();
-								break;
-
-							case 0x38:
-							case 0x39:
-							case 0x3A:
-							case 0x3B:
-							case 0x3C:
-							case 0x3D:
-							case 0x3E:
-							case 0x3F:
-								return ImplementSRL_IXd_();
-								break;
-
-							case 0x40:
-							case 0x41:
-							case 0x42:
-							case 0x43:
-							case 0x44:
-							case 0x45:
-							case 0x46: // BIT 0,(IX+d)
-							case 0x47:
-							case 0x48:
-							case 0x49:
-							case 0x4A:
-							case 0x4B:
-							case 0x4C:
-							case 0x4D:
-							case 0x4E: // BIT 1,(IX+d)
-							case 0x4F:
-							case 0x50:
-							case 0x51:
-							case 0x52:
-							case 0x53:
-							case 0x54:
-							case 0x55:
-							case 0x56: // BIT 2,(IX+d)
-							case 0x57:
-							case 0x58:
-							case 0x59:
-							case 0x5A:
-							case 0x5B:
-							case 0x5C:
-							case 0x5D:
-							case 0x5E: // BIT 3,(IX+d)
-							case 0x5F:
-							case 0x60:
-							case 0x61:
-							case 0x62:
-							case 0x63:
-							case 0x64:
-							case 0x65:
-							case 0x66: // BIT 4,(IX+d)
-							case 0x67:
-							case 0x68:
-							case 0x69:
-							case 0x6A:
-							case 0x6B:
-							case 0x6C:
-							case 0x6D:
-							case 0x6E: // BIT 5,(IX+d)
-							case 0x6F:
-							case 0x70:
-							case 0x71:
-							case 0x72:
-							case 0x73:
-							case 0x74:
-							case 0x75:
-							case 0x76: // BIT 6,(IX+d)
-							case 0x77:
-							case 0x78:
-							case 0x79:
-							case 0x7A:
-							case 0x7B:
-							case 0x7C:
-							case 0x7D:
-							case 0x7E: // BIT 7,(IX+d)
-							case 0x7F:
-								return ImplementBITb_IXd_();
-								break;
-
-							case 0x80:
-							case 0x81:
-							case 0x82:
-							case 0x83:
-							case 0x84:
-							case 0x85:
-							case 0x86: // RES 0,(IX+d)
-							case 0x87:
-							case 0x88:
-							case 0x89:
-							case 0x8A:
-							case 0x8B:
-							case 0x8C:
-							case 0x8D:
-							case 0x8E: // RES 1,(IX+d)
-							case 0x8F:
-							case 0x90:
-							case 0x91:
-							case 0x92:
-							case 0x93:
-							case 0x94:
-							case 0x95:
-							case 0x96: // RES 2,(IX+d)
-							case 0x97:
-							case 0x98:
-							case 0x99:
-							case 0x9A:
-							case 0x9B:
-							case 0x9C:
-							case 0x9D:
-							case 0x9E: // RES 3,(IX+d)
-							case 0x9F:
-							case 0xA0:
-							case 0xA1:
-							case 0xA2:
-							case 0xA3:
-							case 0xA4:
-							case 0xA5:
-							case 0xA6: // RES 4,(IX+d)
-							case 0xA7:
-							case 0xA8:
-							case 0xA9:
-							case 0xAA:
-							case 0xAB:
-							case 0xAC:
-							case 0xAD:
-							case 0xAE: // RES 5,(IX+d)
-							case 0xAF:
-							case 0xB0:
-							case 0xB1:
-							case 0xB2:
-							case 0xB3:
-							case 0xB4:
-							case 0xB5:
-							case 0xB6: // RES 6,(IX+d)
-							case 0xB7:
-							case 0xB8:
-							case 0xB9:
-							case 0xBA:
-							case 0xBB:
-							case 0xBC:
-							case 0xBD:
-							case 0xBE: // RES 7,(IX+d)
-							case 0xBF:
-								return ImplementRESb_IXd_();
-								break;
-
-							case 0xC0:
-							case 0xC1:
-							case 0xC2:
-							case 0xC3:
-							case 0xC4:
-							case 0xC5:
-							case 0xC6: // SET 0,(IX+d)
-							case 0xC7:
-							case 0xC8:
-							case 0xC9:
-							case 0xCA:
-							case 0xCB:
-							case 0xCC:
-							case 0xCD:
-							case 0xCE: // SET 1,(IX+d)
-							case 0xCF:
-							case 0xD0:
-							case 0xD1:
-							case 0xD2:
-							case 0xD3:
-							case 0xD4:
-							case 0xD5:
-							case 0xD6: // SET 2,(IX+d)
-							case 0xD7:
-							case 0xD8:
-							case 0xD9:
-							case 0xDA:
-							case 0xDB:
-							case 0xDC:
-							case 0xDD:
-							case 0xDE: // SET 3,(IX+d)
-							case 0xDF:
-							case 0xE0:
-							case 0xE1:
-							case 0xE2:
-							case 0xE3:
-							case 0xE4:
-							case 0xE5:
-							case 0xE6: // SET 4,(IX+d)
-							case 0xE7:
-							case 0xE8:
-							case 0xE9:
-							case 0xEA:
-							case 0xEB:
-							case 0xEC:
-							case 0xED:
-							case 0xEE: // SET 5,(IX+d)
-							case 0xEF:
-							case 0xF0:
-							case 0xF1:
-							case 0xF2:
-							case 0xF3:
-							case 0xF4:
-							case 0xF5:
-							case 0xF6: // SET 6,(IX+d)
-							case 0xF7:
-							case 0xF8:
-							case 0xF9:
-							case 0xFA:
-							case 0xFB:
-							case 0xFC:
-							case 0xFD:
-							case 0xFE: // SET 7,(IX+d)
-							case 0xFF:
-								return ImplementSETb_IXd_();
-								break;
-
-							default:
-								fprintf(stderr, "[Z80] Unhandled opcode DD CB %02X %02X at address %04X\n", ReadMemory(m_PC + 2), ReadMemory(m_PC + 3), m_PC);
-								HandleIllegalOpcode();
-								return 0;
-								break;
-						};
-						break;
-
-					case 0xE1:
-						return ImplementPOPIX();
-						break;
-
-					case 0xE3:
-						return ImplementEX_SP_IX();
-						break;
-
-					case 0xE5:
-						return ImplementPUSHIX();
-						break;
-
-					case 0xE9:
-						if (GetEnableProgramFlowBreakpoints())
-						{
-							HitBreakpoint("program flow");
-						}
-						return ImplementJP_IX_();
-						break;
-
-					case 0xF9:
-						return ImplementLDSPIX();
-						break;
+			};
+			break;
+
+		case 0xDB:
+			return ImplementINA_n_();
+			break;
+
+		case 0xEB:
+			return ImplementEXDEHL();
+			break;
+
+		case 0xFB:
+			return ImplementEI();
+			break;
+
+		case 0xF9:
+			return ImplementLDSPHL();
+			break;
+
+		case 0xCD:
+			if (GetEnableProgramFlowBreakpoints())
+			{
+				HitBreakpoint("program flow");
+			}
+			return ImplementCALLnn();
+			break;
+
+		case 0xDD: // Prefix DD
+			IncrementR(1);
+			switch (ReadMemory(m_PC + 1))
+			{
+				case 0x09: // ADD IX,BC
+				case 0x19: // ADD IX,DE
+				case 0x29: // ADD IX,HL
+				case 0x39: // ADD IX,SP
+					return ImplementADDIXdd();
+					break;
+
+				case 0x21:
+					return ImplementLDIXnn();
+					break;
+
+				case 0x22:
+					return ImplementLD_nn_IX();
+					break;
+
+				case 0x23:
+					return ImplementINCIX();
+					break;
+
+				case 0x24: // INC IXh
+					return ImplementINCIXh();
+					break;
+
+				case 0x25: // DEC IXh
+					return ImplementDECIXh();
+					break;
+
+				case 0x26: // LD IXh,n
+					return ImplementLDIXhn();
+					break;
+
+				case 0x2A:
+					return ImplementLDIX_nn_();
+					break;
+
+				case 0x2B:
+					return ImplementDECIX();
+					break;
+
+				case 0x2C: // INC IXl 
+					return ImplementINCIXl();
+					break;
+
+				case 0x2D: // DEC IXl
+					return ImplementDECIXl();
+					break;
+
+				case 0x2E: // LD IXl,n
+					return ImplementLDIXln();
+					break;
+
+				case 0x34:
+					return ImplementINC_IXd_();
+					break;
+
+				case 0x35:
+					return ImplementDEC_IXd_();
+					break;
+
+				case 0x36:
+					return ImplementLD_IXd_n();
+					break;
+
+				case 0x40: // LD B,B
+				case 0x41: // LD B,C
+				case 0x42: // LD B,D
+				case 0x43: // LD B,E
+				case 0x47: // LD B,A
+				case 0x50: // LD D,B
+				case 0x51: // LD D,C
+				case 0x52: // LD D,D
+				case 0x53: // LD D,E
+				case 0x57: // LD D,A
+				case 0x48: // LD C,B
+				case 0x49: // LD C,C
+				case 0x4A: // LD C,D
+				case 0x4B: // LD C,E
+				case 0x4F: // LD C,A
+				case 0x58: // LD E,B
+				case 0x59: // LD E,C
+				case 0x5A: // LD E,D
+				case 0x5B: // LD E,E
+				case 0x5F: // LD E,A
+				case 0x78: // LD A,B
+				case 0x79: // LD A,C
+				case 0x7A: // LD A,D
+				case 0x7B: // LD A,E
+				case 0x7F: // LD A,A
+					return 4 + ImplementLDrr();
+					break;
+
+				case 0x44: // LD B,IXh
+				case 0x54: // LD D,IXh
+				case 0x4C: // LD C,IXh
+				case 0x5C: // LD E,IXh
+				case 0x7C: // LD A,IXh
+					ImplementLDrIXh();
+					break;
+
+				case 0x45: // LD B,IXl
+				case 0x55: // LD D,IXl
+				case 0x4D: // LD C,IXl
+				case 0x5D: // LD E,IXl
+				case 0x7D: // LD A,IXl
+					ImplementLDrIXl();
+					break;
+
+				case 0x46: // LD B,(IX+d)
+				case 0x56: // LD D,(IX+d)
+				case 0x66: // LD H,(IX+d)
+				case 0x4E: // LD C,(IX+d)
+				case 0x5E: // LD E,(IX+d)
+				case 0x6E: // LD L,(IX+d)
+				case 0x7E: // LD A,(IX+d)
+					return ImplementLDr_IXd_();
+					break;
+
+				case 0x60: // LD IXh,B
+				case 0x61: // LD IXh,C
+				case 0x62: // LD IXh,D
+				case 0x63: // LD IXh,E
+				case 0x64: // LD IXh,IXh
+				case 0x65: // LD IXh,IXl
+				case 0x67: // LD IXh,A
+					return ImplementLDIXhr();
+					break;
+
+				case 0x68: // LD IXl,B
+				case 0x69: // LD IXl,C
+				case 0x6A: // LD IXl,D
+				case 0x6B: // LD IXl,E
+				case 0x6C: // LD IXl,IXh
+				case 0x6D: // LD IXl,IXl
+				case 0x6F: // LD IXl,A
+					return ImplementLDIXlr();
+					break;
+
+				case 0x70: // LD (IX+d),B
+				case 0x71: // LD (IX+d),C
+				case 0x72: // LD (IX+d),D
+				case 0x73: // LD (IX+d),E
+				case 0x74: // LD (IX+d),H
+				case 0x75: // LD (IX+d),L
+				case 0x77: // LD (IX+d),A
+					return ImplementLD_IXd_r();
+					break;
+
+				case 0x84: // ADD A,IXh
+					return ImplementADDAIXh();
+					break;
+
+				case 0x85: // ADD A,IXl
+					return ImplementADDAIXl();
+					break;
+
+				case 0x86:
+					return ImplementADDA_IXd_();
+					break;
+
+				case 0x8C: // ADC A,IXh
+					return ImplementADCAIXh();
+					break;
+
+				case 0x8D: // ADC A,IXl
+					return ImplementADCAIXl();
+					break;
+
+				case 0x8E:
+					return ImplementADCA_IXd_();
+					break;
+
+				case 0x94: // SUB IXh
+					return ImplementSUBIXh();
+					break;
+
+				case 0x95: // SUB IXl
+					return ImplementSUBIXl();
+					break;
+
+				case 0x9C: // SBC A,IXh
+					return ImplementSBCAIXh();
+					break;
+
+				case 0x9D: // SBC A,IXl
+					return ImplementSBCAIXl();
+					break;
+
+				case 0x96:
+					return ImplementSUB_IXd_();
+
+				case 0x9E:
+					return ImplementSBCA_IXd_();
+					break;
+
+				case 0xA4: // AND IXh
+					return ImplementANDIXh();
+					break;
+
+				case 0xA5: // AND IXl
+					return ImplementANDIXl();
+					break;
+
+				case 0xA6:
+					return ImplementAND_IXd_();
+					break;
+
+				case 0xB6:
+					return ImplementOR_IXd_();
+					break;
+
+				case 0xBE:
+					return ImplementCP_IXd_();
+					break;
+
+				case 0xAC: // XOR IXh
+					return ImplementXORIXh();
+					break;
+
+				case 0xAD: // XOR IXl
+					return ImplementXORIXl();
+					break;
+
+				case 0xAE:
+					return ImplementXOR_IXd_();
+					break;
+
+				case 0xB4: // OR IXh
+					return ImplementORIXh();
+					break;
+
+				case 0xB5: // OR IXl
+					return ImplementORIXl();
+					break;
+
+				case 0xBC: // CP IXh
+					return ImplementCPIXh();
+					break;
+
+				case 0xBD: // CP IXl
+					return ImplementCPIXl();
+					break;
+
+				case 0xCB: // Prefix CB
+					switch (ReadMemory(m_PC + 3))
+					{
+						case 0x00:
+						case 0x01:
+						case 0x02:
+						case 0x03:
+						case 0x04:
+						case 0x05:
+						case 0x06:
+						case 0x07:
+							return ImplementRLC_IXd_();
+							break;
+
+						case 0x08:
+						case 0x09:
+						case 0x0A:
+						case 0x0B:
+						case 0x0C:
+						case 0x0D:
+						case 0x0E:
+						case 0x0F:
+							return ImplementRRC_IXd_();
+							break;
+
+						case 0x10:
+						case 0x11:
+						case 0x12:
+						case 0x13:
+						case 0x14:
+						case 0x15:
+						case 0x16:
+						case 0x17:
+							return ImplementRL_IXd_();
+							break;
+
+						case 0x18:
+						case 0x19:
+						case 0x1A:
+						case 0x1B:
+						case 0x1C:
+						case 0x1D:
+						case 0x1E:
+						case 0x1F:
+							return ImplementRR_IXd_();
+							break;
+
+						case 0x20:
+						case 0x21:
+						case 0x22:
+						case 0x23:
+						case 0x24:
+						case 0x25:
+						case 0x26:
+						case 0x27:
+							return ImplementSLA_IXd_();
+							break;
+
+						case 0x28:
+						case 0x29:
+						case 0x2A:
+						case 0x2B:
+						case 0x2C:
+						case 0x2D:
+						case 0x2E:
+						case 0x2F:
+							return ImplementSRA_IXd_();
+							break;
+
+						case 0x30:
+						case 0x31:
+						case 0x32:
+						case 0x33:
+						case 0x34:
+						case 0x35:
+						case 0x36:
+						case 0x37:
+							return ImplementSLL_IXd_();
+							break;
+
+						case 0x38:
+						case 0x39:
+						case 0x3A:
+						case 0x3B:
+						case 0x3C:
+						case 0x3D:
+						case 0x3E:
+						case 0x3F:
+							return ImplementSRL_IXd_();
+							break;
+
+						case 0x40:
+						case 0x41:
+						case 0x42:
+						case 0x43:
+						case 0x44:
+						case 0x45:
+						case 0x46: // BIT 0,(IX+d)
+						case 0x47:
+						case 0x48:
+						case 0x49:
+						case 0x4A:
+						case 0x4B:
+						case 0x4C:
+						case 0x4D:
+						case 0x4E: // BIT 1,(IX+d)
+						case 0x4F:
+						case 0x50:
+						case 0x51:
+						case 0x52:
+						case 0x53:
+						case 0x54:
+						case 0x55:
+						case 0x56: // BIT 2,(IX+d)
+						case 0x57:
+						case 0x58:
+						case 0x59:
+						case 0x5A:
+						case 0x5B:
+						case 0x5C:
+						case 0x5D:
+						case 0x5E: // BIT 3,(IX+d)
+						case 0x5F:
+						case 0x60:
+						case 0x61:
+						case 0x62:
+						case 0x63:
+						case 0x64:
+						case 0x65:
+						case 0x66: // BIT 4,(IX+d)
+						case 0x67:
+						case 0x68:
+						case 0x69:
+						case 0x6A:
+						case 0x6B:
+						case 0x6C:
+						case 0x6D:
+						case 0x6E: // BIT 5,(IX+d)
+						case 0x6F:
+						case 0x70:
+						case 0x71:
+						case 0x72:
+						case 0x73:
+						case 0x74:
+						case 0x75:
+						case 0x76: // BIT 6,(IX+d)
+						case 0x77:
+						case 0x78:
+						case 0x79:
+						case 0x7A:
+						case 0x7B:
+						case 0x7C:
+						case 0x7D:
+						case 0x7E: // BIT 7,(IX+d)
+						case 0x7F:
+							return ImplementBITb_IXd_();
+							break;
+
+						case 0x80:
+						case 0x81:
+						case 0x82:
+						case 0x83:
+						case 0x84:
+						case 0x85:
+						case 0x86: // RES 0,(IX+d)
+						case 0x87:
+						case 0x88:
+						case 0x89:
+						case 0x8A:
+						case 0x8B:
+						case 0x8C:
+						case 0x8D:
+						case 0x8E: // RES 1,(IX+d)
+						case 0x8F:
+						case 0x90:
+						case 0x91:
+						case 0x92:
+						case 0x93:
+						case 0x94:
+						case 0x95:
+						case 0x96: // RES 2,(IX+d)
+						case 0x97:
+						case 0x98:
+						case 0x99:
+						case 0x9A:
+						case 0x9B:
+						case 0x9C:
+						case 0x9D:
+						case 0x9E: // RES 3,(IX+d)
+						case 0x9F:
+						case 0xA0:
+						case 0xA1:
+						case 0xA2:
+						case 0xA3:
+						case 0xA4:
+						case 0xA5:
+						case 0xA6: // RES 4,(IX+d)
+						case 0xA7:
+						case 0xA8:
+						case 0xA9:
+						case 0xAA:
+						case 0xAB:
+						case 0xAC:
+						case 0xAD:
+						case 0xAE: // RES 5,(IX+d)
+						case 0xAF:
+						case 0xB0:
+						case 0xB1:
+						case 0xB2:
+						case 0xB3:
+						case 0xB4:
+						case 0xB5:
+						case 0xB6: // RES 6,(IX+d)
+						case 0xB7:
+						case 0xB8:
+						case 0xB9:
+						case 0xBA:
+						case 0xBB:
+						case 0xBC:
+						case 0xBD:
+						case 0xBE: // RES 7,(IX+d)
+						case 0xBF:
+							return ImplementRESb_IXd_();
+							break;
+
+						case 0xC0:
+						case 0xC1:
+						case 0xC2:
+						case 0xC3:
+						case 0xC4:
+						case 0xC5:
+						case 0xC6: // SET 0,(IX+d)
+						case 0xC7:
+						case 0xC8:
+						case 0xC9:
+						case 0xCA:
+						case 0xCB:
+						case 0xCC:
+						case 0xCD:
+						case 0xCE: // SET 1,(IX+d)
+						case 0xCF:
+						case 0xD0:
+						case 0xD1:
+						case 0xD2:
+						case 0xD3:
+						case 0xD4:
+						case 0xD5:
+						case 0xD6: // SET 2,(IX+d)
+						case 0xD7:
+						case 0xD8:
+						case 0xD9:
+						case 0xDA:
+						case 0xDB:
+						case 0xDC:
+						case 0xDD:
+						case 0xDE: // SET 3,(IX+d)
+						case 0xDF:
+						case 0xE0:
+						case 0xE1:
+						case 0xE2:
+						case 0xE3:
+						case 0xE4:
+						case 0xE5:
+						case 0xE6: // SET 4,(IX+d)
+						case 0xE7:
+						case 0xE8:
+						case 0xE9:
+						case 0xEA:
+						case 0xEB:
+						case 0xEC:
+						case 0xED:
+						case 0xEE: // SET 5,(IX+d)
+						case 0xEF:
+						case 0xF0:
+						case 0xF1:
+						case 0xF2:
+						case 0xF3:
+						case 0xF4:
+						case 0xF5:
+						case 0xF6: // SET 6,(IX+d)
+						case 0xF7:
+						case 0xF8:
+						case 0xF9:
+						case 0xFA:
+						case 0xFB:
+						case 0xFC:
+						case 0xFD:
+						case 0xFE: // SET 7,(IX+d)
+						case 0xFF:
+							return ImplementSETb_IXd_();
+							break;
+
+						default:
+							fprintf(stderr, "[Z80] Unhandled opcode DD CB %02X %02X at address %04X\n", ReadMemory(m_PC + 2), ReadMemory(m_PC + 3), m_PC);
+							HandleIllegalOpcode();
+							return 0;
+							break;
+					};
+					break;
+
+				case 0xE1:
+					return ImplementPOPIX();
+					break;
+
+				case 0xE3:
+					return ImplementEX_SP_IX();
+					break;
+
+				case 0xE5:
+					return ImplementPUSHIX();
+					break;
+
+				case 0xE9:
+					if (GetEnableProgramFlowBreakpoints())
+					{
+						HitBreakpoint("program flow");
+					}
+					return ImplementJP_IX_();
+					break;
+
+				case 0xF9:
+					return ImplementLDSPIX();
+					break;
 
 				default:
 					fprintf(stderr, "[Z80] Unhandled opcode DD %02X at address %04X\n", ReadMemory(m_PC + 1), m_PC);
 					HandleIllegalOpcode();
 					return 0;
 					break;
-				};
-				break;
+			};
+			break;
 
-			case 0xED: // Prefix ED
-				switch (ReadMemory(m_PC + 1))
-				{
-					case 0x00:
-					case 0x01:
-					case 0x02:
-					case 0x03:
-					case 0x04:
-					case 0x05:
-					case 0x06:
-					case 0x07:
-					case 0x08:
-					case 0x09:
-					case 0x0A:
-					case 0x0B:
-					case 0x0C:
-					case 0x0D:
-					case 0x0E:
-					case 0x0F:
-					case 0x10:
-					case 0x11:
-					case 0x12:
-					case 0x13:
-					case 0x14:
-					case 0x15:
-					case 0x16:
-					case 0x17:
-					case 0x18:
-					case 0x19:
-					case 0x1A:
-					case 0x1B:
-					case 0x1C:
-					case 0x1D:
-					case 0x1E:
-					case 0x1F:
-					case 0x20:
-					case 0x21:
-					case 0x22:
-					case 0x23:
-					case 0x24:
-					case 0x25:
-					case 0x26:
-					case 0x27:
-					case 0x28:
-					case 0x29:
-					case 0x2A:
-					case 0x2B:
-					case 0x2C:
-					case 0x2D:
-					case 0x2E:
-					case 0x2F:
-					case 0x30:
-					case 0x31:
-					case 0x32:
-					case 0x33:
-					case 0x34:
-					case 0x35:
-					case 0x36:
-					case 0x37:
-					case 0x38:
-					case 0x39:
-					case 0x3A:
-					case 0x3B:
-					case 0x3C:
-					case 0x3D:
-					case 0x3E:
-					case 0x3F:
-						return ImplementNOP() + ImplementNOP();
-						break;
+		case 0xED: // Prefix ED
+			IncrementR(1);
+			switch (ReadMemory(m_PC + 1))
+			{
+				case 0x00:
+				case 0x01:
+				case 0x02:
+				case 0x03:
+				case 0x04:
+				case 0x05:
+				case 0x06:
+				case 0x07:
+				case 0x08:
+				case 0x09:
+				case 0x0A:
+				case 0x0B:
+				case 0x0C:
+				case 0x0D:
+				case 0x0E:
+				case 0x0F:
+				case 0x10:
+				case 0x11:
+				case 0x12:
+				case 0x13:
+				case 0x14:
+				case 0x15:
+				case 0x16:
+				case 0x17:
+				case 0x18:
+				case 0x19:
+				case 0x1A:
+				case 0x1B:
+				case 0x1C:
+				case 0x1D:
+				case 0x1E:
+				case 0x1F:
+				case 0x20:
+				case 0x21:
+				case 0x22:
+				case 0x23:
+				case 0x24:
+				case 0x25:
+				case 0x26:
+				case 0x27:
+				case 0x28:
+				case 0x29:
+				case 0x2A:
+				case 0x2B:
+				case 0x2C:
+				case 0x2D:
+				case 0x2E:
+				case 0x2F:
+				case 0x30:
+				case 0x31:
+				case 0x32:
+				case 0x33:
+				case 0x34:
+				case 0x35:
+				case 0x36:
+				case 0x37:
+				case 0x38:
+				case 0x39:
+				case 0x3A:
+				case 0x3B:
+				case 0x3C:
+				case 0x3D:
+				case 0x3E:
+				case 0x3F:
+					return ImplementNOP() + ImplementNOP();
+					break;
 
-					case 0x40: // IN B,(C)
-					case 0x50: // IN D,(C)
-					case 0x60: // IN H,(C)
-					case 0x48: // IN C,(C)
-					case 0x58: // IN E,(C)
-					case 0x68: // IN L,(C)
-					case 0x78: // IN A,(C)
-						return ImplementINr_C_();
-						break;
+				case 0x40: // IN B,(C)
+				case 0x50: // IN D,(C)
+				case 0x60: // IN H,(C)
+				case 0x48: // IN C,(C)
+				case 0x58: // IN E,(C)
+				case 0x68: // IN L,(C)
+				case 0x78: // IN A,(C)
+					return ImplementINr_C_();
+					break;
 
-					case 0x41: // OUT (C),B
-					case 0x51: // OUT (C),D
-					case 0x61: // OUT (C),H
-					case 0x49: // OUT (C),C
-					case 0x59: // OUT (C),E
-					case 0x69: // OUT (C),L
-					case 0x79: // OUT (C),A
-						return ImplementOUT_C_r();
-						break;
+				case 0x41: // OUT (C),B
+				case 0x51: // OUT (C),D
+				case 0x61: // OUT (C),H
+				case 0x49: // OUT (C),C
+				case 0x59: // OUT (C),E
+				case 0x69: // OUT (C),L
+				case 0x79: // OUT (C),A
+					return ImplementOUT_C_r();
+					break;
 
-					case 0x42: // SBC HL,BC
-					case 0x52: // SBC HL,DE
-					case 0x62: // SBC HL,HL
-					case 0x72: // SBC HL,SP
-						return ImplementSBCHLdd();
-						break;
+				case 0x42: // SBC HL,BC
+				case 0x52: // SBC HL,DE
+				case 0x62: // SBC HL,HL
+				case 0x72: // SBC HL,SP
+					return ImplementSBCHLdd();
+					break;
 
-					case 0x43: // LD (nn),BC
-					case 0x53: // LD (nn),DE
-					case 0x63: // LD (nn),HL
-					case 0x73: // LD (nn),SP
-						return ImplementLD_nn_dd();
-						break;
+				case 0x43: // LD (nn),BC
+				case 0x53: // LD (nn),DE
+				case 0x63: // LD (nn),HL
+				case 0x73: // LD (nn),SP
+					return ImplementLD_nn_dd();
+					break;
 
-					case 0x44:
-						return ImplementNEG();
-						break;
+				case 0x44:
+					return ImplementNEG();
+					break;
 
-					case 0x45:
-						if (GetEnableProgramFlowBreakpoints())
-						{
-							HitBreakpoint("program flow");
-						}
-						return ImplementRETN();
-						break;
+				case 0x45:
+					if (GetEnableProgramFlowBreakpoints())
+					{
+						HitBreakpoint("program flow");
+					}
+					return ImplementRETN();
+					break;
 
-					case 0x46:
-						return ImplementIM0();
-						break;
+				case 0x46:
+					return ImplementIM0();
+					break;
 
-					case 0x56:
-						return ImplementIM1();
-						break;
+				case 0x56:
+					return ImplementIM1();
+					break;
 
-					case 0x47:
-						return ImplementLDIA();
-						break;
+				case 0x47:
+					return ImplementLDIA();
+					break;
 
-					case 0x57:
-						return ImplementLDAI();
-						break;
+				case 0x57:
+					return ImplementLDAI();
+					break;
 
-					case 0x67:
-						return ImplementRRD();
-						break;
+				case 0x67:
+					return ImplementRRD();
+					break;
 
-					case 0x4A: // ADC HL,BC
-					case 0x5A: // ADC HL,DE
-					case 0x6A: // ADC HL,HL
-					case 0x7A: // ADC HL,SP
-						return ImplementADCHLdd();
-						break;
+				case 0x4A: // ADC HL,BC
+				case 0x5A: // ADC HL,DE
+				case 0x6A: // ADC HL,HL
+				case 0x7A: // ADC HL,SP
+					return ImplementADCHLdd();
+					break;
 
-					case 0x4B: // LD BC,(nn)
-					case 0x5B: // LD DE,(nn)
-					case 0x6B: // LD HL,(nn)
-					case 0x7B: // LD SP,(nn)
-						return ImplementLDdd_nn_();
-						break;
+				case 0x4B: // LD BC,(nn)
+				case 0x5B: // LD DE,(nn)
+				case 0x6B: // LD HL,(nn)
+				case 0x7B: // LD SP,(nn)
+					return ImplementLDdd_nn_();
+					break;
 
-					case 0x4D:
-						if (GetEnableProgramFlowBreakpoints())
-						{
-							HitBreakpoint("program flow");
-						}
-						return ImplementRETI();
-						break;
+				case 0x4D:
+					if (GetEnableProgramFlowBreakpoints())
+					{
+						HitBreakpoint("program flow");
+					}
+					return ImplementRETI();
+					break;
 
-					case 0x5E:
-						return ImplementIM2();
-						break;
+				case 0x5E:
+					return ImplementIM2();
+					break;
 
-					case 0x4F:
-						return ImplementLDRA();
-						break;
+				case 0x4F:
+					return ImplementLDRA();
+					break;
 
-					case 0x5F:
-						return ImplementLDAR();
-						break;
+				case 0x5F:
+					return ImplementLDAR();
+					break;
 
-					case 0x6F:
-						return ImplementRLD();
-						break;
+				case 0x6F:
+					return ImplementRLD();
+					break;
 
-					case 0x80:
-					case 0x81:
-					case 0x82:
-					case 0x83:
-					case 0x84:
-					case 0x85:
-					case 0x86:
-					case 0x87:
-					case 0x88:
-					case 0x89:
-					case 0x8A:
-					case 0x8B:
-					case 0x8C:
-					case 0x8D:
-					case 0x8E:
-					case 0x8F:
-					case 0x90:
-					case 0x91:
-					case 0x92:
-					case 0x93:
-					case 0x94:
-					case 0x95:
-					case 0x96:
-					case 0x97:
-					case 0x98:
-					case 0x99:
-					case 0x9A:
-					case 0x9B:
-					case 0x9C:
-					case 0x9D:
-					case 0x9E:
-					case 0x9F:
-						return ImplementNOP() + ImplementNOP();
-						break;
+				case 0x80:
+				case 0x81:
+				case 0x82:
+				case 0x83:
+				case 0x84:
+				case 0x85:
+				case 0x86:
+				case 0x87:
+				case 0x88:
+				case 0x89:
+				case 0x8A:
+				case 0x8B:
+				case 0x8C:
+				case 0x8D:
+				case 0x8E:
+				case 0x8F:
+				case 0x90:
+				case 0x91:
+				case 0x92:
+				case 0x93:
+				case 0x94:
+				case 0x95:
+				case 0x96:
+				case 0x97:
+				case 0x98:
+				case 0x99:
+				case 0x9A:
+				case 0x9B:
+				case 0x9C:
+				case 0x9D:
+				case 0x9E:
+				case 0x9F:
+					return ImplementNOP() + ImplementNOP();
+					break;
 
-					case 0xA0:
-						return ImplementLDI();
-						break;
+				case 0xA0:
+					return ImplementLDI();
+					break;
 
-					case 0xA1:
-						return ImplementCPI();
-						break;
+				case 0xA1:
+					return ImplementCPI();
+					break;
 
-					case 0xA2:
-						return ImplementINI();
-						break;
+				case 0xA2:
+					return ImplementINI();
+					break;
 
-					case 0xA3:
-						return ImplementOUTI();
-						break;
+				case 0xA3:
+					return ImplementOUTI();
+					break;
 
-					case 0xA4:
-					case 0xA5:
-					case 0xA6:
-					case 0xA7:
-						return ImplementNOP() + ImplementNOP();
-						break;
+				case 0xA4:
+				case 0xA5:
+				case 0xA6:
+				case 0xA7:
+					return ImplementNOP() + ImplementNOP();
+					break;
 
-					case 0xA8:
-						return ImplementLDD();
-						break;
+				case 0xA8:
+					return ImplementLDD();
+					break;
 
-					case 0xA9:
-						return ImplementCPD();
-						break;
+				case 0xA9:
+					return ImplementCPD();
+					break;
 
-					case 0xAA:
-						return ImplementIND();
-						break;
+				case 0xAA:
+					return ImplementIND();
+					break;
 
-					case 0xAB:
-						return ImplementOUTD();
-						break;
+				case 0xAB:
+					return ImplementOUTD();
+					break;
 
-					case 0xAC:
-					case 0xAD:
-					case 0xAE:
-					case 0xAF:
-						return ImplementNOP() + ImplementNOP();
-						break;
+				case 0xAC:
+				case 0xAD:
+				case 0xAE:
+				case 0xAF:
+					return ImplementNOP() + ImplementNOP();
+					break;
 
-					case 0xB0:
-						return ImplementLDIR();
-						break;
+				case 0xB0:
+					return ImplementLDIR();
+					break;
 
-					case 0xB1:
-						return ImplementCPIR();
-						break;
+				case 0xB1:
+					return ImplementCPIR();
+					break;
 
-					case 0xB2:
-						return ImplementINIR();
-						break;
+				case 0xB2:
+					return ImplementINIR();
+					break;
 
-					case 0xB3:
-						return ImplementOTIR();
-						break;
+				case 0xB3:
+					return ImplementOTIR();
+					break;
 
-					case 0xB4:
-					case 0xB5:
-					case 0xB6:
-					case 0xB7:
-						return ImplementNOP() + ImplementNOP();
-						break;
+				case 0xB4:
+				case 0xB5:
+				case 0xB6:
+				case 0xB7:
+					return ImplementNOP() + ImplementNOP();
+					break;
 
-					case 0xB8:
-						return ImplementLDDR();
-						break;
+				case 0xB8:
+					return ImplementLDDR();
+					break;
 
-					case 0xB9:
-						return ImplementCPDR();
-						break;
+				case 0xB9:
+					return ImplementCPDR();
+					break;
 
-					case 0xBA:
-						return ImplementINDR();
-						break;
+				case 0xBA:
+					return ImplementINDR();
+					break;
 
-					case 0xBB:
-						return ImplementOTDR();
-						break;
+				case 0xBB:
+					return ImplementOTDR();
+					break;
 
-					case 0xBC:
-					case 0xBD:
-					case 0xBE:
-					case 0xBF:
-					case 0xC0:
-					case 0xC1:
-					case 0xC2:
-					case 0xC3:
-					case 0xC4:
-					case 0xC5:
-					case 0xC6:
-					case 0xC7:
-					case 0xC8:
-					case 0xC9:
-					case 0xCA:
-					case 0xCB:
-					case 0xCC:
-					case 0xCD:
-					case 0xCE:
-					case 0xCF:
-					case 0xD0:
-					case 0xD1:
-					case 0xD2:
-					case 0xD3:
-					case 0xD4:
-					case 0xD5:
-					case 0xD6:
-					case 0xD7:
-					case 0xD8:
-					case 0xD9:
-					case 0xDA:
-					case 0xDB:
-					case 0xDC:
-					case 0xDD:
-					case 0xDE:
-					case 0xDF:
-					case 0xE0:
-					case 0xE1:
-					case 0xE2:
-					case 0xE3:
-					case 0xE4:
-					case 0xE5:
-					case 0xE6:
-					case 0xE7:
-					case 0xE8:
-					case 0xE9:
-					case 0xEA:
-					case 0xEB:
-					case 0xEC:
-					case 0xED:
-					case 0xEE:
-					case 0xEF:
-					case 0xF0:
-					case 0xF1:
-					case 0xF2:
-					case 0xF3:
-					case 0xF4:
-					case 0xF5:
-					case 0xF6:
-					case 0xF7:
-					case 0xF8:
-					case 0xF9:
-					case 0xFA:
-					case 0xFB:
-					case 0xFC:
-					case 0xFD:
-					case 0xFE:
-					case 0xFF:
-						return ImplementNOP() + ImplementNOP();
-						break;
+				case 0xBC:
+				case 0xBD:
+				case 0xBE:
+				case 0xBF:
+				case 0xC0:
+				case 0xC1:
+				case 0xC2:
+				case 0xC3:
+				case 0xC4:
+				case 0xC5:
+				case 0xC6:
+				case 0xC7:
+				case 0xC8:
+				case 0xC9:
+				case 0xCA:
+				case 0xCB:
+				case 0xCC:
+				case 0xCD:
+				case 0xCE:
+				case 0xCF:
+				case 0xD0:
+				case 0xD1:
+				case 0xD2:
+				case 0xD3:
+				case 0xD4:
+				case 0xD5:
+				case 0xD6:
+				case 0xD7:
+				case 0xD8:
+				case 0xD9:
+				case 0xDA:
+				case 0xDB:
+				case 0xDC:
+				case 0xDD:
+				case 0xDE:
+				case 0xDF:
+				case 0xE0:
+				case 0xE1:
+				case 0xE2:
+				case 0xE3:
+				case 0xE4:
+				case 0xE5:
+				case 0xE6:
+				case 0xE7:
+				case 0xE8:
+				case 0xE9:
+				case 0xEA:
+				case 0xEB:
+				case 0xEC:
+				case 0xED:
+				case 0xEE:
+				case 0xEF:
+				case 0xF0:
+				case 0xF1:
+				case 0xF2:
+				case 0xF3:
+				case 0xF4:
+				case 0xF5:
+				case 0xF6:
+				case 0xF7:
+				case 0xF8:
+				case 0xF9:
+				case 0xFA:
+				case 0xFB:
+				case 0xFC:
+				case 0xFD:
+				case 0xFE:
+				case 0xFF:
+					return ImplementNOP() + ImplementNOP();
+					break;
 
 				default:
 					fprintf(stderr, "[Z80] Unhandled opcode ED %02X at address %04X\n", ReadMemory(m_PC + 1), m_PC);
 					HandleIllegalOpcode();
 					return 0;
 					break;
-				};
-				break;
+			};
+			break;
 
-			case 0xFD: // Prefix FD
-				switch (ReadMemory(m_PC + 1))
-				{
-					case 0x09: // ADD IY,BC
-					case 0x19: // ADD IY,DE
-					case 0x29: // ADD IY,HL
-					case 0x39: // ADD IY,SP
-						return ImplementADDIYdd();
-						break;
+		case 0xFD: // Prefix FD
+			IncrementR(1);
+			switch (ReadMemory(m_PC + 1))
+			{
+				case 0x09: // ADD IY,BC
+				case 0x19: // ADD IY,DE
+				case 0x29: // ADD IY,HL
+				case 0x39: // ADD IY,SP
+					return ImplementADDIYdd();
+					break;
 
-					case 0x21:
-						return ImplementLDIYnn();
-						break;
+				case 0x21:
+					return ImplementLDIYnn();
+					break;
 
-					case 0x22:
-						return ImplementLD_nn_IY();
-						break;
+				case 0x22:
+					return ImplementLD_nn_IY();
+					break;
 
-					case 0x23:
-						return ImplementINCIY();
-						break;
+				case 0x23:
+					return ImplementINCIY();
+					break;
 
-					case 0x24: // INC IYh
-						return ImplementINCIYh();
-						break;
+				case 0x24: // INC IYh
+					return ImplementINCIYh();
+					break;
 
-					case 0x25: // DEC IYh
-						return ImplementDECIYh();
-						break;
+				case 0x25: // DEC IYh
+					return ImplementDECIYh();
+					break;
 
-					case 0x26: // LD IYh,n
-						return ImplementLDIYhn();
-						break;
+				case 0x26: // LD IYh,n
+					return ImplementLDIYhn();
+					break;
 
-					case 0x2A:
-						return ImplementLDIY_nn_();
-						break;
+				case 0x2A:
+					return ImplementLDIY_nn_();
+					break;
 
-					case 0x2B:
-						return ImplementDECIY();
-						break;
+				case 0x2B:
+					return ImplementDECIY();
+					break;
 
-					case 0x2C: // INC IYl 
-						return ImplementINCIYl();
-						break;
+				case 0x2C: // INC IYl 
+					return ImplementINCIYl();
+					break;
 
-					case 0x2D: // DEC IYl
-						return ImplementDECIYl();
-						break;
+				case 0x2D: // DEC IYl
+					return ImplementDECIYl();
+					break;
 
-					case 0x2E: // LD IYl,n
-						return ImplementLDIYln();
-						break;
+				case 0x2E: // LD IYl,n
+					return ImplementLDIYln();
+					break;
 
-					case 0x34:
-						return ImplementINC_IYd_();
-						break;
+				case 0x34:
+					return ImplementINC_IYd_();
+					break;
 
-					case 0x35:
-						return ImplementDEC_IYd_();
-						break;
+				case 0x35:
+					return ImplementDEC_IYd_();
+					break;
 
-					case 0x36:
-						return ImplementLD_IYd_n();
-						break;
+				case 0x36:
+					return ImplementLD_IYd_n();
+					break;
 
-					case 0x40: // LD B,B
-					case 0x41: // LD B,C
-					case 0x42: // LD B,D
-					case 0x43: // LD B,E
-					case 0x47: // LD B,A
-					case 0x50: // LD D,B
-					case 0x51: // LD D,C
-					case 0x52: // LD D,D
-					case 0x53: // LD D,E
-					case 0x57: // LD D,A
-					case 0x48: // LD C,B
-					case 0x49: // LD C,C
-					case 0x4A: // LD C,D
-					case 0x4B: // LD C,E
-					case 0x4F: // LD C,A
-					case 0x58: // LD E,B
-					case 0x59: // LD E,C
-					case 0x5A: // LD E,D
-					case 0x5B: // LD E,E
-					case 0x5F: // LD E,A
-					case 0x78: // LD A,B
-					case 0x79: // LD A,C
-					case 0x7A: // LD A,D
-					case 0x7B: // LD A,E
-					case 0x7F: // LD A,A
-						IncrementR(1);
-						return 4 + ImplementLDrr();
-						break;
+				case 0x40: // LD B,B
+				case 0x41: // LD B,C
+				case 0x42: // LD B,D
+				case 0x43: // LD B,E
+				case 0x47: // LD B,A
+				case 0x50: // LD D,B
+				case 0x51: // LD D,C
+				case 0x52: // LD D,D
+				case 0x53: // LD D,E
+				case 0x57: // LD D,A
+				case 0x48: // LD C,B
+				case 0x49: // LD C,C
+				case 0x4A: // LD C,D
+				case 0x4B: // LD C,E
+				case 0x4F: // LD C,A
+				case 0x58: // LD E,B
+				case 0x59: // LD E,C
+				case 0x5A: // LD E,D
+				case 0x5B: // LD E,E
+				case 0x5F: // LD E,A
+				case 0x78: // LD A,B
+				case 0x79: // LD A,C
+				case 0x7A: // LD A,D
+				case 0x7B: // LD A,E
+				case 0x7F: // LD A,A
+					return 4 + ImplementLDrr();
+					break;
 
-					case 0x44: // LD B,IYh
-					case 0x54: // LD D,IYh
-					case 0x4C: // LD C,IYh
-					case 0x5C: // LD E,IYh
-					case 0x7C: // LD A,IYh
-						ImplementLDrIYh();
-						break;
+				case 0x44: // LD B,IYh
+				case 0x54: // LD D,IYh
+				case 0x4C: // LD C,IYh
+				case 0x5C: // LD E,IYh
+				case 0x7C: // LD A,IYh
+					ImplementLDrIYh();
+					break;
 
-					case 0x45: // LD B,IYl
-					case 0x55: // LD D,IYl
-					case 0x4D: // LD C,IYl
-					case 0x5D: // LD E,IYl
-					case 0x7D: // LD A,IYl
-						ImplementLDrIYl();
-						break;
+				case 0x45: // LD B,IYl
+				case 0x55: // LD D,IYl
+				case 0x4D: // LD C,IYl
+				case 0x5D: // LD E,IYl
+				case 0x7D: // LD A,IYl
+					ImplementLDrIYl();
+					break;
 
-					case 0x46: // LD B,(IY+d)
-					case 0x56: // LD D,(IY+d)
-					case 0x66: // LD H,(IY+d)
-					case 0x4E: // LD C,(IY+d)
-					case 0x5E: // LD E,(IY+d)
-					case 0x6E: // LD L,(IY+d)
-					case 0x7E: // LD A,(IY+d)
-						return ImplementLDr_IYd_();
-						break;
+				case 0x46: // LD B,(IY+d)
+				case 0x56: // LD D,(IY+d)
+				case 0x66: // LD H,(IY+d)
+				case 0x4E: // LD C,(IY+d)
+				case 0x5E: // LD E,(IY+d)
+				case 0x6E: // LD L,(IY+d)
+				case 0x7E: // LD A,(IY+d)
+					return ImplementLDr_IYd_();
+					break;
 
-					case 0x60: // LD IYh,B
-					case 0x61: // LD IYh,C
-					case 0x62: // LD IYh,D
-					case 0x63: // LD IYh,E
-					case 0x64: // LD IYh,IYh
-					case 0x65: // LD IYh,IYl
-					case 0x67: // LD IYh,A
-						return ImplementLDIYhr();
-						break;
+				case 0x60: // LD IYh,B
+				case 0x61: // LD IYh,C
+				case 0x62: // LD IYh,D
+				case 0x63: // LD IYh,E
+				case 0x64: // LD IYh,IYh
+				case 0x65: // LD IYh,IYl
+				case 0x67: // LD IYh,A
+					return ImplementLDIYhr();
+					break;
 
-					case 0x68: // LD IYl,B
-					case 0x69: // LD IYl,C
-					case 0x6A: // LD IYl,D
-					case 0x6B: // LD IYl,E
-					case 0x6C: // LD IYl,IYh
-					case 0x6D: // LD IYl,IYl
-					case 0x6F: // LD IYl,A
-						return ImplementLDIYlr();
-						break;
+				case 0x68: // LD IYl,B
+				case 0x69: // LD IYl,C
+				case 0x6A: // LD IYl,D
+				case 0x6B: // LD IYl,E
+				case 0x6C: // LD IYl,IYh
+				case 0x6D: // LD IYl,IYl
+				case 0x6F: // LD IYl,A
+					return ImplementLDIYlr();
+					break;
 
-					case 0x70: // LD (IY+d),B
-					case 0x71: // LD (IY+d),C
-					case 0x72: // LD (IY+d),D
-					case 0x73: // LD (IY+d),E
-					case 0x74: // LD (IY+d),H
-					case 0x75: // LD (IY+d),L
-					case 0x77: // LD (IY+d),A
-						return ImplementLD_IYd_r();
-						break;
+				case 0x70: // LD (IY+d),B
+				case 0x71: // LD (IY+d),C
+				case 0x72: // LD (IY+d),D
+				case 0x73: // LD (IY+d),E
+				case 0x74: // LD (IY+d),H
+				case 0x75: // LD (IY+d),L
+				case 0x77: // LD (IY+d),A
+					return ImplementLD_IYd_r();
+					break;
 
-					case 0x84: // ADD A,IYh
-						return ImplementADDAIYh();
-						break;
+				case 0x84: // ADD A,IYh
+					return ImplementADDAIYh();
+					break;
 
-					case 0x85: // ADD A,IYl
-						return ImplementADDAIYl();
-						break;
+				case 0x85: // ADD A,IYl
+					return ImplementADDAIYl();
+					break;
 
-					case 0x86:
-						return ImplementADDA_IYd_();
-						break;
+				case 0x86:
+					return ImplementADDA_IYd_();
+					break;
 
-					case 0x8C: // ADC A,IYh
-						return ImplementADCAIYh();
-						break;
+				case 0x8C: // ADC A,IYh
+					return ImplementADCAIYh();
+					break;
 
-					case 0x8D: // ADC A,IYl
-						return ImplementADCAIYl();
-						break;
+				case 0x8D: // ADC A,IYl
+					return ImplementADCAIYl();
+					break;
 
-					case 0x8E:
-						return ImplementADCA_IYd_();
-						break;
+				case 0x8E:
+					return ImplementADCA_IYd_();
+					break;
 
-					case 0x94: // SUB IYh
-						return ImplementSUBIYh();
-						break;
+				case 0x94: // SUB IYh
+					return ImplementSUBIYh();
+					break;
 
-					case 0x95: // SUB IYl
-						return ImplementSUBIYl();
-						break;
+				case 0x95: // SUB IYl
+					return ImplementSUBIYl();
+					break;
 
-					case 0x96:
-						return ImplementSUB_IYd_();
+				case 0x96:
+					return ImplementSUB_IYd_();
 
-					case 0x9C: // SBC A,IYh
-						return ImplementSBCAIYh();
-						break;
+				case 0x9C: // SBC A,IYh
+					return ImplementSBCAIYh();
+					break;
 
-					case 0x9D: // SBC A,IYl
-						return ImplementSBCAIYl();
-						break;
+				case 0x9D: // SBC A,IYl
+					return ImplementSBCAIYl();
+					break;
 
-					case 0x9E:
-						return ImplementSBCA_IYd_();
-						break;
+				case 0x9E:
+					return ImplementSBCA_IYd_();
+					break;
 
-					case 0xA4: // AND IYh
-						return ImplementANDIYh();
-						break;
+				case 0xA4: // AND IYh
+					return ImplementANDIYh();
+					break;
 
-					case 0xA5: // AND IYl
-						return ImplementANDIYl();
-						break;
+				case 0xA5: // AND IYl
+					return ImplementANDIYl();
+					break;
 
-					case 0xB4: // OR IYh
-						return ImplementORIYh();
-						break;
+				case 0xB4: // OR IYh
+					return ImplementORIYh();
+					break;
 
-					case 0xB5: // OR IYl
-						return ImplementORIYl();
-						break;
+				case 0xB5: // OR IYl
+					return ImplementORIYl();
+					break;
 
-					case 0xA6:
-						return ImplementAND_IYd_();
-						break;
+				case 0xA6:
+					return ImplementAND_IYd_();
+					break;
 
-					case 0xAC: // XOR IYh
-						return ImplementXORIYh();
-						break;
+				case 0xAC: // XOR IYh
+					return ImplementXORIYh();
+					break;
 
-					case 0xAD: // XOR IYl
-						return ImplementXORIYl();
-						break;
+				case 0xAD: // XOR IYl
+					return ImplementXORIYl();
+					break;
 
-					case 0xAE:
-						return ImplementXOR_IYd_();
-						break;
+				case 0xAE:
+					return ImplementXOR_IYd_();
+					break;
 
-					case 0xB6:
-						return ImplementOR_IYd_();
-						break;
+				case 0xB6:
+					return ImplementOR_IYd_();
+					break;
 
-					case 0xBC: // CP IYh
-						return ImplementCPIYh();
-						break;
+				case 0xBC: // CP IYh
+					return ImplementCPIYh();
+					break;
 
-					case 0xBD: // CP IYl
-						return ImplementCPIYl();
-						break;
+				case 0xBD: // CP IYl
+					return ImplementCPIYl();
+					break;
 
-					case 0xBE:
-						return ImplementCP_IYd_();
-						break;
+				case 0xBE:
+					return ImplementCP_IYd_();
+					break;
 
-					case 0xE1:
-						return ImplementPOPIY();
-						break;
+				case 0xE1:
+					return ImplementPOPIY();
+					break;
 
-					case 0xE3:
-						return ImplementEX_SP_IY();
-						break;
+				case 0xE3:
+					return ImplementEX_SP_IY();
+					break;
 
-					case 0xE5:
-						return ImplementPUSHIY();
-						break;
+				case 0xE5:
+					return ImplementPUSHIY();
+					break;
 
-					case 0xE9:
-						if (GetEnableProgramFlowBreakpoints())
-						{
-							HitBreakpoint("program flow");
-						}
-						return ImplementJP_IY_();
-						break;
+				case 0xE9:
+					if (GetEnableProgramFlowBreakpoints())
+					{
+						HitBreakpoint("program flow");
+					}
+					return ImplementJP_IY_();
+					break;
 
-					case 0xCB: // Prefix CB
-						switch (ReadMemory(m_PC + 3))
-						{
-							case 0x00:
-							case 0x01:
-							case 0x02:
-							case 0x03:
-							case 0x04:
-							case 0x05:
-							case 0x06:
-							case 0x07:
-								return ImplementRLC_IYd_();
-								break;
+				case 0xCB: // Prefix CB
+					switch (ReadMemory(m_PC + 3))
+					{
+						case 0x00:
+						case 0x01:
+						case 0x02:
+						case 0x03:
+						case 0x04:
+						case 0x05:
+						case 0x06:
+						case 0x07:
+							return ImplementRLC_IYd_();
+							break;
 
-							case 0x08:
-							case 0x09:
-							case 0x0A:
-							case 0x0B:
-							case 0x0C:
-							case 0x0D:
-							case 0x0E:
-							case 0x0F:
-								return ImplementRRC_IYd_();
-								break;
+						case 0x08:
+						case 0x09:
+						case 0x0A:
+						case 0x0B:
+						case 0x0C:
+						case 0x0D:
+						case 0x0E:
+						case 0x0F:
+							return ImplementRRC_IYd_();
+							break;
 
-							case 0x10:
-							case 0x11:
-							case 0x12:
-							case 0x13:
-							case 0x14:
-							case 0x15:
-							case 0x16:
-							case 0x17:
-								return ImplementRL_IYd_();
-								break;
+						case 0x10:
+						case 0x11:
+						case 0x12:
+						case 0x13:
+						case 0x14:
+						case 0x15:
+						case 0x16:
+						case 0x17:
+							return ImplementRL_IYd_();
+							break;
 
-							case 0x18:
-							case 0x19:
-							case 0x1A:
-							case 0x1B:
-							case 0x1C:
-							case 0x1D:
-							case 0x1E:
-							case 0x1F:
-								return ImplementRR_IYd_();
-								break;
+						case 0x18:
+						case 0x19:
+						case 0x1A:
+						case 0x1B:
+						case 0x1C:
+						case 0x1D:
+						case 0x1E:
+						case 0x1F:
+							return ImplementRR_IYd_();
+							break;
 
-							case 0x20:
-							case 0x21:
-							case 0x22:
-							case 0x23:
-							case 0x24:
-							case 0x25:
-							case 0x26:
-							case 0x27:
-								return ImplementSLA_IYd_();
-								break;
+						case 0x20:
+						case 0x21:
+						case 0x22:
+						case 0x23:
+						case 0x24:
+						case 0x25:
+						case 0x26:
+						case 0x27:
+							return ImplementSLA_IYd_();
+							break;
 
-							case 0x28:
-							case 0x29:
-							case 0x2A:
-							case 0x2B:
-							case 0x2C:
-							case 0x2D:
-							case 0x2E:
-							case 0x2F:
-								return ImplementSRA_IYd_();
-								break;
+						case 0x28:
+						case 0x29:
+						case 0x2A:
+						case 0x2B:
+						case 0x2C:
+						case 0x2D:
+						case 0x2E:
+						case 0x2F:
+							return ImplementSRA_IYd_();
+							break;
 
-							case 0x30:
-							case 0x31:
-							case 0x32:
-							case 0x33:
-							case 0x34:
-							case 0x35:
-							case 0x36:
-							case 0x37:
-								return ImplementSLL_IYd_();
-								break;
+						case 0x30:
+						case 0x31:
+						case 0x32:
+						case 0x33:
+						case 0x34:
+						case 0x35:
+						case 0x36:
+						case 0x37:
+							return ImplementSLL_IYd_();
+							break;
 
-							case 0x38:
-							case 0x39:
-							case 0x3A:
-							case 0x3B:
-							case 0x3C:
-							case 0x3D:
-							case 0x3E:
-							case 0x3F:
-								return ImplementSRL_IYd_();
-								break;
+						case 0x38:
+						case 0x39:
+						case 0x3A:
+						case 0x3B:
+						case 0x3C:
+						case 0x3D:
+						case 0x3E:
+						case 0x3F:
+							return ImplementSRL_IYd_();
+							break;
 
-							case 0x40:
-							case 0x41:
-							case 0x42:
-							case 0x43:
-							case 0x44:
-							case 0x45:
-							case 0x46: // BIT 0,(IY+d)
-							case 0x47:
-							case 0x48:
-							case 0x49:
-							case 0x4A:
-							case 0x4B:
-							case 0x4C:
-							case 0x4D:
-							case 0x4E: // BIT 1,(IY+d)
-							case 0x4F:
-							case 0x50:
-							case 0x51:
-							case 0x52:
-							case 0x53:
-							case 0x54:
-							case 0x55:
-							case 0x56: // BIT 2,(IY+d)
-							case 0x57:
-							case 0x58:
-							case 0x59:
-							case 0x5A:
-							case 0x5B:
-							case 0x5C:
-							case 0x5D:
-							case 0x5E: // BIT 3,(IY+d)
-							case 0x5F:
-							case 0x60:
-							case 0x61:
-							case 0x62:
-							case 0x63:
-							case 0x64:
-							case 0x65:
-							case 0x66: // BIT 4,(IY+d)
-							case 0x67:
-							case 0x68:
-							case 0x69:
-							case 0x6A:
-							case 0x6B:
-							case 0x6C:
-							case 0x6D:
-							case 0x6E: // BIT 5,(IY+d)
-							case 0x6F:
-							case 0x70:
-							case 0x71:
-							case 0x72:
-							case 0x73:
-							case 0x74:
-							case 0x75:
-							case 0x76: // BIT 6,(IY+d)
-							case 0x77:
-							case 0x78:
-							case 0x79:
-							case 0x7A:
-							case 0x7B:
-							case 0x7C:
-							case 0x7D:
-							case 0x7E: // BIT 7,(IY+d)
-							case 0x7F:
-								return ImplementBITb_IYd_();
-								break;
+						case 0x40:
+						case 0x41:
+						case 0x42:
+						case 0x43:
+						case 0x44:
+						case 0x45:
+						case 0x46: // BIT 0,(IY+d)
+						case 0x47:
+						case 0x48:
+						case 0x49:
+						case 0x4A:
+						case 0x4B:
+						case 0x4C:
+						case 0x4D:
+						case 0x4E: // BIT 1,(IY+d)
+						case 0x4F:
+						case 0x50:
+						case 0x51:
+						case 0x52:
+						case 0x53:
+						case 0x54:
+						case 0x55:
+						case 0x56: // BIT 2,(IY+d)
+						case 0x57:
+						case 0x58:
+						case 0x59:
+						case 0x5A:
+						case 0x5B:
+						case 0x5C:
+						case 0x5D:
+						case 0x5E: // BIT 3,(IY+d)
+						case 0x5F:
+						case 0x60:
+						case 0x61:
+						case 0x62:
+						case 0x63:
+						case 0x64:
+						case 0x65:
+						case 0x66: // BIT 4,(IY+d)
+						case 0x67:
+						case 0x68:
+						case 0x69:
+						case 0x6A:
+						case 0x6B:
+						case 0x6C:
+						case 0x6D:
+						case 0x6E: // BIT 5,(IY+d)
+						case 0x6F:
+						case 0x70:
+						case 0x71:
+						case 0x72:
+						case 0x73:
+						case 0x74:
+						case 0x75:
+						case 0x76: // BIT 6,(IY+d)
+						case 0x77:
+						case 0x78:
+						case 0x79:
+						case 0x7A:
+						case 0x7B:
+						case 0x7C:
+						case 0x7D:
+						case 0x7E: // BIT 7,(IY+d)
+						case 0x7F:
+							return ImplementBITb_IYd_();
+							break;
 
-							case 0x80:
-							case 0x81:
-							case 0x82:
-							case 0x83:
-							case 0x84:
-							case 0x85:
-							case 0x86: // RES 0,(IY+d)
-							case 0x87:
-							case 0x88:
-							case 0x89:
-							case 0x8A:
-							case 0x8B:
-							case 0x8C:
-							case 0x8D:
-							case 0x8E: // RES 1,(IY+d)
-							case 0x8F:
-							case 0x90:
-							case 0x91:
-							case 0x92:
-							case 0x93:
-							case 0x94:
-							case 0x95:
-							case 0x96: // RES 2,(IY+d)
-							case 0x97:
-							case 0x98:
-							case 0x99:
-							case 0x9A:
-							case 0x9B:
-							case 0x9C:
-							case 0x9D:
-							case 0x9E: // RES 3,(IY+d)
-							case 0x9F:
-							case 0xA0:
-							case 0xA1:
-							case 0xA2:
-							case 0xA3:
-							case 0xA4:
-							case 0xA5:
-							case 0xA6: // RES 4,(IY+d)
-							case 0xA7:
-							case 0xA8:
-							case 0xA9:
-							case 0xAA:
-							case 0xAB:
-							case 0xAC:
-							case 0xAD:
-							case 0xAE: // RES 5,(IY+d)
-							case 0xAF:
-							case 0xB0:
-							case 0xB1:
-							case 0xB2:
-							case 0xB3:
-							case 0xB4:
-							case 0xB5:
-							case 0xB6: // RES 6,(IY+d)
-							case 0xB7:
-							case 0xB8:
-							case 0xB9:
-							case 0xBA:
-							case 0xBB:
-							case 0xBC:
-							case 0xBD:
-							case 0xBE: // RES 7,(IY+d)
-							case 0xBF:
-								return ImplementRESb_IYd_();
-								break;
+						case 0x80:
+						case 0x81:
+						case 0x82:
+						case 0x83:
+						case 0x84:
+						case 0x85:
+						case 0x86: // RES 0,(IY+d)
+						case 0x87:
+						case 0x88:
+						case 0x89:
+						case 0x8A:
+						case 0x8B:
+						case 0x8C:
+						case 0x8D:
+						case 0x8E: // RES 1,(IY+d)
+						case 0x8F:
+						case 0x90:
+						case 0x91:
+						case 0x92:
+						case 0x93:
+						case 0x94:
+						case 0x95:
+						case 0x96: // RES 2,(IY+d)
+						case 0x97:
+						case 0x98:
+						case 0x99:
+						case 0x9A:
+						case 0x9B:
+						case 0x9C:
+						case 0x9D:
+						case 0x9E: // RES 3,(IY+d)
+						case 0x9F:
+						case 0xA0:
+						case 0xA1:
+						case 0xA2:
+						case 0xA3:
+						case 0xA4:
+						case 0xA5:
+						case 0xA6: // RES 4,(IY+d)
+						case 0xA7:
+						case 0xA8:
+						case 0xA9:
+						case 0xAA:
+						case 0xAB:
+						case 0xAC:
+						case 0xAD:
+						case 0xAE: // RES 5,(IY+d)
+						case 0xAF:
+						case 0xB0:
+						case 0xB1:
+						case 0xB2:
+						case 0xB3:
+						case 0xB4:
+						case 0xB5:
+						case 0xB6: // RES 6,(IY+d)
+						case 0xB7:
+						case 0xB8:
+						case 0xB9:
+						case 0xBA:
+						case 0xBB:
+						case 0xBC:
+						case 0xBD:
+						case 0xBE: // RES 7,(IY+d)
+						case 0xBF:
+							return ImplementRESb_IYd_();
+							break;
 
-							case 0xC0:
-							case 0xC1:
-							case 0xC2:
-							case 0xC3:
-							case 0xC4:
-							case 0xC5:
-							case 0xC6: // SET 0,(IY+d)
-							case 0xC7:
-							case 0xC8:
-							case 0xC9:
-							case 0xCA:
-							case 0xCB:
-							case 0xCC:
-							case 0xCD:
-							case 0xCE: // SET 1,(IY+d)
-							case 0xCF:
-							case 0xD0:
-							case 0xD1:
-							case 0xD2:
-							case 0xD3:
-							case 0xD4:
-							case 0xD5:
-							case 0xD6: // SET 2,(IY+d)
-							case 0xD7:
-							case 0xD8:
-							case 0xD9:
-							case 0xDA:
-							case 0xDB:
-							case 0xDC:
-							case 0xDD:
-							case 0xDE: // SET 3,(IY+d)
-							case 0xDF:
-							case 0xE0:
-							case 0xE1:
-							case 0xE2:
-							case 0xE3:
-							case 0xE4:
-							case 0xE5:
-							case 0xE6: // SET 4,(IY+d)
-							case 0xE7:
-							case 0xE8:
-							case 0xE9:
-							case 0xEA:
-							case 0xEB:
-							case 0xEC:
-							case 0xED:
-							case 0xEE: // SET 5,(IY+d)
-							case 0xEF:
-							case 0xF0:
-							case 0xF1:
-							case 0xF2:
-							case 0xF3:
-							case 0xF4:
-							case 0xF5:
-							case 0xF6: // SET 6,(IY+d)
-							case 0xF7:
-							case 0xF8:
-							case 0xF9:
-							case 0xFA:
-							case 0xFB:
-							case 0xFC:
-							case 0xFD:
-							case 0xFE: // SET 7,(IY+d)
-							case 0xFF:
-								return ImplementSETb_IYd_();
-								break;
+						case 0xC0:
+						case 0xC1:
+						case 0xC2:
+						case 0xC3:
+						case 0xC4:
+						case 0xC5:
+						case 0xC6: // SET 0,(IY+d)
+						case 0xC7:
+						case 0xC8:
+						case 0xC9:
+						case 0xCA:
+						case 0xCB:
+						case 0xCC:
+						case 0xCD:
+						case 0xCE: // SET 1,(IY+d)
+						case 0xCF:
+						case 0xD0:
+						case 0xD1:
+						case 0xD2:
+						case 0xD3:
+						case 0xD4:
+						case 0xD5:
+						case 0xD6: // SET 2,(IY+d)
+						case 0xD7:
+						case 0xD8:
+						case 0xD9:
+						case 0xDA:
+						case 0xDB:
+						case 0xDC:
+						case 0xDD:
+						case 0xDE: // SET 3,(IY+d)
+						case 0xDF:
+						case 0xE0:
+						case 0xE1:
+						case 0xE2:
+						case 0xE3:
+						case 0xE4:
+						case 0xE5:
+						case 0xE6: // SET 4,(IY+d)
+						case 0xE7:
+						case 0xE8:
+						case 0xE9:
+						case 0xEA:
+						case 0xEB:
+						case 0xEC:
+						case 0xED:
+						case 0xEE: // SET 5,(IY+d)
+						case 0xEF:
+						case 0xF0:
+						case 0xF1:
+						case 0xF2:
+						case 0xF3:
+						case 0xF4:
+						case 0xF5:
+						case 0xF6: // SET 6,(IY+d)
+						case 0xF7:
+						case 0xF8:
+						case 0xF9:
+						case 0xFA:
+						case 0xFB:
+						case 0xFC:
+						case 0xFD:
+						case 0xFE: // SET 7,(IY+d)
+						case 0xFF:
+							return ImplementSETb_IYd_();
+							break;
 
-							default:
-								fprintf(stderr, "[Z80] Unhandled opcode FD CB %02X %02X at address %04X\n", ReadMemory(m_PC + 2), ReadMemory(m_PC + 3), m_PC);
-								HandleIllegalOpcode();
-								return 0;
-								break;
-						};
-						break;
+						default:
+							fprintf(stderr, "[Z80] Unhandled opcode FD CB %02X %02X at address %04X\n", ReadMemory(m_PC + 2), ReadMemory(m_PC + 3), m_PC);
+							HandleIllegalOpcode();
+							return 0;
+							break;
+					};
+					break;
 
-					case 0xF9:
-						return ImplementLDSPIY();
-						break;
+				case 0xF9:
+					return ImplementLDSPIY();
+					break;
 
 				default:
 					fprintf(stderr, "[Z80] Unhandled opcode FD %02X at address %04X\n", ReadMemory(m_PC + 1), m_PC);
 					HandleIllegalOpcode();
 					return 0;
 					break;
-				};
-				break;
+			};
+			break;
 
-			case 0xCE:
-				return ImplementADCAn();
-				break;
+		case 0xCE:
+			return ImplementADCAn();
+			break;
 
-			case 0xDE:
-				return ImplementSBCAn();
-				break;
+		case 0xDE:
+			return ImplementSBCAn();
+			break;
 
-			case 0xEE:
-				return ImplementXORn();
-				break;
+		case 0xEE:
+			return ImplementXORn();
+			break;
 
-			case 0xFE:
-				return ImplementCPn();
-				break;
+		case 0xFE:
+			return ImplementCPn();
+			break;
 
-			default:
-				fprintf(stderr, "[Z80] Unhandled opcode %02X at address %04X\n", ReadMemory(m_PC), m_PC);
-				HandleIllegalOpcode();
-				return 0;
-				break;
-		}
+		default:
+			fprintf(stderr, "[Z80] Unhandled opcode %02X at address %04X\n", ReadMemory(m_PC), m_PC);
+			HandleIllegalOpcode();
+			return 0;
+			break;
+	}
 }
 
 //=============================================================================
@@ -5190,7 +5193,6 @@ uint32 CZ80::ImplementLDrr(void)
 	//							M Cycles		T States					MHz E.T.
 	//								1						4									1.00
 	//
-	IncrementR(1);
 	uint8 opcode = ReadMemory(m_PC);
 	REGISTER_8BIT(opcode >> 3) = REGISTER_8BIT(opcode);
 	++m_PC;
@@ -5223,7 +5225,6 @@ uint32 CZ80::ImplementLDrIXh(void)
 	//							M Cycles		T States					MHz E.T.
 	//								1						8 (4,4)						2.00
 	//
-	IncrementR(2);
 	uint8 opcode = ReadMemory(m_PC);
 	REGISTER_8BIT(opcode >> 3) = m_IXh;
 	++++m_PC;
@@ -5256,7 +5257,6 @@ uint32 CZ80::ImplementLDrIXl(void)
 	//							M Cycles		T States					MHz E.T.
 	//								1						8 (4,4)						2.00
 	//
-	IncrementR(2);
 	uint8 opcode = ReadMemory(m_PC);
 	REGISTER_8BIT(opcode >> 3) = m_IXl;
 	++++m_PC;
@@ -5289,7 +5289,6 @@ uint32 CZ80::ImplementLDrIYh(void)
 	//							M Cycles		T States					MHz E.T.
 	//								1						8 (4,4)						2.00
 	//
-	IncrementR(2);
 	uint8 opcode = ReadMemory(m_PC);
 	REGISTER_8BIT(opcode >> 3) = m_IYh;
 	++++m_PC;
@@ -5322,7 +5321,6 @@ uint32 CZ80::ImplementLDrIYl(void)
 	//							M Cycles		T States					MHz E.T.
 	//								1						8 (4,4)						2.00
 	//
-	IncrementR(2);
 	uint8 opcode = ReadMemory(m_PC);
 	REGISTER_8BIT(opcode >> 3) = m_IYl;
 	++++m_PC;
@@ -5355,7 +5353,6 @@ uint32 CZ80::ImplementLDrn(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						7 (4,3)						1.75
 	//
-	IncrementR(1);
 	uint8 opcode = ReadMemory(m_PC++);
 	REGISTER_8BIT(opcode >> 3) = ReadMemory(m_PC++);
 	return 7;
@@ -5380,7 +5377,6 @@ uint32 CZ80::ImplementLDIXhn(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						11 (4,4,3)				2.75
 	//
-	IncrementR(2);
 	++++m_PC;
 	m_IXh = ReadMemory(m_PC++);
 	return 11;
@@ -5412,7 +5408,6 @@ uint32 CZ80::ImplementLDIXhr(void)
 	//							M Cycles		T States					MHz E.T.
 	//								1						8	(4,4)						2.00
 	//
-	IncrementR(2);
 	uint8 opcode = ReadMemory(++m_PC);
 	uint8* pReg = &REGISTER_8BIT(opcode);
 	if (pReg == &m_H) pReg = &m_IXh;
@@ -5441,7 +5436,6 @@ uint32 CZ80::ImplementLDIXln(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						11 (4,4,3)				2.75
 	//
-	IncrementR(2);
 	++++m_PC;
 	m_IXl = ReadMemory(m_PC++);
 	return 11;
@@ -5473,7 +5467,6 @@ uint32 CZ80::ImplementLDIXlr(void)
 	//							M Cycles		T States					MHz E.T.
 	//								1						8	(4,4)						2.00
 	//
-	IncrementR(2);
 	uint8 opcode = ReadMemory(++m_PC);
 	uint8* pReg = &REGISTER_8BIT(opcode);
 	if (pReg == &m_H) pReg = &m_IXh;
@@ -5502,7 +5495,6 @@ uint32 CZ80::ImplementLDIYhn(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						11 (4,4,3)				2.75
 	//
-	IncrementR(2);
 	++++m_PC;
 	m_IYh = ReadMemory(m_PC++);
 	return 11;
@@ -5534,7 +5526,6 @@ uint32 CZ80::ImplementLDIYhr(void)
 	//							M Cycles		T States					MHz E.T.
 	//								1						8	(4,4)						2.00
 	//
-	IncrementR(2);
 	uint8 opcode = ReadMemory(++m_PC);
 	uint8* pReg = &REGISTER_8BIT(opcode);
 	if (pReg == &m_H) pReg = &m_IYh;
@@ -5563,7 +5554,6 @@ uint32 CZ80::ImplementLDIYln(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						11 (4,4,3)				2.75
 	//
-	IncrementR(2);
 	++++m_PC;
 	m_IYl = ReadMemory(m_PC++);
 	return 11;
@@ -5595,7 +5585,6 @@ uint32 CZ80::ImplementLDIYlr(void)
 	//							M Cycles		T States					MHz E.T.
 	//								1						8	(4,4)						2.00
 	//
-	IncrementR(2);
 	uint8 opcode = ReadMemory(++m_PC);
 	uint8* pReg = &REGISTER_8BIT(opcode);
 	if (pReg == &m_H) pReg = &m_IYh;
@@ -5629,7 +5618,6 @@ uint32 CZ80::ImplementLDr_HL_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						7 (4,3)						1.75
 	//
-	IncrementR(1);
 	uint8 opcode = ReadMemory(m_PC++);
 	REGISTER_8BIT(opcode >> 3) = ReadMemory(m_HL);
 	return 7;
@@ -5663,7 +5651,6 @@ uint32 CZ80::ImplementLDr_IXd_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								5						19 (4,4,3,5,3)		4.75
 	//
-	IncrementR(2);
 	uint8 opcode = ReadMemory(++m_PC);
 	int8 displacement = static_cast<int8>(ReadMemory(++m_PC));
 	++m_PC;
@@ -5699,7 +5686,6 @@ uint32 CZ80::ImplementLDr_IYd_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								5						19 (4,4,3,5,3)		4.75
 	//
-	IncrementR(2);
 	uint8 opcode = ReadMemory(++m_PC);
 	int8 displacement = static_cast<int8>(ReadMemory(++m_PC));
 	++m_PC;
@@ -5731,7 +5717,6 @@ uint32 CZ80::ImplementLD_HL_r(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						7 (4,3)						1.75
 	//
-	IncrementR(1);
 	WriteMemory(m_HL, REGISTER_8BIT(ReadMemory(m_PC++)));
 	return 7;
 }
@@ -5764,7 +5749,6 @@ uint32 CZ80::ImplementLD_IXd_r(void)
 	//							M Cycles		T States					MHz E.T.
 	//								5						19 (4,4,3,5,3)		4.75
 	//
-	IncrementR(2);
 	uint8 opcode = ReadMemory(++m_PC);
 	int8 displacement = static_cast<int8>(ReadMemory(++m_PC));
 	++m_PC;
@@ -5800,7 +5784,6 @@ uint32 CZ80::ImplementLD_IYd_r(void)
 	//							M Cycles		T States					MHz E.T.
 	//								5						19 (4,4,3,5,3)		4.75
 	//
-	IncrementR(2);
 	uint8 opcode = ReadMemory(++m_PC);
 	int8 displacement = static_cast<int8>(ReadMemory(++m_PC));
 	++m_PC;
@@ -5825,7 +5808,6 @@ uint32 CZ80::ImplementLD_HL_n(void)
 	//							M Cycles		T States					MHz E.T.
 	//								3						10 (4,3,3)				2.50
 	//
-	IncrementR(1);
 	++m_PC;
 	WriteMemory(m_HL, ReadMemory(m_PC++));
 	return 10;
@@ -5852,7 +5834,6 @@ uint32 CZ80::ImplementLD_IXd_n(void)
 	//							M Cycles		T States					MHz E.T.
 	//								5						19 (4,4,3,5,3)		4.75
 	//
-	IncrementR(2);
 	++++m_PC;
 	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	WriteMemory(m_IX + displacement, ReadMemory(m_PC++));
@@ -5880,7 +5861,6 @@ uint32 CZ80::ImplementLD_IYd_n(void)
 	//							M Cycles		T States					MHz E.T.
 	//								5						19 (4,4,3,5,3)		4.75
 	//
-	IncrementR(2);
 	++++m_PC;
 	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	WriteMemory(m_IY + displacement, ReadMemory(m_PC++));
@@ -5902,7 +5882,6 @@ uint32 CZ80::ImplementLDA_BC_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						7 (4,3)						1.75
 	//
-	IncrementR(1);
 	++m_PC;
 	m_A = ReadMemory(m_BC);
 	return 7;
@@ -5923,7 +5902,6 @@ uint32 CZ80::ImplementLDA_DE_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						7 (4,3)						1.75
 	//
-	IncrementR(1);
 	++m_PC;
 	m_A = ReadMemory(m_DE);
 	return 7;
@@ -5948,7 +5926,6 @@ uint32 CZ80::ImplementLDA_nn_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								4						13 (4,3,3,3)			3.25
 	//
-	IncrementR(1);
 	m_addresslo = ReadMemory(++m_PC);
 	m_addresshi = ReadMemory(++m_PC);
 	++m_PC;
@@ -5971,7 +5948,6 @@ uint32 CZ80::ImplementLD_BC_A(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						7 (4,3)						1.75
 	//
-	IncrementR(1);
 	WriteMemory(m_BC, m_A);
 	++m_PC; 
 	return 7;
@@ -5992,7 +5968,6 @@ uint32 CZ80::ImplementLD_DE_A(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						7 (4,3)						1.75
 	//
-	IncrementR(1);
 	WriteMemory(m_DE, m_A);
 	++m_PC; 
 	return 7;
@@ -6017,7 +5992,6 @@ uint32 CZ80::ImplementLD_nn_A(void)
 	//							M Cycles		T States					MHz E.T.
 	//								4						13 (4,3,3,3)			3.25
 	//
-	IncrementR(1);
 	m_addresslo = ReadMemory(++m_PC);
 	m_addresshi = ReadMemory(++m_PC);
 	++m_PC;
@@ -6042,7 +6016,6 @@ uint32 CZ80::ImplementLDAI(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						9 (4,5)						2.25
 	//
-	IncrementR(2);
 	m_A = m_I;
 	m_F &= eF_C;
 	m_F |= (m_A & (eF_S | eF_Y | eF_X)) | ((m_A == 0) ? eF_Z : 0) | (m_State.m_IFF2) ? eF_PV : 0;
@@ -6067,7 +6040,6 @@ uint32 CZ80::ImplementLDAR(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						9 (4,5)						2.25
 	//
-	IncrementR(2);
 	m_A = m_R;
 	m_F &= eF_C;
 	m_F |= (m_A & (eF_S | eF_Y | eF_X)) | ((m_A == 0) ? eF_Z : 0) | (m_State.m_IFF2) ? eF_PV : 0;
@@ -6092,7 +6064,6 @@ uint32 CZ80::ImplementLDIA(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						9 (4,5)						2.25
 	//
-	IncrementR(2);
 	m_I = m_A;
 	++++m_PC;
 	return 9;
@@ -6115,7 +6086,6 @@ uint32 CZ80::ImplementLDRA(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						9 (4,5)						2.25
 	//
-	IncrementR(2);
 	m_R = m_A;
 	++++m_PC;
 	return 9;
@@ -6152,7 +6122,6 @@ uint32 CZ80::ImplementLDddnn(void)
 	//							M Cycles		T States					MHz E.T.
 	//								3						10 (4,3,3)				2.50
 	//
-	IncrementR(1);
 	uint8 opcode = ReadMemory(m_PC++);
 	m_addresslo = ReadMemory(m_PC++);
 	m_addresshi = ReadMemory(m_PC++);
@@ -6181,7 +6150,6 @@ uint32 CZ80::ImplementLDIXnn(void)
 	//							M Cycles		T States					MHz E.T.
 	//								4						14 (4,4,3,3)			3.50
 	//
-	IncrementR(2);
 	++++m_PC;
 	m_addresslo = ReadMemory(m_PC++);
 	m_addresshi = ReadMemory(m_PC++);
@@ -6210,7 +6178,6 @@ uint32 CZ80::ImplementLDIYnn(void)
 	//							M Cycles		T States					MHz E.T.
 	//								4						14 (4,4,3,3)			3.50
 	//
-	IncrementR(2);
 	++++m_PC;
 	m_addresslo = ReadMemory(m_PC++);
 	m_addresshi = ReadMemory(m_PC++);
@@ -6236,7 +6203,6 @@ uint32 CZ80::ImplementLDHL_nn_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								5						16 (4,3,3,3,3)		4.00
 	//
-	IncrementR(1);
 	m_addresslo = ReadMemory(++m_PC);
 	m_addresshi = ReadMemory(++m_PC);
 	++m_PC;
@@ -6272,7 +6238,6 @@ uint32 CZ80::ImplementLDdd_nn_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								6						20 (4,4,3,3,3,3)	5.00
 	//
-	IncrementR(2);
 	uint8 opcode = ReadMemory(++m_PC);
 	m_addresslo = ReadMemory(++m_PC);
 	m_addresshi = ReadMemory(++m_PC);
@@ -6303,7 +6268,6 @@ uint32 CZ80::ImplementLDIX_nn_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								6						20 (4,4,3,3,3,3)	5.00
 	//
-	IncrementR(2);
 	++++m_PC;
 	m_addresslo = ReadMemory(m_PC++);
 	m_addresshi = ReadMemory(m_PC++);
@@ -6333,7 +6297,6 @@ uint32 CZ80::ImplementLDIY_nn_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								6						20 (4,4,3,3,3,3)	5.00
 	//
-	IncrementR(2);
 	++++m_PC;
 	m_addresslo = ReadMemory(m_PC++);
 	m_addresshi = ReadMemory(m_PC++);
@@ -6360,7 +6323,6 @@ uint32 CZ80::ImplementLD_nn_HL(void)
 	//							M Cycles		T States					MHz E.T.
 	//								5						16 (4,3,3,3,3)		4.00
 	//
-	IncrementR(1);
 	m_addresslo = ReadMemory(++m_PC);
 	m_addresshi = ReadMemory(++m_PC);
 	++m_PC;
@@ -6396,7 +6358,6 @@ uint32 CZ80::ImplementLD_nn_dd(void)
 	//							M Cycles		T States					MHz E.T.
 	//								6						20 (4,4,3,3,3,3)	5.00
 	//
-	IncrementR(2);
 	uint8 opcode = ReadMemory(++m_PC);
 	m_addresslo = ReadMemory(++m_PC);
 	m_addresshi = ReadMemory(++m_PC);
@@ -6427,7 +6388,6 @@ uint32 CZ80::ImplementLD_nn_IX(void)
 	//							M Cycles		T States					MHz E.T.
 	//								6						20 (4,4,3,3,3,3)	5.00
 	//
-	IncrementR(2);
 	++++m_PC;
 	m_addresslo = ReadMemory(m_PC++);
 	m_addresshi = ReadMemory(m_PC++);
@@ -6457,7 +6417,6 @@ uint32 CZ80::ImplementLD_nn_IY(void)
 	//							M Cycles		T States					MHz E.T.
 	//								6						20 (4,4,3,3,3,3)	5.00
 	//
-	IncrementR(2);
 	++++m_PC;
 	m_addresslo = ReadMemory(m_PC++);
 	m_addresshi = ReadMemory(m_PC++);
@@ -6481,7 +6440,6 @@ uint32 CZ80::ImplementLDSPHL(void)
 	//							M Cycles		T States					MHz E.T.
 	//								1						6									1.50
 	//
-	IncrementR(1);
 	m_SP = m_HL;
 	++m_PC;
 	return 6;
@@ -6504,7 +6462,6 @@ uint32 CZ80::ImplementLDSPIX(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						10 (4,6)					2.50
 	//
-	IncrementR(2);
 	m_SP = m_IX;
 	++m_PC;
 	return 10;
@@ -6527,7 +6484,6 @@ uint32 CZ80::ImplementLDSPIY(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						10 (4,6)					2.50
 	//
-	IncrementR(2);
 	m_SP = m_IY;
 	++m_PC;
 	return 10;
@@ -6554,7 +6510,6 @@ uint32 CZ80::ImplementPUSHqq(void)
 	//							M Cycles		T States					MHz E.T.
 	//								3						11 (5,3,3)				2.75
 	//
-	IncrementR(1);
 	uint8 opcode = ReadMemory(m_PC++);
 	WriteMemory(--m_SP, REGISTER_16BIT_HI(opcode >> 4));
 	WriteMemory(--m_SP, REGISTER_16BIT_LO(opcode >> 4));
@@ -6581,7 +6536,6 @@ uint32 CZ80::ImplementPUSHAF(void)
 	//							M Cycles		T States					MHz E.T.
 	//								3						11 (5,3,3)				2.75
 	//
-	IncrementR(1);
 	++m_PC;
 	WriteMemory(--m_SP, m_A);
 	WriteMemory(--m_SP, m_F);
@@ -6605,7 +6559,6 @@ uint32 CZ80::ImplementPUSHIX(void)
 	//							M Cycles		T States					MHz E.T.
 	//								4						15 (4,5,3,3)			3.75
 	//
-	IncrementR(2);
 	++++m_PC;
 	WriteMemory(--m_SP, m_IXh);
 	WriteMemory(--m_SP, m_IXl);
@@ -6629,7 +6582,6 @@ uint32 CZ80::ImplementPUSHIY(void)
 	//							M Cycles		T States					MHz E.T.
 	//								4						15 (4,5,3,3)			3.75
 	//
-	IncrementR(2);
 	++++m_PC;
 	WriteMemory(--m_SP, m_IYh);
 	WriteMemory(--m_SP, m_IYl);
@@ -6657,7 +6609,6 @@ uint32 CZ80::ImplementPOPqq(void)
 	//							M Cycles		T States					MHz E.T.
 	//								3						10 (4,3,3)				2.75
 	//
-	IncrementR(1);
 	uint8 opcode = ReadMemory(m_PC++);
 	REGISTER_16BIT_LO(opcode >> 4) = ReadMemory(m_SP++);
 	REGISTER_16BIT_HI(opcode >> 4) = ReadMemory(m_SP++);
@@ -6684,7 +6635,6 @@ uint32 CZ80::ImplementPOPAF(void)
 	//							M Cycles		T States					MHz E.T.
 	//								3						10 (4,3,3)				2.75
 	//
-	IncrementR(1);
 	++m_PC;
 	m_F = ReadMemory(m_SP++);
 	m_A = ReadMemory(m_SP++);
@@ -6708,7 +6658,6 @@ uint32 CZ80::ImplementPOPIX(void)
 	//							M Cycles		T States					MHz E.T.
 	//								4						14 (4,4,3,3)			3.50
 	//
-	IncrementR(2);
 	++++m_PC;
 	m_IXl = ReadMemory(m_SP++);
 	m_IXh = ReadMemory(m_SP++);
@@ -6732,7 +6681,6 @@ uint32 CZ80::ImplementPOPIY(void)
 	//							M Cycles		T States					MHz E.T.
 	//								4						14 (4,4,3,3)			3.50
 	//
-	IncrementR(2);
 	++++m_PC;
 	m_IYl = ReadMemory(m_SP++);
 	m_IYh = ReadMemory(m_SP++);
@@ -6760,7 +6708,6 @@ uint32 CZ80::ImplementEXDEHL(void)
 	//							M Cycles		T States					MHz E.T.
 	//								1						4									1.00
 	//
-	IncrementR(1);
 	++m_PC;
 	m_DE ^= m_HL;
 	m_HL ^= m_DE;
@@ -6783,7 +6730,6 @@ uint32 CZ80::ImplementEXAFAF(void)
 	//							M Cycles		T States					MHz E.T.
 	//								1						4									1.00
 	//
-	IncrementR(1);
 	++m_PC;
 	m_AF ^= m_AFalt;
 	m_AFalt ^= m_AF;
@@ -6806,7 +6752,6 @@ uint32 CZ80::ImplementEXX(void)
 	//							M Cycles		T States					MHz E.T.
 	//								1						4									1.00
 	//
-	IncrementR(1);
 	++m_PC;
 	m_BC ^= m_BCalt;
 	m_BCalt ^= m_BC;
@@ -6837,7 +6782,6 @@ uint32 CZ80::ImplementEX_SP_HL(void)
 	//							M Cycles		T States					MHz E.T.
 	//								5						19 (4,3,4,3,5)		4.75
 	//
-	IncrementR(1);
 	++m_PC;
 	m_addresslo = ReadMemory(m_SP);
 	m_addresshi = ReadMemory(m_SP + 1);
@@ -6864,7 +6808,6 @@ uint32 CZ80::ImplementEX_SP_IX(void)
 	//							M Cycles		T States					MHz E.T.
 	//								6						23 (4,4,3,4,3,5)	5.75
 	//
-	IncrementR(2);
 	++++m_PC;
 	m_addresslo = ReadMemory(m_SP);
 	m_addresshi = ReadMemory(m_SP + 1);
@@ -6891,7 +6834,6 @@ uint32 CZ80::ImplementEX_SP_IY(void)
 	//							M Cycles		T States					MHz E.T.
 	//								6						23 (4,4,3,4,3,5)	5.75
 	//
-	IncrementR(2);
 	++++m_PC;
 	m_addresslo = ReadMemory(m_SP);
 	m_addresshi = ReadMemory(m_SP + 1);
@@ -6918,7 +6860,6 @@ uint32 CZ80::ImplementLDI(void)
 	//							M Cycles		T States					MHz E.T.
 	//								4						16 (4,4,3,5)			4.00
 	//
-	IncrementR(2);
 	++++m_PC;
 	uint8 byte = ReadMemory(m_HL++);
 	WriteMemory(m_DE++, byte);
@@ -6979,7 +6920,6 @@ uint32 CZ80::ImplementLDD(void)
 	//							M Cycles		T States					MHz E.T.
 	//								4						16 (4,4,3,5)			4.00
 	//
-	IncrementR(2);
 	++++m_PC;
 	uint8 byte = ReadMemory(m_HL--);
 	WriteMemory(m_DE--, byte);
@@ -7040,7 +6980,6 @@ uint32 CZ80::ImplementCPI(void)
 	//							M Cycles		T States					MHz E.T.
 	//								4						16 (4,4,3,5)			4.00
 	//
-	IncrementR(2);
 	++++m_PC;
 	uint8 _HL_ = ReadMemory(m_HL++);
 	--m_BC;
@@ -7101,7 +7040,6 @@ uint32 CZ80::ImplementCPD(void)
 	//							M Cycles		T States					MHz E.T.
 	//								4						16 (4,4,3,5)			4.00
 	//
-	IncrementR(2);
 	++++m_PC;
 	uint8 _HL_ = ReadMemory(m_HL--);
 	--m_BC;
@@ -7175,7 +7113,6 @@ uint32 CZ80::ImplementADDAr(void)
 	//								L						101
 	//								A						111
 	//
-	IncrementR(1);
 	m_A = HandleArithmeticAddFlags(m_A, REGISTER_8BIT(ReadMemory(m_PC++)), false);
 	return 4;
 }
@@ -7197,7 +7134,6 @@ uint32 CZ80::ImplementADDAIXh(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00
 	//
-	IncrementR(2);
 	++++m_PC;
 	m_A = HandleArithmeticAddFlags(m_A, m_IXh, false);
 	return 8;
@@ -7220,7 +7156,6 @@ uint32 CZ80::ImplementADDAIXl(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00
 	//
-	IncrementR(2);
 	++++m_PC;
 	m_A = HandleArithmeticAddFlags(m_A, m_IXl, false);
 	return 8;
@@ -7243,7 +7178,6 @@ uint32 CZ80::ImplementADDAIYh(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00
 	//
-	IncrementR(2);
 	++++m_PC;
 	m_A = HandleArithmeticAddFlags(m_A, m_IYh, false);
 	return 8;
@@ -7266,7 +7200,6 @@ uint32 CZ80::ImplementADDAIYl(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00
 	//
-	IncrementR(2);
 	++++m_PC;
 	m_A = HandleArithmeticAddFlags(m_A, m_IYl, false);
 	return 8;
@@ -7289,7 +7222,6 @@ uint32 CZ80::ImplementADDAn(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						7	(4,3)						1.75
 	//
-	IncrementR(1);
 	++m_PC;
 	m_A = HandleArithmeticAddFlags(m_A, ReadMemory(m_PC++), false);
 	return 7;
@@ -7310,7 +7242,6 @@ uint32 CZ80::ImplementADDA_HL_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						7	(4,3)						1.75
 	//
-	IncrementR(1);
 	++m_PC;
 	m_A = HandleArithmeticAddFlags(m_A, ReadMemory(m_HL), false);
 	return 7;
@@ -7335,7 +7266,6 @@ uint32 CZ80::ImplementADDA_IXd_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								5						19 (4,4,3,5,3)		4.75
 	//
-	IncrementR(2);
 	++++m_PC;
 	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	m_A = HandleArithmeticAddFlags(m_A, ReadMemory(m_IX + displacement), false);
@@ -7361,7 +7291,6 @@ uint32 CZ80::ImplementADDA_IYd_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								5						19 (4,4,3,5,3)		4.75
 	//
-	IncrementR(2);
 	++++m_PC;
 	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	m_A = HandleArithmeticAddFlags(m_A, ReadMemory(m_IY + displacement), false);
@@ -7392,7 +7321,6 @@ uint32 CZ80::ImplementADCAr(void)
 	//								L						101
 	//								A						111
 	//
-	IncrementR(1);
 	m_A = HandleArithmeticAddFlags(m_A, REGISTER_8BIT(ReadMemory(m_PC++)), true);
 	return 4;
 }
@@ -7414,7 +7342,6 @@ uint32 CZ80::ImplementADCAIXh(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00
 	//
-	IncrementR(2);
 	++++m_PC;
 	m_A = HandleArithmeticAddFlags(m_A, m_IXh, true);
 	return 8;
@@ -7437,7 +7364,6 @@ uint32 CZ80::ImplementADCAIXl(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00
 	//
-	IncrementR(2);
 	++++m_PC;
 	m_A = HandleArithmeticAddFlags(m_A, m_IXl, true);
 	return 8;
@@ -7460,7 +7386,6 @@ uint32 CZ80::ImplementADCAIYh(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00
 	//
-	IncrementR(2);
 	++++m_PC;
 	m_A = HandleArithmeticAddFlags(m_A, m_IYh, true);
 	return 8;
@@ -7483,7 +7408,6 @@ uint32 CZ80::ImplementADCAIYl(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00
 	//
-	IncrementR(2);
 	++++m_PC;
 	m_A = HandleArithmeticAddFlags(m_A, m_IYl, true);
 	return 8;
@@ -7506,7 +7430,6 @@ uint32 CZ80::ImplementADCAn(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						7	(4,3)						1.75
 	//
-	IncrementR(1);
 	++m_PC;
 	m_A = HandleArithmeticAddFlags(m_A, ReadMemory(m_PC++), true);
 	return 7;
@@ -7527,7 +7450,6 @@ uint32 CZ80::ImplementADCA_HL_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						7	(4,3)						1.75
 	//
-	IncrementR(1);
 	++m_PC;
 	m_A = HandleArithmeticAddFlags(m_A, ReadMemory(m_HL), true);
 	return 7;
@@ -7552,7 +7474,6 @@ uint32 CZ80::ImplementADCA_IXd_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								5						19 (4,4,3,5,3)		4.75
 	//
-	IncrementR(2);
 	++++m_PC;
 	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	m_A = HandleArithmeticAddFlags(m_A, ReadMemory(m_IX + displacement), true);
@@ -7578,7 +7499,6 @@ uint32 CZ80::ImplementADCA_IYd_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								5						19 (4,4,3,5,3)		4.75
 	//
-	IncrementR(2);
 	++++m_PC;
 	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	m_A = HandleArithmeticAddFlags(m_A, ReadMemory(m_IY + displacement), true);
@@ -7609,7 +7529,6 @@ uint32 CZ80::ImplementSUBr(void)
 	//								L						101
 	//								A						111
 	//
-	IncrementR(1);
 	m_A = HandleArithmeticSubtractFlags(m_A, REGISTER_8BIT(ReadMemory(m_PC++)), false);
 	return 4;
 }
@@ -7631,7 +7550,6 @@ uint32 CZ80::ImplementSUBIXh(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00
 	//
-	IncrementR(2);
 	++++m_PC;
 	m_A = HandleArithmeticSubtractFlags(m_A, m_IXh, false);
 	return 8;
@@ -7654,7 +7572,6 @@ uint32 CZ80::ImplementSUBIXl(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00
 	//
-	IncrementR(2);
 	++++m_PC;
 	m_A = HandleArithmeticSubtractFlags(m_A, m_IXl, false);
 	return 8;
@@ -7677,7 +7594,6 @@ uint32 CZ80::ImplementSUBIYh(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00
 	//
-	IncrementR(2);
 	++++m_PC;
 	m_A = HandleArithmeticSubtractFlags(m_A, m_IYh, false);
 	return 8;
@@ -7700,7 +7616,6 @@ uint32 CZ80::ImplementSUBIYl(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00
 	//
-	IncrementR(2);
 	++++m_PC;
 	m_A = HandleArithmeticSubtractFlags(m_A, m_IYl, false);
 	return 8;
@@ -7723,7 +7638,6 @@ uint32 CZ80::ImplementSUBn(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						7	(4,3)						1.75
 	//
-	IncrementR(1);
 	++m_PC;
 	m_A = HandleArithmeticSubtractFlags(m_A, ReadMemory(m_PC++), false);
 	return 7;
@@ -7744,7 +7658,6 @@ uint32 CZ80::ImplementSUB_HL_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						7	(4,3)						1.75
 	//
-	IncrementR(1);
 	++m_PC;
 	m_A = HandleArithmeticSubtractFlags(m_A, ReadMemory(m_HL), false);
 	return 7;
@@ -7769,7 +7682,6 @@ uint32 CZ80::ImplementSUB_IXd_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								5						19 (4,4,3,5,3)		4.75
 	//
-	IncrementR(2);
 	++++m_PC;
 	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	m_A = HandleArithmeticSubtractFlags(m_A, ReadMemory(m_IX + displacement), false);
@@ -7795,7 +7707,6 @@ uint32 CZ80::ImplementSUB_IYd_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								5						19 (4,4,3,5,3)		4.75
 	//
-	IncrementR(2);
 	++++m_PC;
 	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	m_A = HandleArithmeticSubtractFlags(m_A, ReadMemory(m_IY + displacement), false);
@@ -7826,7 +7737,6 @@ uint32 CZ80::ImplementSBCAr(void)
 	//								L						101
 	//								A						111
 	//
-	IncrementR(1);
 	m_A = HandleArithmeticSubtractFlags(m_A, REGISTER_8BIT(ReadMemory(m_PC++)), true);
 	return 4;
 }
@@ -7848,7 +7758,6 @@ uint32 CZ80::ImplementSBCAIXh(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00
 	//
-	IncrementR(2);
 	++++m_PC;
 	m_A = HandleArithmeticSubtractFlags(m_A, m_IXh, true);
 	return 8;
@@ -7871,7 +7780,6 @@ uint32 CZ80::ImplementSBCAIXl(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00
 	//
-	IncrementR(2);
 	++++m_PC;
 	m_A = HandleArithmeticSubtractFlags(m_A, m_IXl, true);
 	return 8;
@@ -7894,7 +7802,6 @@ uint32 CZ80::ImplementSBCAIYh(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00
 	//
-	IncrementR(2);
 	++++m_PC;
 	m_A = HandleArithmeticSubtractFlags(m_A, m_IYh, true);
 	return 8;
@@ -7917,7 +7824,6 @@ uint32 CZ80::ImplementSBCAIYl(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00
 	//
-	IncrementR(2);
 	++++m_PC;
 	m_A = HandleArithmeticSubtractFlags(m_A, m_IYl, true);
 	return 8;
@@ -7940,7 +7846,6 @@ uint32 CZ80::ImplementSBCAn(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						7	(4,3)						1.75
 	//
-	IncrementR(1);
 	++m_PC;
 	m_A = HandleArithmeticSubtractFlags(m_A, ReadMemory(m_PC++), true);
 	return 7;
@@ -7961,7 +7866,6 @@ uint32 CZ80::ImplementSBCA_HL_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						7	(4,3)						1.75
 	//
-	IncrementR(1);
 	++m_PC;
 	m_A = HandleArithmeticSubtractFlags(m_A, ReadMemory(m_HL), true);
 	return 7;
@@ -7986,7 +7890,6 @@ uint32 CZ80::ImplementSBCA_IXd_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								5						19 (4,4,3,5,3)		4.75
 	//
-	IncrementR(2);
 	++++m_PC;
 	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	m_A = HandleArithmeticSubtractFlags(m_A, ReadMemory(m_IX + displacement), true);
@@ -8012,7 +7915,6 @@ uint32 CZ80::ImplementSBCA_IYd_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								5						19 (4,4,3,5,3)		4.75
 	//
-	IncrementR(2);
 	++++m_PC;
 	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	m_A = HandleArithmeticSubtractFlags(m_A, ReadMemory(m_IY + displacement), true);
@@ -8043,7 +7945,6 @@ uint32 CZ80::ImplementANDr(void)
 	//								L						101
 	//								A						111
 	//
-	IncrementR(1);
 	m_A &= REGISTER_8BIT(ReadMemory(m_PC++));
 	HandleLogicalFlags(m_A);
 	m_F |= eF_H;
@@ -8067,7 +7968,6 @@ uint32 CZ80::ImplementANDIXh(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00
 	//
-	IncrementR(2);
 	++++m_PC;
 	m_A &= m_IXh;
 	HandleLogicalFlags(m_A);
@@ -8092,7 +7992,6 @@ uint32 CZ80::ImplementANDIXl(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00
 	//
-	IncrementR(2);
 	++++m_PC;
 	m_A &= m_IXl;
 	HandleLogicalFlags(m_A);
@@ -8117,7 +8016,6 @@ uint32 CZ80::ImplementANDIYh(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00
 	//
-	IncrementR(2);
 	++++m_PC;
 	m_A &= m_IYh;
 	HandleLogicalFlags(m_A);
@@ -8142,7 +8040,6 @@ uint32 CZ80::ImplementANDIYl(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00
 	//
-	IncrementR(2);
 	++++m_PC;
 	m_A &= m_IYl;
 	HandleLogicalFlags(m_A);
@@ -8167,7 +8064,6 @@ uint32 CZ80::ImplementANDn(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						7	(4,3)						1.75
 	//
-	IncrementR(1);
 	++m_PC;
 	m_A &= ReadMemory(m_PC++);
 	HandleLogicalFlags(m_A);
@@ -8190,7 +8086,6 @@ uint32 CZ80::ImplementAND_HL_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						7	(4,3)						1.75
 	//
-	IncrementR(1);
 	++m_PC;
 	m_A &= ReadMemory(m_HL);
 	HandleLogicalFlags(m_A);
@@ -8217,7 +8112,6 @@ uint32 CZ80::ImplementAND_IXd_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								5						19 (4,4,3,5,3)		4.75
 	//
-	IncrementR(2);
 	++++m_PC;
 	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	m_A &= ReadMemory(m_IX + displacement);
@@ -8245,7 +8139,6 @@ uint32 CZ80::ImplementAND_IYd_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								5						19 (4,4,3,5,3)		4.75
 	//
-	IncrementR(2);
 	++++m_PC;
 	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	m_A &= ReadMemory(m_IY + displacement);
@@ -8278,7 +8171,6 @@ uint32 CZ80::ImplementORr(void)
 	//								L						101
 	//								A						111
 	//
-	IncrementR(1);
 	m_A |= REGISTER_8BIT(ReadMemory(m_PC++));
 	HandleLogicalFlags(m_A);
 	return 4;
@@ -8301,7 +8193,6 @@ uint32 CZ80::ImplementORIXh(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00
 	//
-	IncrementR(2);
 	++++m_PC;
 	m_A |= m_IXh;
 	HandleLogicalFlags(m_A);
@@ -8325,7 +8216,6 @@ uint32 CZ80::ImplementORIXl(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00
 	//
-	IncrementR(2);
 	++++m_PC;
 	m_A |= m_IXl;
 	HandleLogicalFlags(m_A);
@@ -8349,7 +8239,6 @@ uint32 CZ80::ImplementORIYh(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00
 	//
-	IncrementR(2);
 	++++m_PC;
 	m_A |= m_IYh;
 	HandleLogicalFlags(m_A);
@@ -8373,7 +8262,6 @@ uint32 CZ80::ImplementORIYl(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00
 	//
-	IncrementR(2);
 	++++m_PC;
 	m_A |= m_IYl;
 	HandleLogicalFlags(m_A);
@@ -8397,7 +8285,6 @@ uint32 CZ80::ImplementORn(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						7	(4,3)						1.75
 	//
-	IncrementR(1);
 	++m_PC;
 	m_A |= ReadMemory(m_PC++);
 	HandleLogicalFlags(m_A);
@@ -8419,7 +8306,6 @@ uint32 CZ80::ImplementOR_HL_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						7	(4,3)						1.75
 	//
-	IncrementR(1);
 	++m_PC;
 	m_A |= ReadMemory(m_HL);
 	HandleLogicalFlags(m_A);
@@ -8445,7 +8331,6 @@ uint32 CZ80::ImplementOR_IXd_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								5						19 (4,4,3,5,3)		4.75
 	//
-	IncrementR(2);
 	++++m_PC;
 	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	m_A |= ReadMemory(m_IX + displacement);
@@ -8472,7 +8357,6 @@ uint32 CZ80::ImplementOR_IYd_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								5						19 (4,4,3,5,3)		4.75
 	//
-	IncrementR(2);
 	++++m_PC;
 	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	m_A |= ReadMemory(m_IY + displacement);
@@ -8504,7 +8388,6 @@ uint32 CZ80::ImplementXORr(void)
 	//								L						101
 	//								A						111
 	//
-	IncrementR(1);
 	m_A ^= REGISTER_8BIT(ReadMemory(m_PC++));
 	HandleLogicalFlags(m_A);
 	return 4;
@@ -8527,7 +8410,6 @@ uint32 CZ80::ImplementXORIXh(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00
 	//
-	IncrementR(2);
 	++++m_PC;
 	m_A ^= m_IXh;
 	HandleLogicalFlags(m_A);
@@ -8551,7 +8433,6 @@ uint32 CZ80::ImplementXORIXl(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00
 	//
-	IncrementR(2);
 	++++m_PC;
 	m_A ^= m_IXl;
 	HandleLogicalFlags(m_A);
@@ -8575,7 +8456,6 @@ uint32 CZ80::ImplementXORIYh(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00
 	//
-	IncrementR(2);
 	++++m_PC;
 	m_A ^= m_IYh;
 	HandleLogicalFlags(m_A);
@@ -8599,7 +8479,6 @@ uint32 CZ80::ImplementXORIYl(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00
 	//
-	IncrementR(2);
 	++++m_PC;
 	m_A ^= m_IYl;
 	HandleLogicalFlags(m_A);
@@ -8623,7 +8502,6 @@ uint32 CZ80::ImplementXORn(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						7	(4,3)						1.75
 	//
-	IncrementR(1);
 	++m_PC;
 	m_A ^= ReadMemory(m_PC++);
 	HandleLogicalFlags(m_A);
@@ -8645,7 +8523,6 @@ uint32 CZ80::ImplementXOR_HL_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						7	(4,3)						1.75
 	//
-	IncrementR(1);
 	++m_PC;
 	m_A ^= ReadMemory(m_HL);
 	HandleLogicalFlags(m_A);
@@ -8671,7 +8548,6 @@ uint32 CZ80::ImplementXOR_IXd_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								5						19 (4,4,3,5,3)		4.75
 	//
-	IncrementR(2);
 	++++m_PC;
 	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	m_A ^= ReadMemory(m_IX + displacement);
@@ -8698,7 +8574,6 @@ uint32 CZ80::ImplementXOR_IYd_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								5						19 (4,4,3,5,3)		4.75
 	//
-	IncrementR(2);
 	++++m_PC;
 	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	m_A ^= ReadMemory(m_IY + displacement);
@@ -8730,7 +8605,6 @@ uint32 CZ80::ImplementCPr(void)
 	//								L						101
 	//								A						111
 	//
-	IncrementR(1);
 	uint8 reg = REGISTER_8BIT(ReadMemory(m_PC++));
 	HandleArithmeticSubtractFlags(m_A, reg, false);
 	// From The Undocumented Z80:
@@ -8756,7 +8630,6 @@ uint32 CZ80::ImplementCPIXh(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00
 	//
-	IncrementR(2);
 	++++m_PC;
 	HandleArithmeticSubtractFlags(m_A, m_IXh, false);
 	// From The Undocumented Z80:
@@ -8782,7 +8655,6 @@ uint32 CZ80::ImplementCPIXl(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00
 	//
-	IncrementR(2);
 	++++m_PC;
 	HandleArithmeticSubtractFlags(m_A, m_IXl, false);
 	// From The Undocumented Z80:
@@ -8808,7 +8680,6 @@ uint32 CZ80::ImplementCPIYh(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00
 	//
-	IncrementR(2);
 	++++m_PC;
 	HandleArithmeticSubtractFlags(m_A, m_IYh, false);
 	// From The Undocumented Z80:
@@ -8834,7 +8705,6 @@ uint32 CZ80::ImplementCPIYl(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00
 	//
-	IncrementR(2);
 	++++m_PC;
 	HandleArithmeticSubtractFlags(m_A, m_IYl, false);
 	// From The Undocumented Z80:
@@ -8860,7 +8730,6 @@ uint32 CZ80::ImplementCPn(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						7	(4,3)						1.75
 	//
-	IncrementR(1);
 	++m_PC;
 	uint8 byte = ReadMemory(m_PC++);
 	HandleArithmeticSubtractFlags(m_A, byte, false);
@@ -8885,7 +8754,6 @@ uint32 CZ80::ImplementCP_HL_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						7	(4,3)						1.75
 	//
-	IncrementR(1);
 	++m_PC;
 	uint8 byte = ReadMemory(m_HL);
 	HandleArithmeticSubtractFlags(m_A, byte, false);
@@ -8914,7 +8782,6 @@ uint32 CZ80::ImplementCP_IXd_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								5						19 (4,4,3,5,3)		4.75
 	//
-	IncrementR(2);
 	++++m_PC;
 	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	uint8 byte = ReadMemory(m_IX + displacement);
@@ -8944,7 +8811,6 @@ uint32 CZ80::ImplementCP_IYd_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								5						19 (4,4,3,5,3)		4.75
 	//
-	IncrementR(2);
 	++++m_PC;
 	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	uint8 byte = ReadMemory(m_IY + displacement);
@@ -8979,7 +8845,6 @@ uint32 CZ80::ImplementINCr(void)
 	//								L						101
 	//								A						111
 	//
-	IncrementR(1);
 	uint8& reg = REGISTER_8BIT(ReadMemory(m_PC++) >> 3);
 	uint8 origF = m_F;
 	reg = HandleArithmeticAddFlags(reg, 1, false);
@@ -9005,7 +8870,6 @@ uint32 CZ80::ImplementINCIXh(void)
 	//							M Cycles		T States					MHz E.T.
 	//								1						8 (4,4)						2.00
 	//
-	IncrementR(2);
 	++++m_PC;
 	uint8 origF = m_F;
 	m_IXh = HandleArithmeticAddFlags(m_IXh, 1, false);
@@ -9031,7 +8895,6 @@ uint32 CZ80::ImplementINCIXl(void)
 	//							M Cycles		T States					MHz E.T.
 	//								1						8 (4,4)						2.00
 	//
-	IncrementR(2);
 	++++m_PC;
 	uint8 origF = m_F;
 	m_IXl = HandleArithmeticAddFlags(m_IXl, 1, false);
@@ -9057,7 +8920,6 @@ uint32 CZ80::ImplementINCIYh(void)
 	//							M Cycles		T States					MHz E.T.
 	//								1						8 (4,4)						2.00
 	//
-	IncrementR(2);
 	++++m_PC;
 	uint8 origF = m_F;
 	m_IYh = HandleArithmeticAddFlags(m_IYh, 1, false);
@@ -9083,7 +8945,6 @@ uint32 CZ80::ImplementINCIYl(void)
 	//							M Cycles		T States					MHz E.T.
 	//								1						8 (4,4)						2.00
 	//
-	IncrementR(2);
 	++++m_PC;
 	uint8 origF = m_F;
 	m_IYl = HandleArithmeticAddFlags(m_IYl, 1, false);
@@ -9107,7 +8968,6 @@ uint32 CZ80::ImplementINC_HL_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								3						11 (4,4,3)				2.75
 	//
-	IncrementR(1);
 	++m_PC;
 	uint8 byte = ReadMemory(m_HL);
 	uint8 origF = m_F;
@@ -9137,7 +8997,6 @@ uint32 CZ80::ImplementINC_IXd_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								6						23 (4,4,3,5,4,3)	5.75
 	//
-	IncrementR(2);
 	++++m_PC;
 	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	uint8 byte = ReadMemory(m_IX + displacement);
@@ -9168,7 +9027,6 @@ uint32 CZ80::ImplementINC_IYd_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								6						23 (4,4,3,5,4,3)	5.75
 	//
-	IncrementR(2);
 	++++m_PC;
 	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	uint8 byte = ReadMemory(m_IY + displacement);
@@ -9204,7 +9062,6 @@ uint32 CZ80::ImplementDECr(void)
 	//								L						101
 	//								A						111
 	//
-	IncrementR(1);
 	int8& reg = *reinterpret_cast<int8*>(&REGISTER_8BIT(ReadMemory(m_PC++) >> 3));
 	uint8 origF = m_F;
 	reg = HandleArithmeticSubtractFlags(reg, 1, false);
@@ -9230,7 +9087,6 @@ uint32 CZ80::ImplementDECIXh(void)
 	//							M Cycles		T States					MHz E.T.
 	//								1						8	(4,4)						1.00
 	//
-	IncrementR(2);
 	++++m_PC;
 	uint8 origF = m_F;
 	m_IXh = HandleArithmeticSubtractFlags(m_IXh, 1, false);
@@ -9256,7 +9112,6 @@ uint32 CZ80::ImplementDECIXl(void)
 	//							M Cycles		T States					MHz E.T.
 	//								1						8	(4,4)						1.00
 	//
-	IncrementR(2);
 	++++m_PC;
 	uint8 origF = m_F;
 	m_IXl = HandleArithmeticSubtractFlags(m_IXl, 1, false);
@@ -9282,7 +9137,6 @@ uint32 CZ80::ImplementDECIYh(void)
 	//							M Cycles		T States					MHz E.T.
 	//								1						8	(4,4)						1.00
 	//
-	IncrementR(2);
 	++++m_PC;
 	uint8 origF = m_F;
 	m_IYh = HandleArithmeticSubtractFlags(m_IYh, 1, false);
@@ -9308,7 +9162,6 @@ uint32 CZ80::ImplementDECIYl(void)
 	//							M Cycles		T States					MHz E.T.
 	//								1						8	(4,4)						1.00
 	//
-	IncrementR(2);
 	++++m_PC;
 	uint8 origF = m_F;
 	m_IYl = HandleArithmeticSubtractFlags(m_IYl, 1, false);
@@ -9332,7 +9185,6 @@ uint32 CZ80::ImplementDEC_HL_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								3						11 (4,4,3)				2.75
 	//
-	IncrementR(1);
 	++m_PC;
 	uint8 byte = ReadMemory(m_HL);
 	uint8 origF = m_F;
@@ -9362,7 +9214,6 @@ uint32 CZ80::ImplementDEC_IXd_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								6						23 (4,4,3,5,4,3)	5.75
 	//
-	IncrementR(2);
 	++++m_PC;
 	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	uint8 byte = ReadMemory(m_IX + displacement);
@@ -9393,7 +9244,6 @@ uint32 CZ80::ImplementDEC_IYd_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								6						23 (4,4,3,5,4,3)	5.75
 	//
-	IncrementR(2);
 	++++m_PC;
 	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	uint8 byte = ReadMemory(m_IY + displacement);
@@ -9426,7 +9276,6 @@ uint32 CZ80::ImplementDAA(void)
 	//							M Cycles		T States					MHz E.T.
 	//								1						4									1.00
 	//
-	IncrementR(1);
 	++m_PC;
 	uint8 correction = 0x00;
 
@@ -9478,7 +9327,6 @@ uint32 CZ80::ImplementCPL(void)
 	//							M Cycles		T States					MHz E.T.
 	//								1						4									1.00
 	//
-	IncrementR(1);
 	++m_PC;
 	m_A = ~m_A;
 	m_F &= (eF_S | eF_Z | eF_PV | eF_C);
@@ -9503,7 +9351,6 @@ uint32 CZ80::ImplementNEG(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00
 	//
-	IncrementR(2);
 	++++m_PC;
 	uint8 origA = m_A;
 	m_A = HandleArithmeticSubtractFlags(0, m_A, false);
@@ -9527,7 +9374,6 @@ uint32 CZ80::ImplementCCF(void)
 	//							M Cycles		T States					MHz E.T.
 	//								1						4									1.00
 	//
-	IncrementR(1);
 	++m_PC;
 	uint8 origF = m_F;
 	m_F &= (eF_S | eF_Z | eF_PV);
@@ -9550,7 +9396,6 @@ uint32 CZ80::ImplementSCF(void)
 	//							M Cycles		T States					MHz E.T.
 	//								1						4									1.00
 	//
-	IncrementR(1);
 	++m_PC;
 	m_F &= (eF_S | eF_Z | eF_PV);
 	m_F |= (m_A & (eF_X | eF_Y)) | eF_C;
@@ -9572,7 +9417,6 @@ uint32 CZ80::ImplementNOP(void)
 	//							M Cycles		T States					MHz E.T.
 	//								1						4									1.00
 	//
-	IncrementR(1);
 	++m_PC;
 	return 4;
 }
@@ -9592,7 +9436,6 @@ uint32 CZ80::ImplementHALT(void)
 	//							M Cycles		T States					MHz E.T.
 	//								1						4									1.00
 	//
-	IncrementR(1);
 	// Intentionally don't increment PC
 	return 4;
 }
@@ -9612,7 +9455,6 @@ uint32 CZ80::ImplementDI(void)
 	//							M Cycles		T States					MHz E.T.
 	//								1						4									1.00
 	//
-	IncrementR(1);
 	++m_PC;
 	m_State.m_IFF1 = 0;
 	m_State.m_IFF2 = 0;
@@ -9634,7 +9476,6 @@ uint32 CZ80::ImplementEI(void)
 	//							M Cycles		T States					MHz E.T.
 	//								1						4									1.00
 	//
-	IncrementR(1);
 	++m_PC;
 	m_State.m_IFF1 = 1;
 	m_State.m_IFF2 = 1;
@@ -9658,7 +9499,6 @@ uint32 CZ80::ImplementIM0(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00
 	//
-	IncrementR(2);
 	++++m_PC;
 	m_State.m_InterruptMode = 0;
 	return 8;
@@ -9681,7 +9521,6 @@ uint32 CZ80::ImplementIM1(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00
 	//
-	IncrementR(2);
 	++++m_PC;
 	m_State.m_InterruptMode = 1;
 	return 8;
@@ -9704,7 +9543,6 @@ uint32 CZ80::ImplementIM2(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00
 	//
-	IncrementR(2);
 	++++m_PC;
 	m_State.m_InterruptMode = 2;
 	return 8;
@@ -9737,7 +9575,6 @@ uint32 CZ80::ImplementADDHLdd(void)
 	//							M Cycles		T States					MHz E.T.
 	//								3						11 (4,4,3)				2.75
 	//
-	IncrementR(1);
 	uint8 origF = m_F;
 	m_HL = Handle16BitArithmeticAddFlags(m_HL, REGISTER_16BIT(ReadMemory(m_PC++) >> 4), false);
 	m_F &= ~(eF_S | eF_Z | eF_PV);
@@ -9768,7 +9605,6 @@ uint32 CZ80::ImplementADCHLdd(void)
 	//							M Cycles		T States					MHz E.T.
 	//								4						15 (4,4,4,3)			3.75
 	//
-	IncrementR(2);
 	++m_PC;
 	m_HL = Handle16BitArithmeticAddFlags(m_HL, REGISTER_16BIT(ReadMemory(m_PC++) >> 4), true);
 	return 15;
@@ -9797,7 +9633,6 @@ uint32 CZ80::ImplementSBCHLdd(void)
 	//							M Cycles		T States					MHz E.T.
 	//								4						15 (4,4,4,3)			3.75
 	//
-	IncrementR(2);
 	++m_PC;
 	m_HL = Handle16BitArithmeticSubtractFlags(m_HL, REGISTER_16BIT(ReadMemory(m_PC++) >> 4), true);
 	return 15;
@@ -9826,7 +9661,6 @@ uint32 CZ80::ImplementADDIXdd(void)
 	//							M Cycles		T States					MHz E.T.
 	//								3						15 (4,4,4,3)			3.75
 	//
-	IncrementR(2);
 	uint8 opcode = ReadMemory(++m_PC) >> 4;
 	++m_PC;
 	uint16 source = (opcode == 2) ? m_IX : REGISTER_16BIT(opcode);
@@ -9860,7 +9694,6 @@ uint32 CZ80::ImplementADDIYdd(void)
 	//							M Cycles		T States					MHz E.T.
 	//								3						15 (4,4,4,3)			3.75
 	//
-	IncrementR(2);
 	uint8 opcode = ReadMemory(++m_PC) >> 4;
 	++m_PC;
 	uint16 source = (opcode == 2) ? m_IY : REGISTER_16BIT(opcode);
@@ -9892,7 +9725,6 @@ uint32 CZ80::ImplementINCdd(void)
 	//							M Cycles		T States					MHz E.T.
 	//								1						6									1.50
 	//
-	IncrementR(1);
 	++REGISTER_16BIT(ReadMemory(m_PC++) >> 4);
 	return 6;
 }
@@ -9914,7 +9746,6 @@ uint32 CZ80::ImplementINCIX(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						10 (4,6)					2.50
 	//
-	IncrementR(2);
 	++++m_PC;
 	++m_IX;
 	return 10;
@@ -9937,7 +9768,6 @@ uint32 CZ80::ImplementINCIY(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						10 (4,6)					2.50
 	//
-	IncrementR(2);
 	++++m_PC;
 	++m_IY;
 	return 10;
@@ -9958,7 +9788,6 @@ uint32 CZ80::ImplementDECdd(void)
 	//							M Cycles		T States					MHz E.T.
 	//								1						6									1.50
 	//
-	IncrementR(1);
 	--REGISTER_16BIT(ReadMemory(m_PC++) >> 4);
 	return 6;
 }
@@ -9980,7 +9809,6 @@ uint32 CZ80::ImplementDECIX(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						10 (4,6)					2.50
 	//
-	IncrementR(2);
 	++++m_PC;
 	--m_IX;
 	return 10;
@@ -10003,7 +9831,6 @@ uint32 CZ80::ImplementDECIY(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						10 (4,6)					2.50
 	//
-	IncrementR(2);
 	++++m_PC;
 	--m_IY;
 	return 10;
@@ -10031,7 +9858,6 @@ uint32 CZ80::ImplementRLCA(void)
 	//							M Cycles		T States					MHz E.T.
 	//								1						4									1.00	
 	//
-	IncrementR(1);
 	++m_PC;
 	uint8 carry = (m_A & eF_S) >> 7;
 	m_A = (m_A << 1) | carry;
@@ -10056,7 +9882,6 @@ uint32 CZ80::ImplementRLA(void)
 	//							M Cycles		T States					MHz E.T.
 	//								1						4									1.00	
 	//
-	IncrementR(1);
 	++m_PC;
 	uint8 carry = (m_A & eF_S) >> 7;
 	m_A = (m_A << 1) | (m_F & eF_C);
@@ -10081,7 +9906,6 @@ uint32 CZ80::ImplementRRCA(void)
 	//							M Cycles		T States					MHz E.T.
 	//								1						4									1.00	
 	//
-	IncrementR(1);
 	++m_PC;
 	uint8 carry = (m_A & eF_C);
 	m_A = (m_A >> 1) | (carry << 7);
@@ -10106,7 +9930,6 @@ uint32 CZ80::ImplementRRA(void)
 	//							M Cycles		T States					MHz E.T.
 	//								1						4									1.00	
 	//
-	IncrementR(1);
 	++m_PC;
 	uint8 carry = (m_A & eF_C);
 	m_A = (m_A >> 1) | ((m_F & eF_C) << 7);
@@ -10133,7 +9956,6 @@ uint32 CZ80::ImplementRLCr(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00	
 	//
-	IncrementR(2);
 	++m_PC;
 	uint8& reg = REGISTER_8BIT(ReadMemory(m_PC++));
 	uint8 carry = (reg & eF_S) >> 7;
@@ -10161,7 +9983,6 @@ uint32 CZ80::ImplementRLC_HL_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								4						15 (4,4,4,3)			3.75	
 	//
-	IncrementR(2);
 	++++m_PC;
 	uint8 byte = ReadMemory(m_HL);
 	uint8 carry = (byte & eF_S) >> 7;
@@ -10194,7 +10015,6 @@ uint32 CZ80::ImplementRLC_IXd_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								6						23 (4,4,3,5,4,3)	5.75	
 	//
-	IncrementR(2);
 	++++m_PC;
 	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	uint8 opcode = ReadMemory(m_PC++);
@@ -10234,7 +10054,6 @@ uint32 CZ80::ImplementRLC_IYd_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								6						23 (4,4,3,5,4,3)	5.75	
 	//
-	IncrementR(2);
 	++++m_PC;
 	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	uint8 opcode = ReadMemory(m_PC++);
@@ -10270,7 +10089,6 @@ uint32 CZ80::ImplementRLr(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00	
 	//
-	IncrementR(2);
 	++m_PC;
 	uint8& reg = REGISTER_8BIT(ReadMemory(m_PC++));
 	uint8 carry = (reg & eF_S) >> 7;
@@ -10298,7 +10116,6 @@ uint32 CZ80::ImplementRL_HL_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								4						15 (4,4,4,3)			3.75	
 	//
-	IncrementR(2);
 	++++m_PC;
 	uint8 byte = ReadMemory(m_HL);
 	uint8 carry = (byte & eF_S) >> 7;
@@ -10331,7 +10148,6 @@ uint32 CZ80::ImplementRL_IXd_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								6						23 (4,4,3,5,4,3)	5.75
 	//
-	IncrementR(2);
 	++++m_PC;
 	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	uint8 opcode = ReadMemory(m_PC++);
@@ -10371,7 +10187,6 @@ uint32 CZ80::ImplementRL_IYd_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								6						23 (4,4,3,5,4,3)	5.75
 	//
-	IncrementR(2);
 	++++m_PC;
 	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	uint8 opcode = ReadMemory(m_PC++);
@@ -10407,7 +10222,6 @@ uint32 CZ80::ImplementRRCr(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00	
 	//
-	IncrementR(2);
 	++m_PC;
 	uint8& reg = REGISTER_8BIT(ReadMemory(m_PC++));
 	uint8 carry = (reg & eF_C);
@@ -10435,7 +10249,6 @@ uint32 CZ80::ImplementRRC_HL_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								4						15 (4,4,4,3)			3.75	
 	//
-	IncrementR(2);
 	++++m_PC;
 	uint8 byte = ReadMemory(m_HL);
 	uint8 carry = (byte & eF_C);
@@ -10468,7 +10281,6 @@ uint32 CZ80::ImplementRRC_IXd_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								6						23 (4,4,3,5,4,3)	5.75	
 	//
-	IncrementR(2);
 	++++m_PC;
 	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	uint8 opcode = ReadMemory(m_PC++);
@@ -10508,7 +10320,6 @@ uint32 CZ80::ImplementRRC_IYd_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								6						23 (4,4,3,5,4,3)	5.75
 	//
-	IncrementR(2);
 	++++m_PC;
 	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	uint8 opcode = ReadMemory(m_PC++);
@@ -10544,7 +10355,6 @@ uint32 CZ80::ImplementRRr(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00	
 	//
-	IncrementR(2);
 	++m_PC;
 	uint8& reg = REGISTER_8BIT(ReadMemory(m_PC++));
 	uint8 carry = (reg & eF_C);
@@ -10572,7 +10382,6 @@ uint32 CZ80::ImplementRR_HL_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								4						15 (4,4,4,3)			3.75	
 	//
-	IncrementR(2);
 	++++m_PC;
 	uint8 byte = ReadMemory(m_HL);
 	uint8 carry = (byte & eF_C);
@@ -10605,7 +10414,6 @@ uint32 CZ80::ImplementRR_IXd_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								6						23 (4,4,3,5,4,3)	5.75	
 	//
-	IncrementR(2);
 	++++m_PC;
 	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	uint8 opcode = ReadMemory(m_PC++);
@@ -10645,7 +10453,6 @@ uint32 CZ80::ImplementRR_IYd_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								6						23 (4,4,3,5,4,3)	5.75	
 	//
-	IncrementR(2);
 	++++m_PC;
 	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	uint8 opcode = ReadMemory(m_PC++);
@@ -10680,7 +10487,6 @@ uint32 CZ80::ImplementSLAr(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00	
 	//
-	IncrementR(2);
 	++m_PC;
 	uint8& reg = REGISTER_8BIT(ReadMemory(m_PC++));
 	uint8 carry = (reg & eF_S) >> 7;
@@ -10707,7 +10513,6 @@ uint32 CZ80::ImplementSLA_HL_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								4						15 (4,4,4,3)			3.75	
 	//
-	IncrementR(2);
 	++++m_PC;
 	uint8 byte = ReadMemory(m_HL);
 	uint8 carry = (byte & eF_S) >> 7;
@@ -10739,7 +10544,6 @@ uint32 CZ80::ImplementSLA_IXd_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								6						23 (4,4,3,5,4,3)	5.75
 	//
-	IncrementR(2);
 	++++m_PC;
 	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	uint8 opcode = ReadMemory(m_PC++);
@@ -10778,7 +10582,6 @@ uint32 CZ80::ImplementSLA_IYd_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								6						23 (4,4,3,5,4,3)	5.75
 	//
-	IncrementR(2);
 	++++m_PC;
 	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	uint8 opcode = ReadMemory(m_PC++);
@@ -10814,7 +10617,6 @@ uint32 CZ80::ImplementSRAr(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00	
 	//
-	IncrementR(2);
 	++m_PC;
 	uint8& reg = REGISTER_8BIT(ReadMemory(m_PC++));
 	uint8 sign = (reg & eF_S);
@@ -10843,7 +10645,6 @@ uint32 CZ80::ImplementSRA_HL_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								4						15 (4,4,4,3)			3.75	
 	//
-	IncrementR(2);
 	++++m_PC;
 	uint8 byte = ReadMemory(m_HL);
 	uint8 sign = (byte & eF_S);
@@ -10877,7 +10678,6 @@ uint32 CZ80::ImplementSRA_IXd_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								6						23 (4,4,3,5,4,3)	5.75
 	//
-	IncrementR(2);
 	++++m_PC;
 	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	uint8 opcode = ReadMemory(m_PC++);
@@ -10918,7 +10718,6 @@ uint32 CZ80::ImplementSRA_IYd_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								6						23 (4,4,3,5,4,3)	5.75
 	//
-	IncrementR(2);
 	++++m_PC;
 	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	uint8 opcode = ReadMemory(m_PC++);
@@ -10954,7 +10753,6 @@ uint32 CZ80::ImplementSLLr(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00	
 	//
-	IncrementR(2);
 	++m_PC;
 	uint8& reg = REGISTER_8BIT(ReadMemory(m_PC++));
 	uint8 carry = (reg & eF_S) >> 7;
@@ -10981,7 +10779,6 @@ uint32 CZ80::ImplementSLL_HL_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								4						15 (4,4,4,3)			3.75	
 	//
-	IncrementR(2);
 	++++m_PC;
 	uint8 byte = ReadMemory(m_HL);
 	uint8 carry = (byte & eF_S) >> 7;
@@ -11013,7 +10810,6 @@ uint32 CZ80::ImplementSLL_IXd_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								6						23 (4,4,3,5,4,3)	5.75
 	//
-	IncrementR(2);
 	++++m_PC;
 	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	uint8 opcode = ReadMemory(m_PC++);
@@ -11052,7 +10848,6 @@ uint32 CZ80::ImplementSLL_IYd_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								6						23 (4,4,3,5,4,3)	5.75
 	//
-	IncrementR(2);
 	++++m_PC;
 	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	uint8 opcode = ReadMemory(m_PC++);
@@ -11087,7 +10882,6 @@ uint32 CZ80::ImplementSRLr(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8	(4,4)						2.00	
 	//
-	IncrementR(2);
 	++m_PC;
 	uint8& reg = REGISTER_8BIT(ReadMemory(m_PC++));
 	uint8 carry = (reg & eF_C);
@@ -11114,7 +10908,6 @@ uint32 CZ80::ImplementSRL_HL_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								4						15 (4,4,4,3)			3.75	
 	//
-	IncrementR(2);
 	++++m_PC;
 	uint8 byte = ReadMemory(m_HL);
 	uint8 carry = (byte & eF_C);
@@ -11147,7 +10940,6 @@ uint32 CZ80::ImplementSRL_IXd_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								6						23 (4,4,3,5,4,3)	5.75
 	//
-	IncrementR(2);
 	++++m_PC;
 	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	uint8 opcode = ReadMemory(m_PC++);
@@ -11186,7 +10978,6 @@ uint32 CZ80::ImplementSRL_IYd_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								6						23 (4,4,3,5,4,3)	5.75
 	//
-	IncrementR(2);
 	++++m_PC;
 	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	uint8 opcode = ReadMemory(m_PC++);
@@ -11223,7 +11014,6 @@ uint32 CZ80::ImplementRLD(void)
 	//							M Cycles		T States					MHz E.T.
 	//								5						18 (4,4,3,4,3)		3.75
 	//
-	IncrementR(2);
 	++++m_PC;
 	uint8 byte = ReadMemory(m_HL);
 	uint8 origA = m_A;
@@ -11255,7 +11045,6 @@ uint32 CZ80::ImplementRRD(void)
 	//							M Cycles		T States					MHz E.T.
 	//								5						18 (4,4,3,4,3)		3.75
 	//
-	IncrementR(2);
 	++++m_PC;
 	uint8 byte = ReadMemory(m_HL);
 	uint8 origA = m_A;
@@ -11300,7 +11089,6 @@ uint32 CZ80::ImplementBITbr(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8 (4,4)						2.00
 	//
-	IncrementR(2);
 	uint8 opcode = ReadMemory(++m_PC);
 	++m_PC;
 	uint8 mask = 1 << ((opcode & 0x38) >> 3);
@@ -11327,7 +11115,6 @@ uint32 CZ80::ImplementBITb_HL_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								3						12 (4,4,4)				3.00
 	//
-	IncrementR(2);
 	++m_PC;
 	uint8 mask = 1 << ((ReadMemory(m_PC++) & 0x38) >> 3);
 	uint8 byte = ReadMemory(m_HL);
@@ -11358,7 +11145,6 @@ uint32 CZ80::ImplementBITb_IXd_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								5						20 (4,4,3,5,4)		5.00
 	//
-	IncrementR(2);
 	++++m_PC;
 	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	uint8 mask = 1 << ((ReadMemory(m_PC++) & 0x38) >> 3);
@@ -11394,7 +11180,6 @@ uint32 CZ80::ImplementBITb_IYd_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								5						20 (4,4,3,5,4)		5.00
 	//
-	IncrementR(2);
 	++++m_PC;
 	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	uint8 mask = 1 << ((ReadMemory(m_PC++) & 0x38) >> 3);
@@ -11435,7 +11220,6 @@ uint32 CZ80::ImplementSETbr(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8 (4,4)						2.00
 	//
-	IncrementR(2);
 	uint8 opcode = ReadMemory(++m_PC);
 	++m_PC;
 	uint8 mask = 1 << ((opcode & 0x38) >> 3);
@@ -11461,7 +11245,6 @@ uint32 CZ80::ImplementSETb_HL_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								3						12 (4,4,4)				3.00
 	//
-	IncrementR(2);
 	++m_PC;
 	uint8 mask = 1 << ((ReadMemory(m_PC++) & 0x38) >> 3);
 	uint8 byte = ReadMemory(m_HL);
@@ -11491,7 +11274,6 @@ uint32 CZ80::ImplementSETb_IXd_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								5						20 (4,4,3,5,4)		5.00
 	//
-	IncrementR(2);
 	++++m_PC;
 	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	uint8 opcode = ReadMemory(m_PC++);
@@ -11528,7 +11310,6 @@ uint32 CZ80::ImplementSETb_IYd_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								5						20 (4,4,3,5,4)		5.00
 	//
-	IncrementR(2);
 	++++m_PC;
 	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	uint8 opcode = ReadMemory(m_PC++);
@@ -11570,7 +11351,6 @@ uint32 CZ80::ImplementRESbr(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8 (4,4)						2.00
 	//
-	IncrementR(2);
 	uint8 opcode = ReadMemory(++m_PC);
 	++m_PC;
 	uint8 mask = 1 << ((opcode & 0x38) >> 3);
@@ -11596,7 +11376,6 @@ uint32 CZ80::ImplementRESb_HL_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								3						12 (4,4,4)				3.00
 	//
-	IncrementR(2);
 	++m_PC;
 	uint8 mask = 1 << ((ReadMemory(m_PC++) & 0x38) >> 3);
 	uint8 byte = ReadMemory(m_HL);
@@ -11626,7 +11405,6 @@ uint32 CZ80::ImplementRESb_IXd_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								5						20 (4,4,3,5,4)		5.00
 	//
-	IncrementR(2);
 	++++m_PC;
 	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	uint8 opcode = ReadMemory(m_PC++);
@@ -11663,7 +11441,6 @@ uint32 CZ80::ImplementRESb_IYd_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								5						20 (4,4,3,5,4)		5.00
 	//
-	IncrementR(2);
 	++++m_PC;
 	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	uint8 opcode = ReadMemory(m_PC++);
@@ -11704,7 +11481,6 @@ uint32 CZ80::ImplementJPnn(void)
 	//							M Cycles		T States					MHz E.T.
 	//								3						10 (4,3,3)				2.50
 	//
-	IncrementR(1);
 	m_addresslo = ReadMemory(++m_PC);
 	m_addresshi = ReadMemory(++m_PC);
 	m_PC = m_address;
@@ -11740,7 +11516,6 @@ uint32 CZ80::ImplementJPccnn(void)
 	//							M Cycles		T States					MHz E.T.
 	//								3						10 (4,3,3)				2.50
 	//
-	IncrementR(1);
 	uint8 opcode = ReadMemory(m_PC++);
 	m_addresslo = ReadMemory(m_PC++);
 	m_addresshi = ReadMemory(m_PC++);
@@ -11768,7 +11543,6 @@ uint32 CZ80::ImplementJRe(void)
 	//							M Cycles		T States					MHz E.T.
 	//								3						12 (4,3,5)				3.00
 	//
-	IncrementR(1);
 	++m_PC;
 	int8 displacement = static_cast<int8>(ReadMemory(m_PC++));
 	m_PC += displacement;
@@ -11794,7 +11568,6 @@ uint32 CZ80::ImplementJRCe(void)
 	//								2						7 (4,3)						1.75		C == 0
 	//								3						12 (4,3,5)				3.00		C == 1
 	//
-	IncrementR(1);
 	uint32 tstates = 7;
 	int8 displacement = static_cast<int8>(ReadMemory(++m_PC));
 	++m_PC;
@@ -11825,7 +11598,6 @@ uint32 CZ80::ImplementJRNCe(void)
 	//								2						7 (4,3)						1.75		C == 1
 	//								3						12 (4,3,5)				3.00		C == 0
 	//
-	IncrementR(1);
 	uint32 tstates = 7;
 	int8 displacement = static_cast<int8>(ReadMemory(++m_PC));
 	++m_PC;
@@ -11856,7 +11628,6 @@ uint32 CZ80::ImplementJRZe(void)
 	//								2						7 (4,3)						1.75		Z == 0
 	//								3						12 (4,3,5)				3.00		Z == 1
 	//
-	IncrementR(1);
 	uint32 tstates = 7;
 	int8 displacement = static_cast<int8>(ReadMemory(++m_PC));
 	++m_PC;
@@ -11887,7 +11658,6 @@ uint32 CZ80::ImplementJRNZe(void)
 	//								2						7 (4,3)						1.75		Z == 1
 	//								3						12 (4,3,5)				3.00		Z == 0
 	//
-	IncrementR(1);
 	uint32 tstates = 7;
 	int8 displacement = static_cast<int8>(ReadMemory(++m_PC));
 	++m_PC;
@@ -11914,7 +11684,6 @@ uint32 CZ80::ImplementJP_HL_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								1						4									1.00
 	//
-	IncrementR(1);
 	m_PC = m_HL;
 	return 4;
 }
@@ -11935,7 +11704,6 @@ uint32 CZ80::ImplementJP_IX_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8 (4,4)						1.00
 	//
-	IncrementR(2);
 	m_PC = m_IX;
 	return 8;
 }
@@ -11956,7 +11724,6 @@ uint32 CZ80::ImplementJP_IY_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								2						8 (4,4)						1.00
 	//
-	IncrementR(2);
 	m_PC = m_IY;
 	return 8;
 }
@@ -11980,7 +11747,6 @@ uint32 CZ80::ImplementDJNZe(void)
 	//								2						8 (5,3)						2.00		B != 0
 	//								3						13 (5,3,5)				3.25		B == 0
 	//
-	IncrementR(1);
 	uint32 tstates = 8;
 	int8 displacement = static_cast<int8>(ReadMemory(++m_PC));
 	++m_PC;
@@ -12017,7 +11783,6 @@ uint32 CZ80::ImplementCALLnn(void)
 	//							M Cycles		T States					MHz E.T.
 	//								5						17 (4,3,4,3,3)		4.25
 	//
-	IncrementR(1);
 	m_addresslo = ReadMemory(++m_PC);
 	m_addresshi = ReadMemory(++m_PC);
 	++m_PC;
@@ -12057,7 +11822,6 @@ uint32 CZ80::ImplementCALLccnn(void)
 	//								5						17 (4,3,4,3,3)		4.25	cc is true
 	//								3						10 (4,3,3)				2.50	cc is false
 	//
-	IncrementR(1);
 	uint8 opcode = ReadMemory(m_PC++);
 	m_addresslo = ReadMemory(m_PC++);
 	m_addresshi = ReadMemory(m_PC++);
@@ -12087,7 +11851,6 @@ uint32 CZ80::ImplementRET(void)
 	//							M Cycles		T States					MHz E.T.
 	//								3						10 (4,3,3)				2.50
 	//
-	IncrementR(1);
 	m_PCl = ReadMemory(m_SP++);
 	m_PCh = ReadMemory(m_SP++);
 	return 10;
@@ -12119,7 +11882,6 @@ uint32 CZ80::ImplementRETcc(void)
 	//								3						11 (5,3,3)				2.75	cc is true
 	//								1						5									1.25	cc is false
 	//
-	IncrementR(1);
 	uint32 tstates = 5;
 	if (IsConditionTrue((ReadMemory(m_PC++) & 0x38) >> 3))
 	{
@@ -12147,7 +11909,6 @@ uint32 CZ80::ImplementRETI(void)
 	//							M Cycles		T States					MHz E.T.
 	//								4						14 (4,4,3,3)			3.50
 	//
-	IncrementR(2);
 	m_PCl = ReadMemory(m_SP++);
 	m_PCh = ReadMemory(m_SP++);
 	return 14;
@@ -12170,7 +11931,6 @@ uint32 CZ80::ImplementRETN(void)
 	//							M Cycles		T States					MHz E.T.
 	//								4						14 (4,4,3,3)			3.50
 	//
-	IncrementR(2);
 	m_State.m_IFF1 = m_State.m_IFF2;
 	m_PCl = ReadMemory(m_SP++);
 	m_PCh = ReadMemory(m_SP++);
@@ -12202,7 +11962,6 @@ uint32 CZ80::ImplementRSTp(void)
 	//							M Cycles		T States					MHz E.T.
 	//								3						11 (5,3,3)				2.75
 	//
-	IncrementR(1);
 	uint8 opcode = ReadMemory(m_PC++);
 	WriteMemory(--m_SP, m_PCh);
 	WriteMemory(--m_SP, m_PCl);
@@ -12234,7 +11993,6 @@ uint32 CZ80::ImplementINA_n_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								3						11 (4,3,4)				2.75
 	//
-	IncrementR(1);
 	m_addresslo = ReadMemory(++m_PC);
 	m_addresshi = m_A;
 	++m_PC;
@@ -12269,7 +12027,6 @@ uint32 CZ80::ImplementINr_C_(void)
 	//							M Cycles		T States					MHz E.T.
 	//								3						12 (4,4,4)				3.00
 	//
-	IncrementR(1);
 	++m_PC;
 	m_addresslo = m_C;
 	m_addresshi = m_B;
@@ -12294,7 +12051,6 @@ uint32 CZ80::ImplementINI(void)
 	//							M Cycles		T States					MHz E.T.
 	//								4						16 (4,5,3,4)			4.00
 	//
-	IncrementR(2);
 	++++m_PC;
 	m_addresslo = m_C;
 	m_addresshi = m_B;
@@ -12359,7 +12115,6 @@ uint32 CZ80::ImplementIND(void)
 	//							M Cycles		T States					MHz E.T.
 	//								4						16 (4,5,3,4)			4.00		B == 0
 	//
-	IncrementR(2);
 	++++m_PC;
 	m_addresslo = m_C;
 	m_addresshi = m_B;
@@ -12424,7 +12179,6 @@ uint32 CZ80::ImplementOUT_n_A(void)
 	//							M Cycles		T States					MHz E.T.
 	//								3						11 (4,3,4)				2.75
 	//
-	IncrementR(1);
 	m_addresslo = ReadMemory(++m_PC);
 	m_addresshi = m_A;
 	++m_PC;
@@ -12459,7 +12213,6 @@ uint32 CZ80::ImplementOUT_C_r(void)
 	//							M Cycles		T States					MHz E.T.
 	//								3						12 (4,4,4)				3.00
 	//
-	IncrementR(2);
 	++m_PC;
 	m_addresslo = m_C;
 	m_addresshi = m_B;
@@ -12484,7 +12237,6 @@ uint32 CZ80::ImplementOUTI(void)
 	//							M Cycles		T States					MHz E.T.
 	//								4						16 (4,5,3,4)			4.00
 	//
-	IncrementR(2);
 	++++m_PC;
 	m_addresslo = m_C;
 	m_addresshi = m_B;
@@ -12549,7 +12301,6 @@ uint32 CZ80::ImplementOUTD(void)
 	//							M Cycles		T States					MHz E.T.
 	//								4						16 (4,5,3,4)			4.00
 	//
-	IncrementR(2);
 	++++m_PC;
 	m_addresslo = m_C;
 	m_addresshi = m_B;
