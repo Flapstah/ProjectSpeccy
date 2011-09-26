@@ -15,7 +15,10 @@
 // bit n,<b,c,d,e,h,l,(hl),a>
 // cpd <r>
 // cpi <r>
-// Missing DD 40
+// CB (00-FF) 5+3 ROM
+// CB (00-FF) 5+3 RAM
+// ld <bcdexya>,<bcdexya>
+// <rrd,rld>
 //=============================================================================
 
 // Helper macros to determine 8 and 16 bit registers from opcodes

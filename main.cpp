@@ -29,7 +29,7 @@ int main(int argc, char* argv[])
 	speccy.LoadRAW("roms/007Spy.raw");
 	speccy.LoadRAW("roms/Magnetron.raw");
 */
-	speccy.LoadTAP("roms/zexbit.tap");
+	speccy.LoadTAP("roms/zexfix.tap");
 	while (speccy.Update());
 
 	return EXIT_SUCCESS;
