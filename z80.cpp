@@ -114,6 +114,27 @@ CZ80::CZ80(IMemory* pMemory)
 void CZ80::Reset(void)
 {
 	memset(m_RegisterMemory, 0, sizeof(m_RegisterMemory));
+
+	// From The Undocumented Z80:
+	m_AF = 0xFF;
+	m_BC = 0xFF;
+	m_DE = 0xFF;
+	m_HL = 0xFF;
+	m_IX = 0xFF;
+	m_IY = 0xFF;
+	m_SP = 0xFF;
+	m_PC = 0x00;
+	m_I = 0xFF;
+	m_R = 0xFF;
+	m_AFalt = 0xFF;
+	m_BCalt = 0xFF;
+	m_DEalt = 0xFF;
+	m_HLalt = 0xFF;
+	m_State.m_InterruptMode = 0;
+	m_State.m_IFF1 = 0;
+	m_State.m_IFF2 = 0;
+
+	m_address = 0;
 }
 
 //=============================================================================
@@ -158,25 +179,30 @@ uint32 CZ80::ServiceInterrupts(void)
 
 	if (m_State.m_IFF1)
 	{
-		m_State.m_IFF2 = m_State.m_IFF1;
+		IncrementR(1);
 		m_State.m_IFF1 = 0;
+		m_State.m_IFF2 = 0;
+
+		if (ReadMemory(m_PC) == 0x76)
+		{
+			++m_PC;
+		}
 
 		switch (m_State.m_InterruptMode)
 		{
+			// TODO: This is probably ZX Spectrum specific...
 			case 0:
-				break;
 			case 1:
-				if (ReadMemory(m_PC) == 0x76)
-				{
-					++m_PC;
-				}
-
 				WriteMemory(--m_SP, m_PCh);
 				WriteMemory(--m_SP, m_PCl);
 				m_PC = 0x0038;
 				tstates = 13; // RST (11) + 2
 				break;
 			case 2:
+				m_addresslo = 0xFF;
+				m_addresshi = m_I;
+				m_PC = m_address;
+				tstates += 19;
 				break;
 			default:
 				m_enableDebug = true;
@@ -11897,7 +11923,7 @@ uint32 CZ80::ImplementRETcc(void)
 uint32 CZ80::ImplementRETI(void)
 {
 	//
-	// Operation:	Return from Interrupt
+	// Operation:	Return from interrupt
 	// Op Code:		RETI
 	// Operands:	--
 	//						+-+-+-+-+-+-+-+-+
@@ -11911,6 +11937,8 @@ uint32 CZ80::ImplementRETI(void)
 	//
 	m_PCl = ReadMemory(m_SP++);
 	m_PCh = ReadMemory(m_SP++);
+	// From The Undocumented Z80:
+	m_State.m_IFF1 = m_State.m_IFF2;
 	return 14;
 }
 
@@ -11919,7 +11947,7 @@ uint32 CZ80::ImplementRETI(void)
 uint32 CZ80::ImplementRETN(void)
 {
 	//
-	// Operation:	Return from Interrupt
+	// Operation:	Return from non-maskable interrupt
 	// Op Code:		RETN
 	// Operands:	--
 	//						+-+-+-+-+-+-+-+-+
@@ -11931,9 +11959,9 @@ uint32 CZ80::ImplementRETN(void)
 	//							M Cycles		T States					MHz E.T.
 	//								4						14 (4,4,3,3)			3.50
 	//
-	m_State.m_IFF1 = m_State.m_IFF2;
 	m_PCl = ReadMemory(m_SP++);
 	m_PCh = ReadMemory(m_SP++);
+	m_State.m_IFF1 = m_State.m_IFF2;
 	return 14;
 }
 
