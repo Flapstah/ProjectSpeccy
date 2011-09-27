@@ -13,12 +13,8 @@
 // TODO:
 // Fix:
 // bit n,<b,c,d,e,h,l,(hl),a>
-// cpd <r>
-// cpi <r>
 // CB (00-FF) 5+3 ROM
 // CB (00-FF) 5+3 RAM
-// ld <bcdexya>,<bcdexya>
-// <rrd,rld>
 //=============================================================================
 
 // Helper macros to determine 8 and 16 bit registers from opcodes
@@ -5219,9 +5215,8 @@ uint32 CZ80::ImplementLDrr(void)
 	//							M Cycles		T States					MHz E.T.
 	//								1						4									1.00
 	//
-	uint8 opcode = ReadMemory(m_PC);
+	uint8 opcode = ReadMemory(m_PC++);
 	REGISTER_8BIT(opcode >> 3) = REGISTER_8BIT(opcode);
-	++m_PC;
 	return 4;
 }
 
@@ -5244,16 +5239,19 @@ uint32 CZ80::ImplementLDrIXh(void)
 	//								C						001
 	//								D						010
 	//								E						011
-	//								H						100
-	//								L						101
+	//								IXh					100
+	//								IXl					101
 	//								A						111
 	//
 	//							M Cycles		T States					MHz E.T.
 	//								1						8 (4,4)						2.00
 	//
-	uint8 opcode = ReadMemory(m_PC);
-	REGISTER_8BIT(opcode >> 3) = m_IXh;
-	++++m_PC;
+	++m_PC;
+	uint8 opcode = ReadMemory(m_PC++);
+	uint8* pReg = &REGISTER_8BIT(opcode);
+	if (pReg == &m_H) pReg = &m_IXh;
+	if (pReg == &m_L) pReg = &m_IXl;
+	*pReg = m_IXh;
 	return 8;
 }
 
@@ -5276,16 +5274,19 @@ uint32 CZ80::ImplementLDrIXl(void)
 	//								C						001
 	//								D						010
 	//								E						011
-	//								H						100
-	//								L						101
+	//								IXh					100
+	//								IXl					101
 	//								A						111
 	//
 	//							M Cycles		T States					MHz E.T.
 	//								1						8 (4,4)						2.00
 	//
-	uint8 opcode = ReadMemory(m_PC);
-	REGISTER_8BIT(opcode >> 3) = m_IXl;
-	++++m_PC;
+	++m_PC;
+	uint8 opcode = ReadMemory(m_PC++);
+	uint8* pReg = &REGISTER_8BIT(opcode);
+	if (pReg == &m_H) pReg = &m_IXh;
+	if (pReg == &m_L) pReg = &m_IXl;
+	*pReg = m_IXl;
 	return 8;
 }
 
@@ -5308,16 +5309,19 @@ uint32 CZ80::ImplementLDrIYh(void)
 	//								C						001
 	//								D						010
 	//								E						011
-	//								H						100
-	//								L						101
+	//								IYh					100
+	//								IYl					101
 	//								A						111
 	//
 	//							M Cycles		T States					MHz E.T.
 	//								1						8 (4,4)						2.00
 	//
-	uint8 opcode = ReadMemory(m_PC);
-	REGISTER_8BIT(opcode >> 3) = m_IYh;
-	++++m_PC;
+	++m_PC;
+	uint8 opcode = ReadMemory(m_PC++);
+	uint8* pReg = &REGISTER_8BIT(opcode);
+	if (pReg == &m_H) pReg = &m_IYh;
+	if (pReg == &m_L) pReg = &m_IYl;
+	*pReg = m_IYh;
 	return 8;
 }
 
@@ -5340,16 +5344,19 @@ uint32 CZ80::ImplementLDrIYl(void)
 	//								C						001
 	//								D						010
 	//								E						011
-	//								H						100
-	//								L						101
+	//								IYh					100
+	//								IYl					101
 	//								A						111
 	//
 	//							M Cycles		T States					MHz E.T.
 	//								1						8 (4,4)						2.00
 	//
-	uint8 opcode = ReadMemory(m_PC);
-	REGISTER_8BIT(opcode >> 3) = m_IYl;
-	++++m_PC;
+	++m_PC;
+	uint8 opcode = ReadMemory(m_PC++);
+	uint8* pReg = &REGISTER_8BIT(opcode);
+	if (pReg == &m_H) pReg = &m_IYh;
+	if (pReg == &m_L) pReg = &m_IYl;
+	*pReg = m_IYl;
 	return 8;
 }
 
@@ -6044,7 +6051,7 @@ uint32 CZ80::ImplementLDAI(void)
 	//
 	m_A = m_I;
 	m_F &= eF_C;
-	m_F |= (m_A & (eF_S | eF_Y | eF_X)) | ((m_A == 0) ? eF_Z : 0) | (m_State.m_IFF2) ? eF_PV : 0;
+	m_F |= (m_A & (eF_S | eF_Y | eF_X)) | ((m_A == 0) ? eF_Z : 0) | ((m_State.m_IFF2) ? eF_PV : 0);
 	++++m_PC;
 	return 9;
 }
@@ -6068,7 +6075,7 @@ uint32 CZ80::ImplementLDAR(void)
 	//
 	m_A = m_R;
 	m_F &= eF_C;
-	m_F |= (m_A & (eF_S | eF_Y | eF_X)) | ((m_A == 0) ? eF_Z : 0) | (m_State.m_IFF2) ? eF_PV : 0;
+	m_F |= (m_A & (eF_S | eF_Y | eF_X)) | ((m_A == 0) ? eF_Z : 0) | ((m_State.m_IFF2) ? eF_PV : 0);
 	++++m_PC;
 	return 9;
 }
@@ -7041,7 +7048,7 @@ uint32 CZ80::ImplementCPIR(void)
 	//								4						16 (4,4,3,5)			4.00
 	//
 	uint32 tstates = ImplementCPI();
-	if (m_BC != 0)
+	if ((m_F & eF_PV) && !(m_F & eF_Z))
 	{
 		tstates += 5;
 		----m_PC;
@@ -7101,7 +7108,7 @@ uint32 CZ80::ImplementCPDR(void)
 	//								4						16 (4,4,3,5)			4.00
 	//
 	uint32 tstates = ImplementCPD();
-	if (m_BC != 0)
+	if ((m_F & eF_PV) && !(m_F & eF_Z))
 	{
 		tstates += 5;
 		----m_PC;
@@ -11075,7 +11082,7 @@ uint32 CZ80::ImplementRRD(void)
 	uint8 byte = ReadMemory(m_HL);
 	uint8 origA = m_A;
 	m_A = (m_A & 0xF0) | (byte & 0x0F);
-	byte = (byte >> 4) | (origA & 0x0F);
+	byte = ((origA & 0x0F) << 4) | (byte >> 4);
 	WriteMemory(m_HL, byte);
 	uint8 origF = m_F;
 	HandleLogicalFlags(m_A);
