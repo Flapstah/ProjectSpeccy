@@ -108,7 +108,7 @@ class CZXSpectrum : public IMemory, public IScreenMemory
 		// + (x / 8)
 		inline	uint32	PixelByteIndex(uint8 x, uint8 y) const { return ((y & 0xC0) << 5) + ((y & 0x38) << 2) + ((y & 0x07) << 8) + (x >> 3); };
 		inline	uint32	AttributeByteIndex(uint8 x, uint8 y) const { return (SC_PIXEL_SCREEN_BYTES + ((y >> 3) * SC_ATTRIBUTE_SCREEN_WIDTH) + (x >> 3)); }
-						void		UpdateScanline(void);
+						void		UpdateScanline(uint32 tstates);
 						void		UpdateTape(uint32 tstates);
 		
 		enum ColourConstants
@@ -159,7 +159,7 @@ class CZXSpectrum : public IMemory, public IScreenMemory
 		uint32			m_videoMemory[SC_VIDEO_MEMORY_WIDTH * SC_VIDEO_MEMORY_HEIGHT];
 		// Main memory for the 48K ZX Spectrum
 		uint8				m_memory[SC_48K_SPECTRUM];
-		double			m_time;
+		double			m_frameStart;
 		double			m_frameTime;
 		float				m_clockRate;
 		CDisplay*		m_pDisplay;

@@ -21,7 +21,8 @@ static CKeyboard g_keyboard;
 //=============================================================================
 
 CZXSpectrum::CZXSpectrum(void)
-	: m_frameTime(1.0 / 50.0)
+	: m_frameStart(0.0)
+ 	, m_frameTime(1.0 / 50.0)
 	, m_clockRate(1.0f)
 	, m_pDisplay(NULL)
 	, m_pZ80(NULL)
@@ -72,7 +73,6 @@ bool CZXSpectrum::Initialise(void)
 	if (m_pDisplay != NULL)
 	{
 		m_pDisplay->SetDisplayScale(DISPLAY_SCALE);
-		m_time = glfwGetTime();
 		CKeyboard::Initialise();
 		if (m_pZ80 = new CZ80(this))
 		{
@@ -168,56 +168,56 @@ bool CZXSpectrum::Update(void)
 			}
 		}
 
-		bool updateZ80 = !m_pZ80->GetEnableDebug() || m_pZ80->GetEnableUnattendedDebug() || CKeyboard::IsKeyPressed(GLFW_KEY_F9) || CKeyboard::IsKeyPressed(GLFW_KEY_F10);
-
 		// Timings:
 		// Each line is 224 tstates (24 tstates of left border, 128 tstates of
 		// screen, 24 tstates of right border and 48 tstates of flyback
 		// Each frame is 64 + 192 + 56 lines
 	
 		double currentTime = glfwGetTime();
-		double elapsedTime = currentTime - m_time;
+		double elapsedTime = currentTime - m_frameStart;
 
-		if (elapsedTime >= m_frameTime)
+		bool updateZ80 = !m_pZ80->GetEnableDebug() || m_pZ80->GetEnableUnattendedDebug() || CKeyboard::IsKeyPressed(GLFW_KEY_F9) || CKeyboard::IsKeyPressed(GLFW_KEY_F10);
+
+		if (updateZ80)
 		{
-			if (updateZ80)
+			uint32 tstates = 0;
+			if (m_scanline >= (SC_TOP_BORDER + SC_PIXEL_SCREEN_HEIGHT + SC_BOTTOM_BORDER))
 			{
-				m_time = currentTime;
-
-				uint32 tstates = m_pZ80->ServiceInterrupts();
-				UpdateTape(tstates);
-				for (m_scanline = 0; m_scanline < (SC_TOP_BORDER + SC_PIXEL_SCREEN_HEIGHT + SC_BOTTOM_BORDER); ++m_scanline)
+				if (elapsedTime >= m_frameTime)
 				{
-					while (m_scanlineTstates < 224)
-					{
-						tstates = m_pZ80->SingleStep();
-						m_scanlineTstates += tstates;
-						UpdateTape(tstates);
-					}
-					m_scanlineTstates -= 224;
-
-					UpdateScanline();
+					ret &= m_pDisplay->Update(this);
+					tstates = m_pZ80->ServiceInterrupts();
+					m_frameStart = currentTime;
+					++m_frameNumber;
+					m_scanline = 0;
 				}
-
-				++m_frameNumber;
-
-#if defined(SHOW_FRAMERATE)
-				static double startTime = currentTime;
-				static uint32 startFrame = m_frameNumber;
-				if ((currentTime - startTime) > 1.0)
-				{
-					double framerate = (double)(m_frameNumber - startFrame) / (currentTime - startTime);
-					fprintf(stdout, "[ZX Spectrum]: average frame rate is %.02f\n", framerate);
-					startFrame = m_frameNumber;
-					startTime = currentTime;
-				}
-#endif // defined(SHOW_FRAMERATE)
+			}
+			else
+			{
+				tstates = m_pZ80->SingleStep();
 			}
 
-			ret &= m_pDisplay->Update(this) && !CKeyboard::IsKeyPressed(GLFW_KEY_ESC);
+			if (tstates > 0)
+			{
+				UpdateScanline(tstates);
+				UpdateTape(tstates);
+			}
 		}
+
+#if defined(SHOW_FRAMERATE)
+		static double startTime = currentTime;
+		static uint32 startFrame = m_frameNumber;
+		if ((currentTime - startTime) > 1.0)
+		{
+			double framerate = (double)(m_frameNumber - startFrame) / (currentTime - startTime);
+			fprintf(stdout, "[ZX Spectrum]: average frame rate is %.02f\n", framerate);
+			startFrame = m_frameNumber;
+			startTime = currentTime;
+		}
+#endif // defined(SHOW_FRAMERATE)
 	}
 
+	ret &= !CKeyboard::IsKeyPressed(GLFW_KEY_ESC);
 	return ret;
 }
 
@@ -501,78 +501,88 @@ bool CZXSpectrum::LoadTAP(const char* fileName)
 
 //=============================================================================
 
-void CZXSpectrum::UpdateScanline(void)
+void CZXSpectrum::UpdateScanline(uint32 tstates)
 {
+	m_scanlineTstates += tstates;
+	if (m_scanlineTstates < 224)
+	{
+		return;
+	}
+	m_scanlineTstates -= 224;
+
 	if ((m_scanline < (SC_TOP_BORDER - SC_VISIBLE_BORDER_SIZE)) || (m_scanline >= (SC_TOP_BORDER + SC_PIXEL_SCREEN_HEIGHT + SC_VISIBLE_BORDER_SIZE)))
 	{
 		//printf("CZXSpectrum::UpdateScanline() outside visible bounds %d\n", m_scanline);
-		return;
-	}
-
-	uint32 scanline = m_scanline - (SC_TOP_BORDER - SC_VISIBLE_BORDER_SIZE);
-	uint8* pScreenMemory = &m_memory[SC_SCREEN_START_ADDRESS];
-
-	uint32 borderRGB = 0xFF000000;
-	if (m_writePortFE & CC_BLUE) borderRGB |= 0x00CD0000;
-	if (m_writePortFE & CC_RED) borderRGB |= 0x000000CD;
-	if (m_writePortFE & CC_GREEN) borderRGB |= 0x0000CD00;
-
-	if ((scanline < SC_VISIBLE_BORDER_SIZE) || (scanline >= (SC_VISIBLE_BORDER_SIZE + SC_PIXEL_SCREEN_HEIGHT)))
-	{
-		//printf("CZXSpectrum::UpdateScanline() top or bottom border %d\n", m_scanline);
-		for (uint32 x = 0; x < SC_VIDEO_MEMORY_WIDTH; ++x)
-		{
-			m_videoMemory[(scanline * SC_VIDEO_MEMORY_WIDTH) + x] = borderRGB; 
-		}
 	}
 	else
 	{
-		//printf("CZXSpectrum::UpdateScanline() screen scanline %d, scanline %d\n", m_scanline, scanline);
+		uint32 scanline = m_scanline - (SC_TOP_BORDER - SC_VISIBLE_BORDER_SIZE);
+		uint8* pScreenMemory = &m_memory[SC_SCREEN_START_ADDRESS];
 
-		uint32 pixelByte = PixelByteIndex(0, scanline - SC_VISIBLE_BORDER_SIZE);
-		uint32 attributeByte = AttributeByteIndex(0, scanline - SC_VISIBLE_BORDER_SIZE);
-		//printf("CZXSpectrum::UpdateScanline() pixel offset %d attribute offset %d\n", pixelByte, attributeByte);
+		uint32 borderRGB = 0xFF000000;
+		if (m_writePortFE & CC_BLUE) borderRGB |= 0x00CD0000;
+		if (m_writePortFE & CC_RED) borderRGB |= 0x000000CD;
+		if (m_writePortFE & CC_GREEN) borderRGB |= 0x0000CD00;
 
-		for (uint32 x = 0; x < SC_VIDEO_MEMORY_WIDTH; ++x)
+		if ((scanline < SC_VISIBLE_BORDER_SIZE) || (scanline >= (SC_VISIBLE_BORDER_SIZE + SC_PIXEL_SCREEN_HEIGHT)))
 		{
-			if ((x < SC_VISIBLE_BORDER_SIZE) || (x >= (SC_VISIBLE_BORDER_SIZE + SC_PIXEL_SCREEN_WIDTH)))
+			//printf("CZXSpectrum::UpdateScanline() top or bottom border %d\n", m_scanline);
+			for (uint32 x = 0; x < SC_VIDEO_MEMORY_WIDTH; ++x)
 			{
-				//printf("CZXSpectrum::UpdateScanline() x %d\n", x);
 				m_videoMemory[(scanline * SC_VIDEO_MEMORY_WIDTH) + x] = borderRGB; 
 			}
-			else
+		}
+		else
+		{
+			//printf("CZXSpectrum::UpdateScanline() screen scanline %d, scanline %d\n", m_scanline, scanline);
+
+			uint32 pixelByte = PixelByteIndex(0, scanline - SC_VISIBLE_BORDER_SIZE);
+			uint32 attributeByte = AttributeByteIndex(0, scanline - SC_VISIBLE_BORDER_SIZE);
+			//printf("CZXSpectrum::UpdateScanline() pixel offset %d attribute offset %d\n", pixelByte, attributeByte);
+
+			for (uint32 x = 0; x < SC_VIDEO_MEMORY_WIDTH; ++x)
 			{
-				uint32 offset = (x - SC_VISIBLE_BORDER_SIZE) >> 3;
-				//printf("CZXSpectrum::UpdateScanline() byte offset %d\n", offset);
-
-				uint8 ink = (pScreenMemory[attributeByte + offset] & 0x07) >> 0;
-				uint8 paper = (pScreenMemory[attributeByte + offset] & 0x38) >> 3;
-				uint32 bright = (pScreenMemory[attributeByte + offset] & 0x40) ? 0x00FFFFFF : 0x00CDCDCD;
-				bool flash = (pScreenMemory[attributeByte + offset] & 0x80) ? true : false;
-
-				uint32 paperRGB = 0xFF000000;
-				if (paper & CC_BLUE) paperRGB |= 0x00FF0000;
-				if (paper & CC_RED) paperRGB |= 0x000000FF;
-				if (paper & CC_GREEN) paperRGB |= 0x0000FF00;
-				paperRGB &= bright;
-				uint32 inkRGB = 0xFF000000;
-				if (ink & CC_BLUE) inkRGB |= 0x00FF0000;
-				if (ink & CC_RED) inkRGB |= 0x000000FF;
-				if (ink & CC_GREEN) inkRGB |= 0x0000FF00;
-				inkRGB &= bright;
-
-				bool pixel = ((pScreenMemory[pixelByte + offset] & (1 << (7 - (x & 0x07))))) ? true : false;
-				if (flash & ((m_frameNumber >> 5) & 0x0001))
+				if ((x < SC_VISIBLE_BORDER_SIZE) || (x >= (SC_VISIBLE_BORDER_SIZE + SC_PIXEL_SCREEN_WIDTH)))
 				{
-					// Flash attribute swaps ink and paper every 32 frames on a real Speccy
-					pixel = !pixel;
+					//printf("CZXSpectrum::UpdateScanline() x %d\n", x);
+					m_videoMemory[(scanline * SC_VIDEO_MEMORY_WIDTH) + x] = borderRGB; 
 				}
+				else
+				{
+					uint32 offset = (x - SC_VISIBLE_BORDER_SIZE) >> 3;
+					//printf("CZXSpectrum::UpdateScanline() byte offset %d\n", offset);
 
-				uint32 colour = pixel ? inkRGB : paperRGB;
-				m_videoMemory[x + (scanline * SC_VIDEO_MEMORY_WIDTH)] = colour;
+					uint8 ink = (pScreenMemory[attributeByte + offset] & 0x07) >> 0;
+					uint8 paper = (pScreenMemory[attributeByte + offset] & 0x38) >> 3;
+					uint32 bright = (pScreenMemory[attributeByte + offset] & 0x40) ? 0x00FFFFFF : 0x00CDCDCD;
+					bool flash = (pScreenMemory[attributeByte + offset] & 0x80) ? true : false;
+
+					uint32 paperRGB = 0xFF000000;
+					if (paper & CC_BLUE) paperRGB |= 0x00FF0000;
+					if (paper & CC_RED) paperRGB |= 0x000000FF;
+					if (paper & CC_GREEN) paperRGB |= 0x0000FF00;
+					paperRGB &= bright;
+					uint32 inkRGB = 0xFF000000;
+					if (ink & CC_BLUE) inkRGB |= 0x00FF0000;
+					if (ink & CC_RED) inkRGB |= 0x000000FF;
+					if (ink & CC_GREEN) inkRGB |= 0x0000FF00;
+					inkRGB &= bright;
+
+					bool pixel = ((pScreenMemory[pixelByte + offset] & (1 << (7 - (x & 0x07))))) ? true : false;
+					if (flash & ((m_frameNumber >> 5) & 0x0001))
+					{
+						// Flash attribute swaps ink and paper every 32 frames on a real Speccy
+						pixel = !pixel;
+					}
+
+					uint32 colour = pixel ? inkRGB : paperRGB;
+					m_videoMemory[x + (scanline * SC_VIDEO_MEMORY_WIDTH)] = colour;
+				}
 			}
 		}
 	}
+
+	++m_scanline;
 }
 
 //=============================================================================
