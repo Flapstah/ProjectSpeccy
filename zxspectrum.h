@@ -35,6 +35,7 @@ class CZXSpectrum : public IMemory, public IScreenMemory
 						bool				LoadSNA(const char* fileName);
 						bool				LoadRAW(const char* fileName);
 						bool				LoadTAP(const char* fileName);
+						bool				LoadTZX(const char* fileName);
 
 	protected:
 						void				DisplayHelp(void) const;
@@ -136,15 +137,16 @@ class CZXSpectrum : public IMemory, public IScreenMemory
 			TC_FORMAT_UNKNOWN = 64,
 			TC_FORMAT_RAW = 65,
 			TC_FORMAT_TAP = 66,
+			TC_FORMAT_TZX = 67,
 
 			TC_STATE_READING_FORMAT = 32,
 			TC_STATE_GENERATING_PILOT = 33,
 			TC_STATE_GENERATING_SYNC_PULSE_0 = 34,
 			TC_STATE_GENERATING_SYNC_PULSE_1 = 35,
 			TC_STATE_GENERATING_DATA = 36,
-			TC_STATE_GENERATING_DATA_BIT_0 = 37,
-			TC_STATE_GENERATING_DATA_BIT_1 = 38,
-			TC_STATE_STOP_TAPE = 39,
+			TC_STATE_GENERATING_PAUSE = 37,
+			TC_STATE_STOP_TAPE = 38,
+			TC_STATE_READING_BLOCK = 39,
 
 			TC_BLOCK_TYPE_HEADER = 0x00,
 			TC_BLOCK_TYPE_DATA = 0xFF,

@@ -501,6 +501,27 @@ bool CZXSpectrum::LoadTAP(const char* fileName)
 
 //=============================================================================
 
+bool CZXSpectrum::LoadTZX(const char* fileName)
+{
+	m_pFile = fopen(fileName, "rb");
+	bool success = false;
+
+	if (m_pFile != NULL)
+	{
+		fprintf(stdout, "[ZX Spectrum]: opened TZX [%s] successfully\n", fileName);
+		success = true;
+		m_tapeFormat = TC_FORMAT_TZX;
+	}
+	else
+	{
+		fprintf(stderr, "[ZX Spectrum]: failed to load [%s]\n", fileName);
+	}
+
+	return success;
+}
+
+//=============================================================================
+
 void CZXSpectrum::UpdateScanline(uint32 tstates)
 {
 	m_scanlineTstates += tstates;
@@ -589,6 +610,7 @@ void CZXSpectrum::UpdateScanline(uint32 tstates)
 
 void CZXSpectrum::UpdateTape(uint32 tstates)
 {
+	// TODO: refactor this out into a tape class
 	int tapeError = 0;
 	bool stopTape = false;
 
@@ -750,7 +772,8 @@ void CZXSpectrum::UpdateTape(uint32 tstates)
 						else
 						{
 //							printf("End of block (tape tstates %d)\n", m_tapeTstates);
-							m_tapeState = TC_STATE_READING_FORMAT;
+//							printf("Generating pause\n");
+							m_tapeState = TC_STATE_GENERATING_PAUSE;
 							break;
 						}
 					}
@@ -785,8 +808,56 @@ void CZXSpectrum::UpdateTape(uint32 tstates)
 					}
 					break;
 
+				case TC_STATE_GENERATING_PAUSE:
+//					m_readPortFE &= ~PC_EAR_IN;
+					if (m_tapeTstates >= 3500)
+					{
+						m_tapeTstates -= 3500;
+						m_tapeState = TC_STATE_READING_FORMAT;
+					}
+					break;
+
 				case TC_STATE_STOP_TAPE:
 //					printf("TC_STATE_STOP_TAPE\n");
+					stopTape = true;
+					break;
+			}
+			break;
+
+		case TC_FORMAT_TZX:
+			switch (m_tapeState)
+			{
+				case TC_STATE_READING_FORMAT:
+					{
+						uint8 buffer[10];
+						if (fread(buffer, sizeof(buffer), 1, m_pFile))
+						{
+							if ((memcmp(buffer, "ZXTape!", 7) == 0) && (buffer[7] == 0x1A))
+							{
+								fprintf(stdout, "[ZX Spectrum]: TZX version %d:%d\n", buffer[8], buffer[9]);
+								m_tapeState = TC_STATE_READING_BLOCK;
+							}
+							else
+							{
+								fprintf(stdout, "[ZX Spectrum]: not [ZXTape!] format\n");
+								m_tapeState = TC_STATE_STOP_TAPE;
+								break;
+							}
+						}
+						else
+						{
+							tapeError = ferror(m_pFile);
+							m_tapeState = TC_STATE_STOP_TAPE;
+							break;
+						}
+					}
+					break;
+
+				case TC_STATE_READING_BLOCK:
+					break;
+
+				case TC_STATE_STOP_TAPE:
+					//					printf("TC_STATE_STOP_TAPE\n");
 					stopTape = true;
 					break;
 			}
