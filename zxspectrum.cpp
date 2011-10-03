@@ -665,6 +665,13 @@ void CZXSpectrum::UpdateTape(uint32 tstates)
 			switch (m_tapeState)
 			{
 				case TC_STATE_READING_FORMAT:
+					m_tapeBlockInfo.m_pilotPulseLength = 2168;
+					m_tapeBlockInfo.m_sync0PulseLength = 667;
+					m_tapeBlockInfo.m_sync1PulseLength = 735;
+					m_tapeBlockInfo.m_bit0PulseLength = 855;
+					m_tapeBlockInfo.m_bit1PulseLength = 1710;
+					m_tapeBlockInfo.m_lastByteBitMask = 0xFF;
+					m_tapeBlockInfo.m_pauseLength = 3500000 / 1000;
 //					printf("TC_STATE_READING_FORMAT\n");
 					if (fread(&m_tapeByte, sizeof(m_tapeByte), 1, m_pFile))
 					{
@@ -672,6 +679,7 @@ void CZXSpectrum::UpdateTape(uint32 tstates)
 						if (fread(&m_tapeByte, sizeof(m_tapeByte), 1, m_pFile))
 						{
 							m_tapeBlockSize |= m_tapeByte << 8;
+							m_tapeBlockInfo.m_dataByteLength = m_tapeBlockSize;
 //							printf("Blocksize %d\n", m_tapeBlockSize);
 							if (fread(&m_tapeBlockType, sizeof(m_tapeBlockType), 1, m_pFile))
 							{
@@ -679,9 +687,11 @@ void CZXSpectrum::UpdateTape(uint32 tstates)
 								switch (m_tapeBlockType)
 								{
 									case TC_BLOCK_TYPE_HEADER:
+										m_tapeBlockInfo.m_pilotPulseCount = 8063;
 										m_tapePulseCounter = 8063;
 										break;
 									case TC_BLOCK_TYPE_DATA:
+										m_tapeBlockInfo.m_pilotPulseCount = 3223;
 										m_tapePulseCounter = 3223;
 										break;
 									default:
@@ -715,51 +725,44 @@ void CZXSpectrum::UpdateTape(uint32 tstates)
 					// intentional fall-through
 
 				case TC_STATE_GENERATING_PILOT:
-					if (m_tapeTstates >= 2168)
+					if (UpdatePulse(m_tapeBlockInfo.m_pilotPulseLength))
 					{
-						m_tapeTstates -= 2168;
-						m_readPortFE ^= PC_EAR_IN;
-						if (--m_tapePulseCounter == 0)
-						{
-							m_tapeState = TC_STATE_GENERATING_SYNC_PULSE_0;
-//							printf("TC_STATE_GENERATING_SYNC_PULSE_0\n");
-						}
+						m_tapeState = TC_STATE_GENERATING_SYNC_PULSE_0;
+						m_tapePulseCounter = 1;
+						//							printf("TC_STATE_GENERATING_SYNC_PULSE_0\n");
 					}
 					break;
 
 				case TC_STATE_GENERATING_SYNC_PULSE_0:
-					if (m_tapeTstates >= 667)
+					if (UpdatePulse(m_tapeBlockInfo.m_sync0PulseLength))
 					{
-						m_tapeTstates -= 667;
-						m_readPortFE ^= PC_EAR_IN;
 						m_tapeState = TC_STATE_GENERATING_SYNC_PULSE_1;
+						m_tapePulseCounter = 1;
 //						printf("TC_STATE_GENERATING_SYNC_PULSE_1\n");
 					}
 					break;
 
 				case TC_STATE_GENERATING_SYNC_PULSE_1:
-					if (m_tapeTstates >= 735)
+					if (UpdatePulse(m_tapeBlockInfo.m_sync1PulseLength))
 					{
-						m_tapeTstates -= 735;
-						m_readPortFE ^= PC_EAR_IN;
-
 						m_tapePulseCounter = 2;
 						m_tapeByte = m_tapeBlockType;
-						m_tapeBitMask = 0x80;
+						m_tapeDataBitMask = 0x80;
 						m_tapeState = TC_STATE_GENERATING_DATA;
 //						printf("TC_STATE_GENERATING_DATA\n");
 					}
 					break;
 
 				case TC_STATE_GENERATING_DATA:
-					if (m_tapeBitMask == 0)
+					if (m_tapeDataBitMask == 0)
 					{
 						if (--m_tapeBlockSize > 0)
 						{
 							if (fread(&m_tapeByte, sizeof(m_tapeByte), 1, m_pFile))
 							{
 //								printf("Byte %02X '%c'\n", m_tapeByte, m_tapeByte);
-								m_tapeBitMask = 0x80;
+								m_tapeDataBitMask = 0x80;
+								m_tapeDataByteMask = (m_tapeBlockSize == 1) ? m_tapeBlockInfo.m_lastByteBitMask : 0xFF;
 								m_tapePulseCounter = 2;
 							}
 							else
@@ -778,41 +781,31 @@ void CZXSpectrum::UpdateTape(uint32 tstates)
 						}
 					}
 
-					if (m_tapeByte & m_tapeBitMask)
+					if (m_tapeByte & m_tapeDataBitMask & m_tapeDataByteMask)
 					{
 						// Generate a 1
-						if (m_tapeTstates >= 1710)
+						if (UpdatePulse(m_tapeBlockInfo.m_bit1PulseLength))
 						{
-							m_tapeTstates -= 1710;
-							m_readPortFE ^= PC_EAR_IN;
-							if (--m_tapePulseCounter == 0)
-							{
-								m_tapePulseCounter = 2;
-								m_tapeBitMask >>= 1;
-							}
+							m_tapePulseCounter = 2;
+							m_tapeDataBitMask >>= 1;
 						}
 					}
 					else
 					{
 						// Generate a 0
-						if (m_tapeTstates >= 855)
+						if (UpdatePulse(m_tapeBlockInfo.m_bit0PulseLength))
 						{
-							m_tapeTstates -= 855;
-							m_readPortFE ^= PC_EAR_IN;
-							if (--m_tapePulseCounter == 0)
-							{
-								m_tapePulseCounter = 2;
-								m_tapeBitMask >>= 1;
-							}
+							m_tapePulseCounter = 2;
+							m_tapeDataBitMask >>= 1;
 						}
 					}
 					break;
 
 				case TC_STATE_GENERATING_PAUSE:
 //					m_readPortFE &= ~PC_EAR_IN;
-					if (m_tapeTstates >= 3500)
+					if (m_tapeTstates >= m_tapeBlockInfo.m_pauseLength)
 					{
-						m_tapeTstates -= 3500;
+						m_tapeTstates -= m_tapeBlockInfo.m_pauseLength;
 						m_tapeState = TC_STATE_READING_FORMAT;
 					}
 					break;
@@ -888,5 +881,24 @@ void CZXSpectrum::UpdateTape(uint32 tstates)
 		m_tapePlaying	= false;
 	}
 }
+
+//=============================================================================
+
+bool CZXSpectrum::UpdatePulse(uint32 length)
+{
+	bool finished = false;
+	if (m_tapeTstates >= length)
+	{
+		m_readPortFE ^= PC_EAR_IN;
+		m_tapeTstates -= length;
+		if (--m_tapePulseCounter == 0)
+		{
+			finished = true;
+		}
+	}
+
+	return finished;
+}
+
 //=============================================================================
 

@@ -111,6 +111,7 @@ class CZXSpectrum : public IMemory, public IScreenMemory
 		inline	uint32	AttributeByteIndex(uint8 x, uint8 y) const { return (SC_PIXEL_SCREEN_BYTES + ((y >> 3) * SC_ATTRIBUTE_SCREEN_WIDTH) + (x >> 3)); }
 						void		UpdateScanline(uint32 tstates);
 						void		UpdateTape(uint32 tstates);
+						bool		UpdatePulse(uint32 length);
 		
 		enum ColourConstants
 		{
@@ -157,6 +158,19 @@ class CZXSpectrum : public IMemory, public IScreenMemory
 			TC_DATA_TYPE_CODE = 3,
 		};
 
+		struct STapeBlock
+		{
+			uint16		m_pilotPulseLength;
+			uint16		m_sync0PulseLength;
+			uint16		m_sync1PulseLength;
+			uint16		m_bit0PulseLength;
+			uint16		m_bit1PulseLength;
+			uint16		m_pilotPulseCount;
+			uint8			m_lastByteBitMask;
+			uint16		m_pauseLength;
+			uint32		m_dataByteLength;
+		};
+
 		// Memory for the OpenGL texture used to represent the ZX Spectrum screen
 		uint32			m_videoMemory[SC_VIDEO_MEMORY_WIDTH * SC_VIDEO_MEMORY_HEIGHT];
 		// Main memory for the 48K ZX Spectrum
@@ -179,9 +193,11 @@ class CZXSpectrum : public IMemory, public IScreenMemory
 		eTapeConstant m_tapeState;
 		uint16			m_tapeBlockSize;
 		uint8				m_tapeBlockType;
-		uint8				m_tapeBitMask;
+		uint8				m_tapeDataBitMask;
+		uint8				m_tapeDataByteMask;
 		uint8				m_tapeByte;
 		uint16			m_tapePulseCounter;
+		STapeBlock	m_tapeBlockInfo;
 
 	private:
 };
