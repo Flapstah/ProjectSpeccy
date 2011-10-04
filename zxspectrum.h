@@ -172,8 +172,21 @@ class CZXSpectrum : public IMemory, public IScreenMemory
 				m_bit1PulseLength = 1710;
 				m_pilotPulseCount = 8063;
 				m_lastByteBitMask = 0xFF;
-				m_pauseLength = 3500000 / 1000;
-				m_dataByteLength = 0;
+				m_pauseLength = (3500000 / 1000);
+				m_blockSize = 0;
+			};
+
+			void Log(void)
+			{
+				printf("Pilot pulse %04X\n", m_pilotPulseLength);
+				printf("Sync 0 pulse %04X\n", m_sync0PulseLength);
+				printf("Sync 1 pulse %04X\n", m_sync1PulseLength);
+				printf("Bit 0 pulse %04X\n", m_bit0PulseLength);
+				printf("Bit 1 pulse %04X\n", m_bit1PulseLength);
+				printf("Pilot pulse count %04X\n", m_pilotPulseCount);
+				printf("Last byte bit mask %02X\n", m_lastByteBitMask);
+				printf("Pause %dms %04X tstates\n", (3500000 / m_pauseLength), m_pauseLength);
+				printf("Block size %04X\n", m_blockSize);
 			};
 
 			uint16		m_pilotPulseLength;
@@ -184,7 +197,7 @@ class CZXSpectrum : public IMemory, public IScreenMemory
 			uint16		m_pilotPulseCount;
 			uint8			m_lastByteBitMask;
 			uint16		m_pauseLength;
-			uint32		m_dataByteLength;
+			uint16		m_blockSize;
 		};
 
 		// Memory for the OpenGL texture used to represent the ZX Spectrum screen
