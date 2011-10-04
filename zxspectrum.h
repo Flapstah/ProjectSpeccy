@@ -112,6 +112,9 @@ class CZXSpectrum : public IMemory, public IScreenMemory
 						void		UpdateScanline(uint32 tstates);
 						void		UpdateTape(uint32 tstates);
 						bool		UpdatePulse(uint32 length);
+						bool		UpdateBlock(void);
+						bool		ReadTapeByte(uint8& value);
+						bool		ReadTapeWord(uint16& value);
 		
 		enum ColourConstants
 		{
@@ -160,6 +163,19 @@ class CZXSpectrum : public IMemory, public IScreenMemory
 
 		struct STapeBlock
 		{
+			void Reset(void)
+			{
+				m_pilotPulseLength = 2168;
+				m_sync0PulseLength = 667;
+				m_sync1PulseLength = 735;
+				m_bit0PulseLength = 855;
+				m_bit1PulseLength = 1710;
+				m_pilotPulseCount = 8063;
+				m_lastByteBitMask = 0xFF;
+				m_pauseLength = 3500000 / 1000;
+				m_dataByteLength = 0;
+			};
+
 			uint16		m_pilotPulseLength;
 			uint16		m_sync0PulseLength;
 			uint16		m_sync1PulseLength;
@@ -198,6 +214,7 @@ class CZXSpectrum : public IMemory, public IScreenMemory
 		uint8				m_tapeByte;
 		uint16			m_tapePulseCounter;
 		STapeBlock	m_tapeBlockInfo;
+		int					m_tapeError;
 
 	private:
 };
