@@ -156,13 +156,13 @@ uint32 CZ80::SingleStep(void)
 	uint16 prevSP = m_SP;
 	uint32 tstates = Step();
 
-	if ((m_SP >= 0x5C00) && (m_SP <= 0x5CB5))
-	{
-		fprintf(stderr, "[Z80] SP just jumped into the system variables area (changed from %04X to %04X), at location %04X\n", prevSP, m_SP, prevPC);
-		fprintf(stdout, "[Z80] SP just jumped into the system variables area (changed from %04X to %04X), at location %04X\n", prevSP, m_SP, prevPC);
-		OutputInstruction(prevPC);
-		HitBreakpoint("SP corrupt");
-	}
+//	if ((m_SP >= 0x5C00) && (m_SP <= 0x5CB5))
+//	{
+//		fprintf(stderr, "[Z80] SP just jumped into the system variables area (changed from %04X to %04X), at location %04X\n", prevSP, m_SP, prevPC);
+//		fprintf(stdout, "[Z80] SP just jumped into the system variables area (changed from %04X to %04X), at location %04X\n", prevSP, m_SP, prevPC);
+//		OutputInstruction(prevPC);
+//		HitBreakpoint("SP corrupt");
+//	}
 
 	return tstates;
 }
