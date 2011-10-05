@@ -186,7 +186,7 @@ class CZXSpectrum : public IMemory, public IScreenMemory
 				m_bit1PulseLength = 1710;
 				m_pilotPulseCount = 8063;
 				m_lastByteBitMask = 0xFF;
-				m_pauseLength = (1000 * 3500);
+				m_pauseLength = 1000;
 				m_blockSize = 0;
 			};
 
@@ -199,7 +199,7 @@ class CZXSpectrum : public IMemory, public IScreenMemory
 				printf("Bit 1 pulse........ %04X     {%04X}\n", m_bit1PulseLength, 1710);
 				printf("Pilot pulse count.. %04X     {%04X or %04X}\n", m_pilotPulseCount, 8063, 3223);
 				printf("Last byte bit mask. %02X\n", m_lastByteBitMask);
-				printf("Pause.............. %08X {%dms}\n", m_pauseLength, (m_pauseLength / 3500));
+				printf("Pause.............. %dms {%dms}\n", m_pauseLength, 1000);
 				printf("Block size......... %04X\n", m_blockSize);
 			};
 
@@ -210,7 +210,7 @@ class CZXSpectrum : public IMemory, public IScreenMemory
 			uint16		m_bit1PulseLength;
 			uint16		m_pilotPulseCount;
 			uint8			m_lastByteBitMask;
-			uint32		m_pauseLength;
+			uint16		m_pauseLength;
 			uint32		m_blockSize;
 		};
 
