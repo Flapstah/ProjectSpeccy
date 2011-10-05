@@ -164,6 +164,19 @@ class CZXSpectrum : public IMemory, public IScreenMemory
 
 		struct STapeBlock
 		{
+			enum eTBData
+			{
+				TB_PILOT_PULSE_LENGTH = 1 << 0,
+				TB_SYNC0_PULSE_LENGTH = 1 << 1,
+				TB_SYNC1_PULSE_LENGTH = 1 << 2,
+				TB_BIT0_PULSE_LENGTH = 1 << 3,
+				TB_BIT1_PULSE_LENGTH = 1 << 4,
+				TB_PILOT_PULSE_COUNT = 1 << 5,
+				TB_LAST_BYTE_BIT_MASK = 1 << 6,
+				TB_PAUSE_LENGTH = 1 << 7,
+				TB_BLOCK_SIZE = 1 << 8 
+			};
+
 			void Reset(void)
 			{
 				m_pilotPulseLength = 2168;
@@ -179,15 +192,15 @@ class CZXSpectrum : public IMemory, public IScreenMemory
 
 			void Log(void)
 			{
-				printf("Pilot pulse %04X\n", m_pilotPulseLength);
-				printf("Sync 0 pulse %04X\n", m_sync0PulseLength);
-				printf("Sync 1 pulse %04X\n", m_sync1PulseLength);
-				printf("Bit 0 pulse %04X\n", m_bit0PulseLength);
-				printf("Bit 1 pulse %04X\n", m_bit1PulseLength);
-				printf("Pilot pulse count %04X\n", m_pilotPulseCount);
-				printf("Last byte bit mask %02X\n", m_lastByteBitMask);
-				printf("Pause %dms %08X tstates\n", (m_pauseLength / 3500), m_pauseLength);
-				printf("Block size %04X\n", m_blockSize);
+				printf("Pilot pulse........ %04X     {%04X}\n", m_pilotPulseLength, 2168);
+				printf("Sync 0 pulse....... %04X     {%04X}\n", m_sync0PulseLength, 667);
+				printf("Sync 1 pulse....... %04X     {%04X}\n", m_sync1PulseLength, 735);
+				printf("Bit 0 pulse........ %04X     {%04X}\n", m_bit0PulseLength, 855);
+				printf("Bit 1 pulse........ %04X     {%04X}\n", m_bit1PulseLength, 1710);
+				printf("Pilot pulse count.. %04X     {%04X or %04X}\n", m_pilotPulseCount, 8063, 3223);
+				printf("Last byte bit mask. %02X\n", m_lastByteBitMask);
+				printf("Pause.............. %08X {%dms}\n", m_pauseLength, (m_pauseLength / 3500));
+				printf("Block size......... %04X\n", m_blockSize);
 			};
 
 			uint16		m_pilotPulseLength;

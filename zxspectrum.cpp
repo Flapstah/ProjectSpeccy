@@ -736,12 +736,12 @@ void CZXSpectrum::UpdateTape(uint32 tstates)
 				case TC_STATE_READING_BLOCK:
 					if (ReadTapeByte(m_tapeByte))
 					{
-						printf("TZX block ID %02X\n", m_tapeByte);
 						m_tapeBlockInfo.Reset();
 
 						switch (m_tapeByte)
 						{
 							case 0x10:
+								printf("TZX block ID 10 (Standard Speed Data Block)\n");
 								if (ReadTapeWord(pauseMS))
 								{
 									m_tapeBlockInfo.m_pauseLength = (pauseMS * 3500);
@@ -754,7 +754,7 @@ void CZXSpectrum::UpdateTape(uint32 tstates)
 										{
 											m_tapeBlockInfo.Log();
 											m_tapeState = TC_STATE_GENERATING_PILOT;
-											printf("TC_STATE_GENERATING_PILOT\n");
+//											printf("TC_STATE_GENERATING_PILOT\n");
 
 											switch (m_tapeBlockType)
 											{
@@ -777,6 +777,7 @@ void CZXSpectrum::UpdateTape(uint32 tstates)
 								break;
 
 							case 0x11:
+								printf("TZX block ID 11 (Turbo Speed Data Block)\n");
 								if (ReadTapeWord(m_tapeBlockInfo.m_pilotPulseLength))
 								{
 									if (ReadTapeWord(m_tapeBlockInfo.m_sync0PulseLength))
@@ -809,7 +810,7 @@ void CZXSpectrum::UpdateTape(uint32 tstates)
 																			// (which is the first byte of data)
 																			m_tapeBlockInfo.Log();
 																			m_tapeState = TC_STATE_GENERATING_PILOT;
-																			printf("TC_STATE_GENERATING_PILOT\n");
+//																			printf("TC_STATE_GENERATING_PILOT\n");
 
 																			m_tapePulseCounter = m_tapeBlockInfo.m_pilotPulseCount;
 																		}
@@ -826,24 +827,26 @@ void CZXSpectrum::UpdateTape(uint32 tstates)
 								break;
 
 							case 0x12:
+								printf("TZX block ID 12 (Pure Tone)\n");
 								if (ReadTapeWord(m_tapeBlockInfo.m_pilotPulseLength))
 								{
 									if (ReadTapeWord(m_tapeBlockInfo.m_pilotPulseCount))
 									{
 										m_tapeState = TC_STATE_GENERATING_TONE;
 										m_tapePulseCounter = m_tapeBlockInfo.m_pilotPulseCount;
-										printf("TC_STATE_GENERATING_TONE\n");
+//										printf("TC_STATE_GENERATING_TONE\n");
 									}
 								}
 								break;
 
 							case 0x20:
+								printf("TZX block ID 20 (Pause/Stop the Tape)\n");
 								if (ReadTapeWord(pauseMS))
 								{
 									m_tapeBlockInfo.m_pauseLength = (pauseMS * 3500);
 									m_readPortFE &= ~PC_EAR_IN;
 									m_tapeState = TC_STATE_GENERATING_PAUSE;
-									printf("TC_STATE_GENERATING_PAUSE\n");
+//									printf("TC_STATE_GENERATING_PAUSE\n");
 								}
 								break;
 
@@ -856,7 +859,7 @@ void CZXSpectrum::UpdateTape(uint32 tstates)
 									{
 										if (fread(buffer, m_tapeByte, 1, m_pFile))
 										{
-											fprintf(stdout, "[ZX Spectrum]: TZX group block [%s]\n", buffer);
+											printf("TZX block ID 21 (Group start) %s\n", buffer);
 										}
 										else
 										{
@@ -869,7 +872,7 @@ void CZXSpectrum::UpdateTape(uint32 tstates)
 
 							case 0x22:
 								{
-									fprintf(stdout, "[ZX Spectrum]: TZX group end\n");
+									printf("TZX block ID 22 (Group end)\n");
 								}
 								break;
 
@@ -883,7 +886,7 @@ void CZXSpectrum::UpdateTape(uint32 tstates)
 									{
 										if (fread(buffer, m_tapeByte, 1, m_pFile))
 										{
-											fprintf(stdout, "[ZX Spectrum]: TZX text description block [%s]\n", buffer);
+											printf("TZX block ID 30 (Text description) %s\n", buffer);
 										}
 										else
 										{
@@ -915,7 +918,7 @@ void CZXSpectrum::UpdateTape(uint32 tstates)
 					break;
 
 				case TC_STATE_STOP_TAPE:
-					printf("TC_STATE_STOP_TAPE\n");
+//					printf("TC_STATE_STOP_TAPE\n");
 					stopTape = true;
 					break;
 			}
@@ -978,7 +981,7 @@ bool CZXSpectrum::UpdateBlock(void)
 			{
 				m_tapeState = TC_STATE_GENERATING_SYNC_PULSE_0;
 				m_tapePulseCounter = 1;
-				printf("TC_STATE_GENERATING_SYNC_PULSE_0\n");
+//				printf("TC_STATE_GENERATING_SYNC_PULSE_0\n");
 			}
 			break;
 
@@ -987,7 +990,7 @@ bool CZXSpectrum::UpdateBlock(void)
 			{
 				m_tapeState = TC_STATE_GENERATING_SYNC_PULSE_1;
 				m_tapePulseCounter = 1;
-				printf("TC_STATE_GENERATING_SYNC_PULSE_1\n");
+//				printf("TC_STATE_GENERATING_SYNC_PULSE_1\n");
 			}
 			break;
 
@@ -998,7 +1001,7 @@ bool CZXSpectrum::UpdateBlock(void)
 				m_tapeByte = m_tapeBlockType;
 				m_tapeDataBitMask = 0x80;
 				m_tapeState = TC_STATE_GENERATING_DATA;
-				printf("TC_STATE_GENERATING_DATA\n");
+//				printf("TC_STATE_GENERATING_DATA\n");
 			}
 			break;
 
@@ -1022,9 +1025,16 @@ bool CZXSpectrum::UpdateBlock(void)
 				}
 				else
 				{
-					printf("End of block (tape tstates %d)\n", m_tapeTstates);
-					printf("Generating pause\n");
-					m_tapeState = TC_STATE_GENERATING_PAUSE;
+//					printf("End of block (tape tstates %d)\n", m_tapeTstates);
+//					printf("Generating pause\n");
+					if (m_tapeBlockInfo.m_pauseLength == 0)
+					{
+						blockDone = true;
+					}
+					else
+					{
+						m_tapeState = TC_STATE_GENERATING_PAUSE;
+					}
 					break;
 				}
 			}
@@ -1053,8 +1063,8 @@ bool CZXSpectrum::UpdateBlock(void)
 			if (m_tapeTstates >= m_tapeBlockInfo.m_pauseLength)
 			{
 				m_readPortFE &= ~PC_EAR_IN;
-				printf("Pause finished (tape tstates %d)\n", m_tapeTstates);
 				m_tapeTstates -= m_tapeBlockInfo.m_pauseLength;
+//				printf("Pause finished (tape tstates %d)\n", m_tapeTstates);
 				blockDone = true;
 			}
 			break;
