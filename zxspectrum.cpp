@@ -203,6 +203,15 @@ bool CZXSpectrum::Update(void)
 				UpdateTape(tstates);
 			}
 		}
+		else
+		{
+			if (elapsedTime >= m_frameTime)
+			{
+				// Needed to update the keyboard...
+				ret &= m_pDisplay->Update(this);
+				m_frameStart = currentTime;
+			}
+		}
 
 #if defined(SHOW_FRAMERATE)
 		static double startTime = currentTime;
