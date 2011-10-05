@@ -235,7 +235,6 @@ class CZXSpectrum : public IMemory, public IScreenMemory
 		eTapeConstant m_tapeFormat;
 		eTapeConstant m_tapeState;
 		uint16			m_tapeBlockSize;
-		uint8				m_tapeBlockType;
 		uint8				m_tapeDataBitMask;
 		uint8				m_tapeDataByteMask;
 		uint8				m_tapeByte;

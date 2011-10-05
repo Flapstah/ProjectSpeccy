@@ -670,11 +670,11 @@ void CZXSpectrum::UpdateTape(uint32 tstates)
 					if (ReadTapeWord(blockSize))
 					{
 						m_tapeBlockInfo.m_blockSize = blockSize;
-						if (ReadTapeByte(m_tapeBlockType))
+						if (ReadTapeByte(m_tapeByte))
 						{
 							m_tapeState = TC_STATE_GENERATING_PILOT;
 
-							switch (m_tapeBlockType)
+							switch (m_tapeByte)
 							{
 								case TC_BLOCK_TYPE_HEADER:
 									// Pilot pulse count already set by Reset() above
@@ -683,7 +683,7 @@ void CZXSpectrum::UpdateTape(uint32 tstates)
 									m_tapeBlockInfo.m_pilotPulseCount = 3223;
 									break;
 								default:
-									fprintf(stderr, "Unknown blocktype %02X\n", m_tapeBlockType);
+									fprintf(stderr, "Unknown blocktype %02X\n", m_tapeByte);
 									m_tapeState = TC_STATE_STOP_TAPE;
 									break;
 							}
@@ -755,12 +755,12 @@ void CZXSpectrum::UpdateTape(uint32 tstates)
 									{
 										m_tapeBlockInfo.m_blockSize = blockSize;
 
-										if (ReadTapeByte(m_tapeBlockType))
+										if (ReadTapeByte(m_tapeByte))
 										{
 //											m_tapeBlockInfo.Log();
 											m_tapeState = TC_STATE_GENERATING_PILOT;
 
-											switch (m_tapeBlockType)
+											switch (m_tapeByte)
 											{
 												case TC_BLOCK_TYPE_HEADER:
 													// Pilot pulse count already set by Reset() above
@@ -769,7 +769,7 @@ void CZXSpectrum::UpdateTape(uint32 tstates)
 													m_tapeBlockInfo.m_pilotPulseCount = 3223;
 													break;
 												default:
-													fprintf(stderr, "Unknown blocktype %02X\n", m_tapeBlockType);
+													fprintf(stderr, "Unknown blocktype %02X\n", m_tapeByte);
 													m_tapeState = TC_STATE_STOP_TAPE;
 													break;
 											}
@@ -993,7 +993,6 @@ bool CZXSpectrum::UpdateBlock(void)
 			if (UpdatePulse(m_tapeBlockInfo.m_sync1PulseLength))
 			{
 				m_tapePulseCounter = 2;
-				m_tapeByte = m_tapeBlockType;
 				m_tapeDataBitMask = 0x80;
 				m_tapeState = TC_STATE_GENERATING_DATA;
 			}
