@@ -195,9 +195,12 @@ uint32 CZ80::ServiceInterrupts(void)
 				tstates = 13; // RST (11) + 2
 				break;
 			case 2:
-				m_addresslo = 0xFF;
+				m_addresslo = 0xFE;
 				m_addresshi = m_I;
-				m_PC = m_address;
+				WriteMemory(--m_SP, m_PCh);
+				WriteMemory(--m_SP, m_PCl);
+				m_PCl = ReadMemory(m_address++);
+				m_PCh = ReadMemory(m_address);
 				tstates += 19;
 				break;
 			default:
