@@ -538,69 +538,6 @@ bool CZXSpectrum::LoadSNA(const char* fileName)
 
 //=============================================================================
 
-bool CZXSpectrum::LoadRAW(const char* fileName)
-{
-	m_pFile = fopen(fileName, "rb");
-	bool success = false;
-
-	if (m_pFile != NULL)
-	{
-		fprintf(stdout, "[ZX Spectrum]: opened RAW [%s] successfully\n", fileName);
-		success = true;
-		m_tapeFormat = TC_FORMAT_RAW;
-	}
-	else
-	{
-		fprintf(stderr, "[ZX Spectrum]: failed to load [%s]\n", fileName);
-	}
-
-	return success;
-}
-
-//=============================================================================
-
-bool CZXSpectrum::LoadTAP(const char* fileName)
-{
-	m_pFile = fopen(fileName, "rb");
-	bool success = false;
-
-	if (m_pFile != NULL)
-	{
-		fprintf(stdout, "[ZX Spectrum]: opened TAP [%s] successfully\n", fileName);
-		success = true;
-		m_tapeFormat = TC_FORMAT_TAP;
-	}
-	else
-	{
-		fprintf(stderr, "[ZX Spectrum]: failed to load [%s]\n", fileName);
-	}
-
-	return success;
-}
-
-//=============================================================================
-
-bool CZXSpectrum::LoadTZX(const char* fileName)
-{
-	m_pFile = fopen(fileName, "rb");
-	bool success = false;
-
-	if (m_pFile != NULL)
-	{
-		fprintf(stdout, "[ZX Spectrum]: opened TZX [%s] successfully\n", fileName);
-		success = true;
-		m_tapeFormat = TC_FORMAT_TZX;
-	}
-	else
-	{
-		fprintf(stderr, "[ZX Spectrum]: failed to load [%s]\n", fileName);
-	}
-
-	return success;
-}
-
-//=============================================================================
-
 void CZXSpectrum::UpdateScanline(uint32 tstates)
 {
 	m_scanlineTstates += tstates;

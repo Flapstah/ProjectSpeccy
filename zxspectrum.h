@@ -35,9 +35,6 @@ class CZXSpectrum : public IMemory, public IScreenMemory
 						bool				LoadROM(const char* fileName);
 						bool				LoadTape(const char* fileName);
 						bool				LoadSNA(const char* fileName);
-						bool				LoadRAW(const char* fileName);
-						bool				LoadTAP(const char* fileName);
-						bool				LoadTZX(const char* fileName);
 
 						void				DisplayHelp(void) const;
 
