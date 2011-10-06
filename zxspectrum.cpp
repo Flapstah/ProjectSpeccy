@@ -65,7 +65,7 @@ CZXSpectrum::~CZXSpectrum(void)
 
 //=============================================================================
 
-bool CZXSpectrum::Initialise(void)
+bool CZXSpectrum::Initialise(int argc, char* argv[])
 {
 	bool initialised = false;
 
@@ -76,6 +76,37 @@ bool CZXSpectrum::Initialise(void)
 		CKeyboard::Initialise();
 		if (m_pZ80 = new CZ80(this))
 		{
+			const char* rom = "roms/48.rom";
+			const char* tape = NULL;
+			int arg = 0;
+
+			// Parse arguments
+			while (arg < argc)
+			{
+				if (stricmp(argv[arg], "-rom") == 0)
+				{
+					if (++arg < argc)
+					{
+						rom = argv[arg];
+					}
+					else
+					{
+						fprintf(stderr, "[ZX Spectrum]: missing parameter for '-rom'\n");
+					}
+				}
+				else
+				{
+					// assume any other argument is a tape
+					tape = argv[arg++];
+				}
+			}
+
+			LoadROM(rom);
+			if (tape != NULL)
+			{
+				LoadTape(tape);
+			}
+
 			fprintf(stdout, "[ZX Spectrum]: Initialised\n");
 			initialised = true;
 		}
@@ -435,6 +466,45 @@ bool CZXSpectrum::LoadROM(const char* fileName)
 	}
 
 	return success;
+}
+
+//=============================================================================
+
+bool CZXSpectrum::LoadTape(const char* fileName)
+{
+	// Find extension
+	const char* extension = strrchr(fileName, '.');
+
+	if (extension != NULL)
+	{
+		if (stricmp(extension, ".sna") == 0)
+		{
+			return LoadSNA(fileName);
+		}
+
+		struct STapeFormat
+		{
+			eTapeConstant m_formatID;
+			const char* m_formatExtension;
+		} types[] = { { TC_FORMAT_RAW, ".raw" }, { TC_FORMAT_TAP, ".tap" }, { TC_FORMAT_TZX, ".tzx" } };
+		
+		for (uint32 format = 0; format < (sizeof(types) / sizeof(STapeFormat)); ++format)
+		{
+			if (stricmp(extension, types[format].m_formatExtension) == 0)
+			{
+				m_pFile = fopen(fileName, "rb");
+				if (m_pFile != NULL)
+				{
+					fprintf(stdout, "[ZX Spectrum]: tape opened [%s] successfully\n", fileName);
+					m_tapeFormat = types[format].m_formatID;
+					return true;
+				}
+			}
+		}
+	}
+
+	fprintf(stderr, "[ZX Spectrum]: failed to load [%s]\n", fileName);
+	return false;
 }
 
 //=============================================================================

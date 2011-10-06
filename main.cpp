@@ -11,8 +11,7 @@ int main(int argc, char* argv[])
 	IGNORE_PARAMETER(argv);
 
 	CZXSpectrum speccy;
-	speccy.Initialise();
-	speccy.LoadROM("roms/48.rom");
+	speccy.Initialise(argc, argv);
 /*
   // working
 	speccy.LoadSNA("roms/android2.sna");
@@ -30,7 +29,6 @@ int main(int argc, char* argv[])
 
 	// not working
 */
-	speccy.LoadTZX("roms/Fairlight - 48k - Release 1.tzx");
 	while (speccy.Update());
 
 	return EXIT_SUCCESS;

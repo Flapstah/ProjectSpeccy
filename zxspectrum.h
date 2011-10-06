@@ -28,16 +28,17 @@ class CZXSpectrum : public IMemory, public IScreenMemory
 		virtual	uint32			GetScreenHeight(void) const;
 		// ~IScreenMemory
 
-						bool				Initialise(void);
+						bool				Initialise(int argc, char* argv[]);
 						bool				Update(void);
 
+	protected:
 						bool				LoadROM(const char* fileName);
+						bool				LoadTape(const char* fileName);
 						bool				LoadSNA(const char* fileName);
 						bool				LoadRAW(const char* fileName);
 						bool				LoadTAP(const char* fileName);
 						bool				LoadTZX(const char* fileName);
 
-	protected:
 						void				DisplayHelp(void) const;
 
 		enum eSpectrumConstant
