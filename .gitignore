@@ -1,6 +1,8 @@
 CMakeFiles/
 docs/
+tapes/archive/
 ZXSpectrum/Debug/
+ZXSpectrum/Release/
 ZXSpectrum/ipch/
 *~
 *.swp
