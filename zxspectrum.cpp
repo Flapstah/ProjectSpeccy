@@ -83,7 +83,7 @@ bool CZXSpectrum::Initialise(int argc, char* argv[])
 			// Parse arguments
 			while (arg < argc)
 			{
-				if (stricmp(argv[arg], "-rom") == 0)
+				if (strcmp(argv[arg], "-rom") == 0)
 				{
 					if (++arg < argc)
 					{
@@ -477,7 +477,7 @@ bool CZXSpectrum::LoadTape(const char* fileName)
 
 	if (extension != NULL)
 	{
-		if (stricmp(extension, ".sna") == 0)
+		if (strcmp(extension, ".sna") == 0)
 		{
 			return LoadSNA(fileName);
 		}
@@ -490,7 +490,7 @@ bool CZXSpectrum::LoadTape(const char* fileName)
 		
 		for (uint32 format = 0; format < (sizeof(types) / sizeof(STapeFormat)); ++format)
 		{
-			if (stricmp(extension, types[format].m_formatExtension) == 0)
+			if (strcmp(extension, types[format].m_formatExtension) == 0)
 			{
 				m_pFile = fopen(fileName, "rb");
 				if (m_pFile != NULL)
