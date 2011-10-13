@@ -4,6 +4,9 @@
 
 #include <GL/glfw.h>
 
+#include <AL/al.h>
+#include <AL/alc.h>
+
 #include "zxspectrum.h"
 #include "display.h"
 #include "keyboard.h"
@@ -32,6 +35,7 @@ CZXSpectrum::CZXSpectrum(void)
 	, m_frameNumber(0)
 	, m_scanlineTstates(0)
 	, m_tapeTstates(0)
+	, m_soundTstates(0)
 	, m_writePortFE(0)
 	, m_readPortFE(0)
 	, m_tapePlaying(false)
@@ -45,6 +49,8 @@ CZXSpectrum::CZXSpectrum(void)
 CZXSpectrum::~CZXSpectrum(void)
 {
 	fprintf(stdout, "[ZX Spectrum]: Shutting down\n");
+
+	UninitialiseSound();
 
 	if (m_pFile != NULL)
 	{
@@ -68,6 +74,8 @@ CZXSpectrum::~CZXSpectrum(void)
 bool CZXSpectrum::Initialise(int argc, char* argv[])
 {
 	bool initialised = false;
+
+	InitialiseSound();
 
 	m_pDisplay = new CDisplay(SC_VIDEO_MEMORY_WIDTH * DISPLAY_SCALE, SC_VIDEO_MEMORY_HEIGHT * DISPLAY_SCALE, "ZX Spectrum");
 	if (m_pDisplay != NULL)
@@ -232,6 +240,7 @@ bool CZXSpectrum::Update(void)
 			{
 				UpdateScanline(tstates);
 				UpdateTape(tstates);
+				UpdateSound(tstates);
 			}
 		}
 		else
@@ -413,6 +422,7 @@ uint8 CZXSpectrum::ReadPort(uint16 address) const
 	}
 
 	m_readPortFE &= ~mask;
+
 //	if ((m_readPortFE & 0x1F) != 0x1F)
 //	{
 //		printf("[ZX Spectrum]: Port %04X is %02X\n", address, m_readPortFE);
@@ -1118,6 +1128,131 @@ bool CZXSpectrum::ReadTapeWord(uint16& value)
 	}
 
 	return readSuccessfully;
+}
+
+//=============================================================================
+
+ALCdevice* pOpenALDevice;
+ALCcontext* pOpenALContext;
+
+#define NUM_BUFFERS (2)
+ALuint Buffer[NUM_BUFFERS];
+ALuint Source;
+ALfloat SourcePos[] = {0.0f, 0.0f, 0.0f};
+ALfloat SourceVel[] = {0.0f, 0.0f, 0.0f};
+ALfloat ListenerPos[] = {0.0f, 0.0f, 0.0f};
+ALfloat ListenerVel[] = {0.0f, 0.0f, 0.0f};
+ALfloat ListenerOri[] = {0.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f};
+ALuint nextBuffer;
+ALuint frequency = 44100;
+
+ALenum format = AL_FORMAT_MONO8;
+#define BUFFER_SIZE (44100 / 50)
+uint8 soundData[BUFFER_SIZE];
+uint32 bufferPos = 0;
+
+//=============================================================================
+
+bool CZXSpectrum::InitialiseSound(void)
+{
+	bool initialised = false;
+	memset(soundData, 0xFF, sizeof(soundData));
+
+	pOpenALDevice = alcOpenDevice(NULL);
+	if (pOpenALDevice != NULL)
+	{
+		pOpenALContext = alcCreateContext(pOpenALDevice, NULL);
+		alcMakeContextCurrent(pOpenALContext);
+		if (pOpenALContext != NULL)
+		{
+			alGetError();
+			alGenBuffers(NUM_BUFFERS, Buffer);
+			if (alGetError() == AL_NO_ERROR)
+			{
+				alGenSources(1, &Source);
+				if (alGetError() == AL_NO_ERROR)
+				{
+					for (uint32 index = 0; index < NUM_BUFFERS; ++index)
+					{
+						alBufferData(Buffer[index], format, soundData, BUFFER_SIZE, frequency);
+					}
+					alSourceQueueBuffers(Source, NUM_BUFFERS, Buffer);
+					alSourcePlay(Source);
+					if (alGetError() == AL_NO_ERROR)
+					{
+						initialised = true;
+					}
+				}
+			}
+		}
+	}
+
+	return initialised;
+}
+
+//=============================================================================
+
+void CZXSpectrum::UpdateSound(uint32 tstates)
+{
+	m_soundTstates += tstates;
+	if (m_soundTstates >= 79)
+	{
+		m_soundTstates -= 79;
+		soundData[bufferPos] = (m_writePortFE & (PC_MIC_OUT | PC_EAR_OUT)) ? 0x7F : 0xFF;
+//		printf("[%04X] %02X %02X\n", bufferPos, m_writePortFE & (PC_MIC_OUT | PC_EAR_OUT), soundData[bufferPos]);
+		if (++bufferPos >= BUFFER_SIZE)
+		{
+			fprintf(stdout, "[ZX Spectrum] CZXSpectrum::UpdateSound(): ");
+
+			ALint val;
+			alGetSourcei(Source, AL_BUFFERS_PROCESSED, &val);
+			if (val > 0)
+			{
+				fprintf(stdout, "buffering new sound buffer\n");
+
+				alSourceUnqueueBuffers(Source, 1, &nextBuffer);
+				alBufferData(nextBuffer, format, soundData, BUFFER_SIZE, frequency);
+				alSourceQueueBuffers(Source, 1, &nextBuffer);
+				ALuint error = alGetError();
+				if (error != AL_NO_ERROR)
+				{
+					fprintf(stderr, "[ZX Spectrum]: CZXSpectrum::UpdateSound() OpenAL error %d\n", error);
+					exit(0);
+				}
+
+				alGetSourcei(Source, AL_SOURCE_STATE, &val);
+				if (val != AL_PLAYING)
+				{
+					alSourcePlay(Source);
+				}
+
+			}
+			else
+			{
+				fprintf(stdout, "sound buffer overflow\n");
+			}
+
+			bufferPos = 0;
+		}
+	}
+}
+
+//=============================================================================
+
+bool CZXSpectrum::UninitialiseSound(void)
+{
+	ALint val;
+
+	do
+	{
+		alGetSourcei(Source, AL_SOURCE_STATE, &val);
+	} while (val == AL_PLAYING);
+
+	alDeleteSources(1, &Source);
+	alDeleteBuffers(NUM_BUFFERS, Buffer);
+	alcMakeContextCurrent(NULL);
+	alcDestroyContext(pOpenALContext);
+	alcCloseDevice(pOpenALDevice);
 }
 
 //=============================================================================
