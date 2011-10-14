@@ -350,75 +350,75 @@ uint8 CZXSpectrum::ReadPort(uint16 address) const
 	if (line & 0x01)
 	{
 		// SHIFT, Z, X, C, V
-		if (glfwGetKey(GLFW_KEY_LSHIFT) == GLFW_PRESS) mask |= 0x01;
-		if (glfwGetKey('Z') == GLFW_PRESS) mask |= 0x02;
-		if (glfwGetKey('X') == GLFW_PRESS) mask |= 0x04;
-		if (glfwGetKey('C') == GLFW_PRESS) mask |= 0x08;
-		if (glfwGetKey('V') == GLFW_PRESS) mask |= 0x10;
+		if (CKeyboard::IsKeyDown(GLFW_KEY_LSHIFT)) mask |= 0x01;
+		if (CKeyboard::IsKeyDown('Z')) mask |= 0x02;
+		if (CKeyboard::IsKeyDown('X')) mask |= 0x04;
+		if (CKeyboard::IsKeyDown('C')) mask |= 0x08;
+		if (CKeyboard::IsKeyDown('V')) mask |= 0x10;
 	}
 
 	if (line & 0x02)
 	{
 		// A, S, D, F, G
-		if (glfwGetKey('A') == GLFW_PRESS) mask |= 0x01;
-		if (glfwGetKey('S') == GLFW_PRESS) mask |= 0x02;
-		if (glfwGetKey('D') == GLFW_PRESS) mask |= 0x04;
-		if (glfwGetKey('F') == GLFW_PRESS) mask |= 0x08;
-		if (glfwGetKey('G') == GLFW_PRESS) mask |= 0x10;
+		if (CKeyboard::IsKeyDown('A')) mask |= 0x01;
+		if (CKeyboard::IsKeyDown('S')) mask |= 0x02;
+		if (CKeyboard::IsKeyDown('D')) mask |= 0x04;
+		if (CKeyboard::IsKeyDown('F')) mask |= 0x08;
+		if (CKeyboard::IsKeyDown('G')) mask |= 0x10;
 	}
 
 	if (line & 0x04) // Q, W, E, R, T
 	{
-		if (glfwGetKey('Q') == GLFW_PRESS) mask |= 0x01;
-		if (glfwGetKey('W') == GLFW_PRESS) mask |= 0x02;
-		if (glfwGetKey('E') == GLFW_PRESS) mask |= 0x04;
-		if (glfwGetKey('R') == GLFW_PRESS) mask |= 0x08;
-		if (glfwGetKey('T') == GLFW_PRESS) mask |= 0x10;
+		if (CKeyboard::IsKeyDown('Q')) mask |= 0x01;
+		if (CKeyboard::IsKeyDown('W')) mask |= 0x02;
+		if (CKeyboard::IsKeyDown('E')) mask |= 0x04;
+		if (CKeyboard::IsKeyDown('R')) mask |= 0x08;
+		if (CKeyboard::IsKeyDown('T')) mask |= 0x10;
 	}
 
 	if (line & 0x08) // 1, 2, 3, 4, 5
 	{
-		if (glfwGetKey('1') == GLFW_PRESS) mask |= 0x01;
-		if (glfwGetKey('2') == GLFW_PRESS) mask |= 0x02;
-		if (glfwGetKey('3') == GLFW_PRESS) mask |= 0x04;
-		if (glfwGetKey('4') == GLFW_PRESS) mask |= 0x08;
-		if (glfwGetKey('5') == GLFW_PRESS) mask |= 0x10;
+		if (CKeyboard::IsKeyDown('1')) mask |= 0x01;
+		if (CKeyboard::IsKeyDown('2')) mask |= 0x02;
+		if (CKeyboard::IsKeyDown('3')) mask |= 0x04;
+		if (CKeyboard::IsKeyDown('4')) mask |= 0x08;
+		if (CKeyboard::IsKeyDown('5')) mask |= 0x10;
 	}
 
 	if (line & 0x10) // 0, 9, 8, 7, 6
 	{
-		if (glfwGetKey('0') == GLFW_PRESS) mask |= 0x01;
-		if (glfwGetKey('9') == GLFW_PRESS) mask |= 0x02;
-		if (glfwGetKey('8') == GLFW_PRESS) mask |= 0x04;
-		if (glfwGetKey('7') == GLFW_PRESS) mask |= 0x08;
-		if (glfwGetKey('6') == GLFW_PRESS) mask |= 0x10;
+		if (CKeyboard::IsKeyDown('0')) mask |= 0x01;
+		if (CKeyboard::IsKeyDown('9')) mask |= 0x02;
+		if (CKeyboard::IsKeyDown('8')) mask |= 0x04;
+		if (CKeyboard::IsKeyDown('7')) mask |= 0x08;
+		if (CKeyboard::IsKeyDown('6')) mask |= 0x10;
 	}
 
 	if (line & 0x20) // P, O, I, U, Y
 	{
-		if (glfwGetKey('P') == GLFW_PRESS) mask |= 0x01;
-		if (glfwGetKey('O') == GLFW_PRESS) mask |= 0x02;
-		if (glfwGetKey('I') == GLFW_PRESS) mask |= 0x04;
-		if (glfwGetKey('U') == GLFW_PRESS) mask |= 0x08;
-		if (glfwGetKey('Y') == GLFW_PRESS) mask |= 0x10;
+		if (CKeyboard::IsKeyDown('P')) mask |= 0x01;
+		if (CKeyboard::IsKeyDown('O')) mask |= 0x02;
+		if (CKeyboard::IsKeyDown('I')) mask |= 0x04;
+		if (CKeyboard::IsKeyDown('U')) mask |= 0x08;
+		if (CKeyboard::IsKeyDown('Y')) mask |= 0x10;
 	}
 
 	if (line & 0x40) // ENTER, L, K, J, H
 	{
-		if (glfwGetKey(GLFW_KEY_ENTER) == GLFW_PRESS) mask |= 0x01;
-		if (glfwGetKey('L') == GLFW_PRESS) mask |= 0x02;
-		if (glfwGetKey('K') == GLFW_PRESS) mask |= 0x04;
-		if (glfwGetKey('J') == GLFW_PRESS) mask |= 0x08;
-		if (glfwGetKey('H') == GLFW_PRESS) mask |= 0x10;
+		if (CKeyboard::IsKeyDown(GLFW_KEY_ENTER)) mask |= 0x01;
+		if (CKeyboard::IsKeyDown('L')) mask |= 0x02;
+		if (CKeyboard::IsKeyDown('K')) mask |= 0x04;
+		if (CKeyboard::IsKeyDown('J')) mask |= 0x08;
+		if (CKeyboard::IsKeyDown('H')) mask |= 0x10;
 	}
 
 	if (line & 0x80) // SPACE, SYM SHIFT, M, N, B
 	{
-		if (glfwGetKey(GLFW_KEY_SPACE) == GLFW_PRESS) mask |= 0x01;
-		if (glfwGetKey(GLFW_KEY_RSHIFT) == GLFW_PRESS) mask |= 0x02;
-		if (glfwGetKey('M') == GLFW_PRESS) mask |= 0x04;
-		if (glfwGetKey('N') == GLFW_PRESS) mask |= 0x08;
-		if (glfwGetKey('B') == GLFW_PRESS) mask |= 0x10;
+		if (CKeyboard::IsKeyDown(GLFW_KEY_SPACE)) mask |= 0x01;
+		if (CKeyboard::IsKeyDown(GLFW_KEY_RSHIFT)) mask |= 0x02;
+		if (CKeyboard::IsKeyDown('M')) mask |= 0x04;
+		if (CKeyboard::IsKeyDown('N')) mask |= 0x08;
+		if (CKeyboard::IsKeyDown('B')) mask |= 0x10;
 	}
 
 	m_readPortFE &= ~mask;

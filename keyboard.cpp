@@ -62,6 +62,15 @@ bool CKeyboard::IsKeyHeld(int key)
 
 //=============================================================================
 
+bool CKeyboard::IsKeyDown(int key)
+{
+	bool down = s_keyState[key];
+	s_keyPrevState[key] = s_keyState[key];
+	return down;
+}
+
+//=============================================================================
+
 void CKeyboard::ClearKey(int key)
 {
 	s_keyPrevState[key] = s_keyState[key] = false;
