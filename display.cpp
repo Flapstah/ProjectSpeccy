@@ -29,6 +29,7 @@ CDisplay::CDisplay(uint32 width, uint32 height, const char* title)
 
 	m_state = eS_Window;
 
+	glfwSwapInterval(0);
 	glfwSetWindowTitle(title);
 
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);

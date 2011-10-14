@@ -321,6 +321,7 @@ void CZXSpectrum::WritePort(uint16 address, uint8 byte)
 			// |   |   |   | E | M |  Border   |
 			// +---+---+---+---+---+---+---+---+
 			m_writePortFE = byte & PC_OUTPUT_MASK;
+//			fprintf(stdout, "ear %d mic %d\n", (m_writePortFE & PC_EAR_OUT) ? 1 : 0, (m_writePortFE & PC_MIC_OUT) ? 1 : 0);
 			break;
 
 		default:
@@ -1138,17 +1139,16 @@ ALCcontext* pOpenALContext;
 #define NUM_BUFFERS (2)
 ALuint Buffer[NUM_BUFFERS];
 ALuint Source;
-ALfloat SourcePos[] = {0.0f, 0.0f, 0.0f};
-ALfloat SourceVel[] = {0.0f, 0.0f, 0.0f};
-ALfloat ListenerPos[] = {0.0f, 0.0f, 0.0f};
-ALfloat ListenerVel[] = {0.0f, 0.0f, 0.0f};
-ALfloat ListenerOri[] = {0.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f};
 ALuint nextBuffer;
 ALuint frequency = 44100;
 
 ALenum format = AL_FORMAT_MONO8;
 #define BUFFER_SIZE (44100 / 50)
-uint8 soundData[BUFFER_SIZE];
+#define BUFFER_ELEMENT_SIZE (1)
+#define BUFFER_TYPE int8
+BUFFER_TYPE soundData[BUFFER_SIZE];
+BUFFER_TYPE levelHigh = 0xFF;
+BUFFER_TYPE levelLow = 0x00;
 uint32 bufferPos = 0;
 
 //=============================================================================
@@ -1174,12 +1174,16 @@ bool CZXSpectrum::InitialiseSound(void)
 				{
 					for (uint32 index = 0; index < NUM_BUFFERS; ++index)
 					{
-						alBufferData(Buffer[index], format, soundData, BUFFER_SIZE, frequency);
+						alBufferData(Buffer[index], format, soundData, BUFFER_SIZE * BUFFER_ELEMENT_SIZE, frequency);
 					}
 					alSourceQueueBuffers(Source, NUM_BUFFERS, Buffer);
 					alSourcePlay(Source);
 					if (alGetError() == AL_NO_ERROR)
 					{
+						for (uint32 index = 0; index < NUM_BUFFERS; ++index)
+						{
+							fprintf(stdout, "[ZX Spectrum]: OpenAL sound buffer %d initialised, buffered and queued\n", Buffer[index]);
+						}
 						initialised = true;
 					}
 				}
@@ -1194,45 +1198,67 @@ bool CZXSpectrum::InitialiseSound(void)
 
 void CZXSpectrum::UpdateSound(uint32 tstates)
 {
+	// RAW images are 44100 Hz => 44100 bytes/sec (1 byte in file = 1 bit)
+	// Screen refresh is (64+192+56)*224=69888 T states long
+	// 3.5Mhz/69888=50.080128205Hz refresh rate (let's call it 50Hz)
+	// 44100bps/50.080128205Hz=880.588800002 bits per screen refresh
+	// (44100bps/50Hz=882 bits per screen refresh)
+	// 69888/880.588800002=79.365079365 tstates per bit
+	// (69888/882=79.238095238 tstates per bit)
+	// rounded to 79 tstates for simplicity
+
 	m_soundTstates += tstates;
 	if (m_soundTstates >= 79)
 	{
 		m_soundTstates -= 79;
-		soundData[bufferPos] = (m_writePortFE & (PC_MIC_OUT | PC_EAR_OUT)) ? 0x7F : 0xFF;
-//		printf("[%04X] %02X %02X\n", bufferPos, m_writePortFE & (PC_MIC_OUT | PC_EAR_OUT), soundData[bufferPos]);
-		if (++bufferPos >= BUFFER_SIZE)
+
+		if (bufferPos < BUFFER_SIZE)
 		{
-			fprintf(stdout, "[ZX Spectrum] CZXSpectrum::UpdateSound(): ");
+			BUFFER_TYPE data = ((m_writePortFE & PC_EAR_OUT) | (m_readPortFE & PC_EAR_IN)) ? levelHigh : levelLow;
+//			static BUFFER_TYPE prev = data;
+//			if (data != prev)
+//			{
+//				prev = data;
+//				printf("data %X\n", data);
+//			}
 
-			ALint val;
-			alGetSourcei(Source, AL_BUFFERS_PROCESSED, &val);
-			if (val > 0)
+			soundData[bufferPos++] = data;
+		}
+	}
+
+	if (bufferPos == BUFFER_SIZE)
+	{
+		ALint val;
+		alGetSourcei(Source, AL_BUFFERS_PROCESSED, &val);
+
+		static uint32 misses = 0;
+
+		if (val > 0)
+		{
+			alSourceUnqueueBuffers(Source, 1, &nextBuffer);
+			alBufferData(nextBuffer, format, soundData, BUFFER_SIZE * BUFFER_ELEMENT_SIZE, frequency);
+			alSourceQueueBuffers(Source, 1, &nextBuffer);
+
+			ALuint error = alGetError();
+			if (error != AL_NO_ERROR)
 			{
-				fprintf(stdout, "buffering new sound buffer\n");
-
-				alSourceUnqueueBuffers(Source, 1, &nextBuffer);
-				alBufferData(nextBuffer, format, soundData, BUFFER_SIZE, frequency);
-				alSourceQueueBuffers(Source, 1, &nextBuffer);
-				ALuint error = alGetError();
-				if (error != AL_NO_ERROR)
-				{
-					fprintf(stderr, "[ZX Spectrum]: CZXSpectrum::UpdateSound() OpenAL error %d\n", error);
-					exit(0);
-				}
-
-				alGetSourcei(Source, AL_SOURCE_STATE, &val);
-				if (val != AL_PLAYING)
-				{
-					alSourcePlay(Source);
-				}
-
+				fprintf(stderr, "[ZX Spectrum]: CZXSpectrum::UpdateSound() OpenAL error %d\n", error);
+				exit(0);
 			}
-			else
+
+			alGetSourcei(Source, AL_SOURCE_STATE, &val);
+			if (val != AL_PLAYING)
 			{
-				fprintf(stdout, "sound buffer overflow\n");
+				alSourcePlay(Source);
 			}
 
 			bufferPos = 0;
+			printf("missed %d attempts to queue buffer\n", misses);
+			misses = 0;
+		}
+		else
+		{
+			++misses;
 		}
 	}
 }
@@ -1241,12 +1267,12 @@ void CZXSpectrum::UpdateSound(uint32 tstates)
 
 bool CZXSpectrum::UninitialiseSound(void)
 {
-	ALint val;
+	ALint state;
 
 	do
 	{
-		alGetSourcei(Source, AL_SOURCE_STATE, &val);
-	} while (val == AL_PLAYING);
+		alGetSourcei(Source, AL_SOURCE_STATE, &state);
+	} while (state == AL_PLAYING);
 
 	alDeleteSources(1, &Source);
 	alDeleteBuffers(NUM_BUFFERS, Buffer);
