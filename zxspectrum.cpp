@@ -1137,7 +1137,7 @@ bool CZXSpectrum::ReadTapeWord(uint16& value)
 ALCdevice* pOpenALDevice;
 ALCcontext* pOpenALContext;
 
-#define NUM_BUFFERS (2)
+#define NUM_BUFFERS (3)
 ALuint Buffer[NUM_BUFFERS];
 bool bufferInUse[NUM_BUFFERS];
 ALuint Source;
@@ -1148,17 +1148,49 @@ ALenum format = AL_FORMAT_MONO8;
 #define BUFFER_SIZE (44100 / 50)
 #define BUFFER_ELEMENT_SIZE (1)
 #define BUFFER_TYPE int8
-BUFFER_TYPE soundData[BUFFER_SIZE];
+#define NUM_SOURCE_BUFFERS (2)
 BUFFER_TYPE levelHigh = 0x3F;
 BUFFER_TYPE levelLow = 0x00;
-uint32 bufferPos = 0;
+
+struct SSourceData
+{
+	SSourceData()
+	{
+		memset(m_buffer, levelLow, BUFFER_SIZE * BUFFER_ELEMENT_SIZE);
+		Reset();
+	}
+
+	void Reset()
+	{
+		m_pos = 0;
+		m_inUse = false;
+	}
+
+	bool AddSample(BUFFER_TYPE data)
+	{
+		bool full = false;
+		if (m_pos < BUFFER_SIZE)
+		{
+			m_buffer[m_pos] = data;
+			if (++m_pos == BUFFER_SIZE)
+			{
+				full = true;
+			}
+		}
+		return full;
+	}
+
+	BUFFER_TYPE m_buffer[BUFFER_SIZE];
+	uint32 m_pos;
+	bool m_inUse;
+} sourceData[NUM_SOURCE_BUFFERS];
+uint32 sourceBufferIndex = 0;
 
 //=============================================================================
 
 bool CZXSpectrum::InitialiseSound(void)
 {
 	bool initialised = false;
-	memset(soundData, 0xFF, sizeof(soundData));
 
 	pOpenALDevice = alcOpenDevice(NULL);
 	if (pOpenALDevice != NULL)
@@ -1172,24 +1204,11 @@ bool CZXSpectrum::InitialiseSound(void)
 			if (alGetError() == AL_NO_ERROR)
 			{
 				alGenSources(1, &Source);
-//				if (alGetError() == AL_NO_ERROR)
-//				{
-//					for (uint32 index = 0; index < NUM_BUFFERS; ++index)
-//					{
-//						alBufferData(Buffer[index], format, soundData, BUFFER_SIZE * BUFFER_ELEMENT_SIZE, frequency);
-//					}
-//					alSourceQueueBuffers(Source, NUM_BUFFERS, Buffer);
-//					alSourcePlay(Source);
-//					if (alGetError() == AL_NO_ERROR)
-//					{
-						for (uint32 index = 0; index < NUM_BUFFERS; ++index)
-						{
-//							fprintf(stdout, "[ZX Spectrum]: OpenAL sound buffer %d initialised, buffered and queued\n", Buffer[index]);
-							bufferInUse[index] = false;
-						}
-						initialised = true;
-//					}
-//				}
+				for (uint32 index = 0; index < NUM_BUFFERS; ++index)
+				{
+					bufferInUse[index] = false;
+				}
+				initialised = true;
 			}
 		}
 	}
@@ -1201,13 +1220,6 @@ bool CZXSpectrum::InitialiseSound(void)
 
 void CZXSpectrum::UpdateSound(uint32 tstates)
 {
-	static double timeStarted = 0.0;
-	static double timeEnded = 0.0;
-	static double timeStarted1 = 0.0;
-	static double timeEnded1 = 0.0;
-	static double timeStarted2 = 0.0;
-	static double timeEnded2 = 0.0;
-
 	// RAW images are 44100 Hz => 44100 bytes/sec (1 byte in file = 1 bit)
 	// Screen refresh is (64+192+56)*224=69888 T states long
 	// 3.5Mhz/69888=50.080128205Hz refresh rate (let's call it 50Hz)
@@ -1217,32 +1229,25 @@ void CZXSpectrum::UpdateSound(uint32 tstates)
 	// (69888/882=79.238095238 tstates per bit)
 	// rounded to 79 tstates for simplicity
 
+	bool sourceBufferFull = false;
+
 	m_soundTstates += (tstates << 16);
 	if (m_soundTstates >= 5201190)
 	{
 		m_soundTstates -= 5201190;
 
-		timeEnded2 = glfwGetTime();
-//		printf("UpdateSound() time called %f, time called again %f, time interval %f\n", timeStarted2, timeEnded2, timeEnded2 - timeStarted2);
-		timeStarted2 = timeEnded2;
-
-		if (bufferPos < BUFFER_SIZE)
+		BUFFER_TYPE data = ((m_writePortFE & PC_EAR_OUT) | (m_readPortFE & PC_EAR_IN)) ? levelHigh : levelLow;
+		if (sourceData[sourceBufferIndex].AddSample(data))
 		{
-			BUFFER_TYPE data = ((m_writePortFE & PC_EAR_OUT) | (m_readPortFE & PC_EAR_IN)) ? levelHigh : levelLow;
-			soundData[bufferPos++] = data;
+			sourceBufferFull = true;
+			++sourceBufferIndex %= NUM_SOURCE_BUFFERS;
 		}
 	}
 
-	if (bufferPos == BUFFER_SIZE)
+	if (sourceBufferFull)
 	{
-		timeEnded1 = glfwGetTime();
-//		printf("buffer filled time started %f, time ended %f, time taken %f\n", timeStarted1, timeEnded1, timeEnded1 - timeStarted1);
-		timeStarted1 = timeEnded1;
-
 		ALint processed;
 		alGetSourcei(Source, AL_BUFFERS_PROCESSED, &processed);
-
-		static uint32 misses = 0;
 
 		if (processed > 0)
 		{
@@ -1258,13 +1263,6 @@ void CZXSpectrum::UpdateSound(uint32 tstates)
 				}
 			}
 		}
-
-//		printf("buffers: ");
-		for (uint32 index = 0; index < NUM_BUFFERS; ++index)
-		{
-//			printf("%s ", (bufferInUse[index] == false) ? "free" : "used");
-		}
-//		printf("\n");
 
 		bool freeBufferFound = false;
 		if (!freeBufferFound)
@@ -1283,12 +1281,10 @@ void CZXSpectrum::UpdateSound(uint32 tstates)
 
 		if (freeBufferFound)
 		{
-			timeEnded = glfwGetTime();
-//			printf("buffer played time started %f, time ended %f, time taken %f\n", timeStarted, timeEnded, timeEnded - timeStarted);
-			timeStarted = timeEnded;
-
-			alBufferData(nextBuffer, format, soundData, BUFFER_SIZE * BUFFER_ELEMENT_SIZE, frequency);
+			uint32 sourceBufferToUse = (sourceBufferIndex - 1) % NUM_SOURCE_BUFFERS;
+			alBufferData(nextBuffer, format, sourceData[sourceBufferToUse].m_buffer, BUFFER_SIZE * BUFFER_ELEMENT_SIZE, frequency);
 			alSourceQueueBuffers(Source, 1, &nextBuffer);
+			sourceData[sourceBufferToUse].Reset();
 
 			ALuint error = alGetError();
 			if (error != AL_NO_ERROR)
@@ -1303,17 +1299,6 @@ void CZXSpectrum::UpdateSound(uint32 tstates)
 			{
 				alSourcePlay(Source);
 			}
-
-			bufferPos = 0;
-			if (misses > 0)
-			{
-				printf("missed %d attempts to queue buffer\n", misses);
-			}
-			misses = 0;
-		}
-		else
-		{
-			++misses;
 		}
 	}
 }
