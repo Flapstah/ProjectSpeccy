@@ -29,7 +29,7 @@ if (UNIX)
 	set(LIBS ${LIBS} GL GLU)
 endif (UNIX)
 
-add_executable (test main.cpp display.cpp keyboard.cpp zxspectrum.cpp z80.cpp)
+add_executable (test main.cpp display.cpp keyboard.cpp sound.cpp zxspectrum.cpp z80.cpp)
 #DBG_MSG("LIBS = [${LIBS}]")
 target_link_libraries (test ${LIBS})
 

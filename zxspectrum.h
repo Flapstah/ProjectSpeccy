@@ -8,6 +8,7 @@
 
 class CDisplay;
 class CZ80;
+class CSound;
 
 class CZXSpectrum : public IMemory, public IScreenMemory
 {
@@ -37,10 +38,6 @@ class CZXSpectrum : public IMemory, public IScreenMemory
 						bool				LoadSNA(const char* fileName);
 
 						void				DisplayHelp(void) const;
-
-						bool				InitialiseSound(void);
-						void				UpdateSound(uint32 tstates);
-						bool				UninitialiseSound(void);
 
 		enum eSpectrumConstant
 		{
@@ -226,13 +223,13 @@ class CZXSpectrum : public IMemory, public IScreenMemory
 		float				m_clockRate;
 		CDisplay*		m_pDisplay;
 		CZ80*				m_pZ80;
+		CSound*			m_pSound;
 		FILE*				m_pFile;
 		uint32			m_scanline;
 		uint32			m_xpos;
 		uint32			m_frameNumber;
 		uint32			m_scanlineTstates;
 		uint32			m_tapeTstates;
-		uint32			m_soundTstates;
 		uint8				m_writePortFE;
 		mutable uint8				m_readPortFE;
 		bool				m_tapePlaying;

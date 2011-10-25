@@ -4,12 +4,10 @@
 
 #include <GL/glfw.h>
 
-#include <AL/al.h>
-#include <AL/alc.h>
-
 #include "zxspectrum.h"
 #include "display.h"
 #include "keyboard.h"
+#include "sound.h"
 #include "z80.h"
 
 static CKeyboard g_keyboard;
@@ -30,13 +28,13 @@ CZXSpectrum::CZXSpectrum(void)
 	, m_clockRate(1.0f)
 	, m_pDisplay(NULL)
 	, m_pZ80(NULL)
+	, m_pSound(NULL)
 	, m_pFile(NULL)
 	, m_scanline(0)
 	, m_xpos(0)
 	, m_frameNumber(0)
 	, m_scanlineTstates(0)
 	, m_tapeTstates(0)
-	, m_soundTstates(0)
 	, m_writePortFE(0)
 	, m_readPortFE(0)
 	, m_tapePlaying(false)
@@ -51,11 +49,14 @@ CZXSpectrum::~CZXSpectrum(void)
 {
 	fprintf(stdout, "[ZX Spectrum]: Shutting down\n");
 
-	UninitialiseSound();
-
 	if (m_pFile != NULL)
 	{
 		fclose(m_pFile);
+	}
+
+	if (m_pSound != NULL)
+	{
+		delete m_pSound;
 	}
 
 	if (m_pDisplay != NULL)
@@ -76,48 +77,53 @@ bool CZXSpectrum::Initialise(int argc, char* argv[])
 {
 	bool initialised = false;
 
-	InitialiseSound();
-
 	m_pDisplay = new CDisplay(SC_VIDEO_MEMORY_WIDTH * DISPLAY_SCALE, SC_VIDEO_MEMORY_HEIGHT * DISPLAY_SCALE, "ZX Spectrum");
 	if (m_pDisplay != NULL)
 	{
 		m_pDisplay->SetDisplayScale(DISPLAY_SCALE);
 		CKeyboard::Initialise();
-		if (m_pZ80 = new CZ80(this))
-		{
-			const char* rom = "roms/48.rom";
-			const char* tape = NULL;
-			int arg = 0;
 
-			// Parse arguments
-			while (arg < argc)
+		m_pSound = new CSound();
+		if (m_pSound != NULL)
+		{
+			m_pSound->Initialise();
+
+			if (m_pZ80 = new CZ80(this))
 			{
-				if (strcmp(argv[arg], "-rom") == 0)
+				const char* rom = "roms/48.rom";
+				const char* tape = NULL;
+				int arg = 0;
+
+				// Parse arguments
+				while (arg < argc)
 				{
-					if (++arg < argc)
+					if (strcmp(argv[arg], "-rom") == 0)
 					{
-						rom = argv[arg];
+						if (++arg < argc)
+						{
+							rom = argv[arg];
+						}
+						else
+						{
+							fprintf(stderr, "[ZX Spectrum]: missing parameter for '-rom'\n");
+						}
 					}
 					else
 					{
-						fprintf(stderr, "[ZX Spectrum]: missing parameter for '-rom'\n");
+						// assume any other argument is a tape
+						tape = argv[arg++];
 					}
 				}
-				else
+
+				LoadROM(rom);
+				if (tape != NULL)
 				{
-					// assume any other argument is a tape
-					tape = argv[arg++];
+					LoadTape(tape);
 				}
-			}
 
-			LoadROM(rom);
-			if (tape != NULL)
-			{
-				LoadTape(tape);
+				fprintf(stdout, "[ZX Spectrum]: Initialised\n");
+				initialised = true;
 			}
-
-			fprintf(stdout, "[ZX Spectrum]: Initialised\n");
-			initialised = true;
 		}
 	}
 	
@@ -241,7 +247,7 @@ bool CZXSpectrum::Update(void)
 			{
 				UpdateScanline(tstates);
 				UpdateTape(tstates);
-				UpdateSound(tstates);
+				m_pSound->Update(tstates, ((m_writePortFE & PC_EAR_OUT) | (m_readPortFE & PC_EAR_IN)) ? 1.0f : 0.0f);
 			}
 		}
 		else
@@ -1130,195 +1136,6 @@ bool CZXSpectrum::ReadTapeWord(uint16& value)
 	}
 
 	return readSuccessfully;
-}
-
-//=============================================================================
-
-ALCdevice* pOpenALDevice;
-ALCcontext* pOpenALContext;
-
-#define NUM_BUFFERS (3)
-ALuint Buffer[NUM_BUFFERS];
-bool bufferInUse[NUM_BUFFERS];
-ALuint Source;
-ALuint nextBuffer;
-ALuint frequency = 44100;
-
-ALenum format = AL_FORMAT_MONO8;
-#define BUFFER_SIZE (44100 / 50)
-#define BUFFER_ELEMENT_SIZE (1)
-#define BUFFER_TYPE int8
-#define NUM_SOURCE_BUFFERS (2)
-BUFFER_TYPE levelHigh = 0x3F;
-BUFFER_TYPE levelLow = 0x00;
-
-struct SSourceData
-{
-	SSourceData()
-	{
-		memset(m_buffer, levelLow, BUFFER_SIZE * BUFFER_ELEMENT_SIZE);
-		Reset();
-	}
-
-	void Reset()
-	{
-		m_pos = 0;
-		m_inUse = false;
-	}
-
-	bool AddSample(BUFFER_TYPE data)
-	{
-		bool full = false;
-		if (m_pos < BUFFER_SIZE)
-		{
-			m_buffer[m_pos] = data;
-			if (++m_pos == BUFFER_SIZE)
-			{
-				full = true;
-			}
-		}
-		return full;
-	}
-
-	BUFFER_TYPE m_buffer[BUFFER_SIZE];
-	uint32 m_pos;
-	bool m_inUse;
-} sourceData[NUM_SOURCE_BUFFERS];
-uint32 sourceBufferIndex = 0;
-
-//=============================================================================
-
-bool CZXSpectrum::InitialiseSound(void)
-{
-	bool initialised = false;
-
-	pOpenALDevice = alcOpenDevice(NULL);
-	if (pOpenALDevice != NULL)
-	{
-		pOpenALContext = alcCreateContext(pOpenALDevice, NULL);
-		alcMakeContextCurrent(pOpenALContext);
-		if (pOpenALContext != NULL)
-		{
-			alGetError();
-			alGenBuffers(NUM_BUFFERS, Buffer);
-			if (alGetError() == AL_NO_ERROR)
-			{
-				alGenSources(1, &Source);
-				for (uint32 index = 0; index < NUM_BUFFERS; ++index)
-				{
-					bufferInUse[index] = false;
-				}
-				initialised = true;
-			}
-		}
-	}
-
-	return initialised;
-}
-
-//=============================================================================
-
-void CZXSpectrum::UpdateSound(uint32 tstates)
-{
-	// RAW images are 44100 Hz => 44100 bytes/sec (1 byte in file = 1 bit)
-	// Screen refresh is (64+192+56)*224=69888 T states long
-	// 3.5Mhz/69888=50.080128205Hz refresh rate (let's call it 50Hz)
-	// 44100bps/50.080128205Hz=880.588800002 bits per screen refresh
-	// (44100bps/50Hz=882 bits per screen refresh)
-	// 69888/880.588800002=79.365079365 tstates per bit
-	// (69888/882=79.238095238 tstates per bit)
-	// rounded to 79 tstates for simplicity
-
-	bool sourceBufferFull = false;
-
-	m_soundTstates += (tstates << 16);
-	if (m_soundTstates >= 5201190)
-	{
-		m_soundTstates -= 5201190;
-
-		BUFFER_TYPE data = ((m_writePortFE & PC_EAR_OUT) | (m_readPortFE & PC_EAR_IN)) ? levelHigh : levelLow;
-		if (sourceData[sourceBufferIndex].AddSample(data))
-		{
-			sourceBufferFull = true;
-			++sourceBufferIndex %= NUM_SOURCE_BUFFERS;
-		}
-	}
-
-	if (sourceBufferFull)
-	{
-		ALint processed;
-		alGetSourcei(Source, AL_BUFFERS_PROCESSED, &processed);
-
-		if (processed > 0)
-		{
-			while (processed--)
-			{
-				alSourceUnqueueBuffers(Source, 1, &nextBuffer);
-				for (uint32 index = 0; index < NUM_BUFFERS; ++index)
-				{
-					if (Buffer[index] == nextBuffer)
-					{
-						bufferInUse[index] = false;
-					}
-				}
-			}
-		}
-
-		bool freeBufferFound = false;
-		if (!freeBufferFound)
-		{
-			for (uint32 index = 0; index < NUM_BUFFERS; ++index)
-			{
-				if (bufferInUse[index] == false)
-				{
-					bufferInUse[index] = true;
-					nextBuffer = Buffer[index];
-					freeBufferFound = true;
-					break;
-				}
-			}
-		}
-
-		if (freeBufferFound)
-		{
-			uint32 sourceBufferToUse = (sourceBufferIndex - 1) % NUM_SOURCE_BUFFERS;
-			alBufferData(nextBuffer, format, sourceData[sourceBufferToUse].m_buffer, BUFFER_SIZE * BUFFER_ELEMENT_SIZE, frequency);
-			alSourceQueueBuffers(Source, 1, &nextBuffer);
-			sourceData[sourceBufferToUse].Reset();
-
-			ALuint error = alGetError();
-			if (error != AL_NO_ERROR)
-			{
-				fprintf(stderr, "[ZX Spectrum]: CZXSpectrum::UpdateSound() OpenAL error %d\n", error);
-				exit(0);
-			}
-
-			ALint state;
-			alGetSourcei(Source, AL_SOURCE_STATE, &state);
-			if (state != AL_PLAYING)
-			{
-				alSourcePlay(Source);
-			}
-		}
-	}
-}
-
-//=============================================================================
-
-bool CZXSpectrum::UninitialiseSound(void)
-{
-	ALint state;
-
-	do
-	{
-		alGetSourcei(Source, AL_SOURCE_STATE, &state);
-	} while (state == AL_PLAYING);
-
-	alDeleteSources(1, &Source);
-	alDeleteBuffers(NUM_BUFFERS, Buffer);
-	alcMakeContextCurrent(NULL);
-	alcDestroyContext(pOpenALContext);
-	alcCloseDevice(pOpenALDevice);
 }
 
 //=============================================================================
