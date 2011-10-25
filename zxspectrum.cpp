@@ -657,21 +657,20 @@ void CZXSpectrum::UpdateTape(uint32 tstates)
 	
 	// RAW images are 44100 Hz => 44100 bytes/sec (1 byte in file = 1 bit)
 	// Screen refresh is (64+192+56)*224=69888 T states long
-	// 3.5Mhz/69888=50.080128205Hz refresh rate (let's call it 50Hz)
-	// 44100bps/50.080128205Hz=880.588800002 bits per screen refresh
-	// (44100bps/50Hz=882 bits per screen refresh)
-	// 69888/880.588800002=79.365079365 tstates per bit
-	// (69888/882=79.238095238 tstates per bit)
-	// rounded to 79 tstates for simplicity
+	// 3.5Mhz/69888=50.080128205128205128205128205128Hz refresh rate
+	// 44100/50.080128205128205128205128205128=880.5888 bytes per screen refresh
+	// 69888/880.5888=79.365079365079365079365079365079 tstates per bit
+	// 79.365079365079365079365079365079*65536=5201269.8412698412698412698412698
+	// 5201269/65536=79.3650665283203125 => nearly 5 decimal places of accuracy
 
-	m_tapeTstates += tstates;
+	m_tapeTstates += (tstates << 16);
 
 	switch (m_tapeFormat)
 	{
 		case TC_FORMAT_RAW:
-			if (m_tapeTstates >= 79)
+			if (m_tapeTstates >= 5201269)
 			{
-				m_tapeTstates -= 79;
+				m_tapeTstates -= 5201269;
 
 				if (ReadTapeByte(m_tapeByte))
 				{
@@ -977,6 +976,8 @@ void CZXSpectrum::UpdateTape(uint32 tstates)
 bool CZXSpectrum::UpdatePulse(uint32 length)
 {
 	bool finished = false;
+	length <<= 16;
+
 	if (m_tapeTstates >= length)
 	{
 		m_readPortFE ^= PC_EAR_IN;
@@ -1075,13 +1076,20 @@ bool CZXSpectrum::UpdateBlock(void)
 			break;
 
 		case TC_STATE_GENERATING_PAUSE:
-			if (m_tapeTstates >= 3500)
 			{
-				m_readPortFE &= ~PC_EAR_IN;
-				if (m_tapeTstates >= (m_tapeBlockInfo.m_pauseLength * 3500))
+				uint64 cycleCount = (3500 << 16);
+				if (m_tapeTstates >= cycleCount)
 				{
-					m_tapeTstates -= (m_tapeBlockInfo.m_pauseLength * 3500);
-					blockDone = true;
+					m_readPortFE &= ~PC_EAR_IN;
+
+					cycleCount *= m_tapeBlockInfo.m_pauseLength;
+					if (m_tapeTstates >= cycleCount)
+					{
+						printf("1 m_tapeTstates %llu, pause len %d, %llu\n", m_tapeTstates, m_tapeBlockInfo.m_pauseLength, cycleCount);
+						m_tapeTstates -= cycleCount;
+						printf("2 m_tapeTstates %llu, pause len %d, %llu\n", m_tapeTstates, m_tapeBlockInfo.m_pauseLength, cycleCount);
+						blockDone = true;
+					}
 				}
 			}
 			break;

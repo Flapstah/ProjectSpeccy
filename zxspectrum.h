@@ -229,7 +229,7 @@ class CZXSpectrum : public IMemory, public IScreenMemory
 		uint32			m_xpos;
 		uint32			m_frameNumber;
 		uint32			m_scanlineTstates;
-		uint32			m_tapeTstates;
+		uint64			m_tapeTstates;
 		uint8				m_writePortFE;
 		mutable uint8				m_readPortFE;
 		bool				m_tapePlaying;
