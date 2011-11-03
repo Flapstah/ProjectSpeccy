@@ -16,8 +16,9 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 set(CMAKE_BUILD_TYPE Release)
 
 find_package(GLFW REQUIRED)
-include_directories(${GLFW_INCLUDE_DIR})
-set(LIBS ${LIBS} ${GLFW_LIBRARY})
+find_package(OpenAL REQUIRED)
+include_directories(${GLFW_INCLUDE_DIR} ${OPENAL_INCLUDE_DIR})
+set(LIBS ${LIBS} ${GLFW_LIBRARY} ${OPENAL_LIBRARY})
 
 include_directories ("${test_SOURCE_DIR}/engine/independent")
 if (WIN32)
