@@ -8,7 +8,8 @@
 #include <AL/al.h>
 #include <AL/alc.h>
 
-#define NUM_BUFFERS (3)
+// 5 destination buffers works on the laptop... but why?
+#define NUM_DESTINATION_BUFFERS (3)
 #define BUFFER_SIZE (44100 / 50)
 #define BUFFER_ELEMENT_SIZE (1)
 #define BUFFER_TYPE int8
@@ -61,8 +62,8 @@ class CSound
 		ALCdevice* m_pOpenALDevice;
 		ALCcontext* m_pOpenALContext;
 
-		ALuint m_alBuffer[NUM_BUFFERS];
-		bool m_bufferInUse[NUM_BUFFERS];
+		ALuint m_alBuffer[NUM_DESTINATION_BUFFERS];
+		bool m_bufferInUse[NUM_DESTINATION_BUFFERS];
 		bool m_initialised;
 		ALuint m_alSource;
 

@@ -1085,9 +1085,9 @@ bool CZXSpectrum::UpdateBlock(void)
 					cycleCount *= m_tapeBlockInfo.m_pauseLength;
 					if (m_tapeTstates >= cycleCount)
 					{
-						printf("1 m_tapeTstates %llu, pause len %d, %llu\n", m_tapeTstates, m_tapeBlockInfo.m_pauseLength, cycleCount);
+						printf("1 m_tapeTstates %lu, pause len %d, %lu\n", m_tapeTstates, m_tapeBlockInfo.m_pauseLength, cycleCount);
 						m_tapeTstates -= cycleCount;
-						printf("2 m_tapeTstates %llu, pause len %d, %llu\n", m_tapeTstates, m_tapeBlockInfo.m_pauseLength, cycleCount);
+						printf("2 m_tapeTstates %lu, pause len %d, %lu\n", m_tapeTstates, m_tapeBlockInfo.m_pauseLength, cycleCount);
 						blockDone = true;
 					}
 				}
