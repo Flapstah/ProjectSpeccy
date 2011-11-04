@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <GL/glfw.h>
 #include "sound.h"
 
 // Sound buffers are played at 44100Hz
@@ -29,7 +30,8 @@ static const BUFFER_TYPE g_levelLow = 0x00;
 
 CSound::CSound(void)
 : m_initialised(false)
-, m_sourceBufferIndex(0)
+, m_currentSourceBufferIndex(0)
+, m_fullSourceBufferIndex(0)
 , m_soundCycles(0)
 {
 }
@@ -85,29 +87,17 @@ void CSound::Update(uint32 tstates, float volume)
 
 		// TODO: need to fix how volume works when using 16 bit samples
 		BUFFER_TYPE data = (volume * g_levelHigh);
-		if (m_source[m_sourceBufferIndex].AddSample(data))
+		if (m_source[m_currentSourceBufferIndex].AddSample(data))
 		{
-			++m_sourceBufferIndex %= NUM_SOURCE_BUFFERS;
+			++m_currentSourceBufferIndex %= NUM_SOURCE_BUFFERS;
+			if (m_source[m_currentSourceBufferIndex].IsFull())
+			{
+				fprintf(stderr, "[Sound]: CSound::Update() all source buffers full!\n");
+			}
 		}
 	}
 
-	bool sourceBufferFull = false;
-	//printf("source buffer ");
-	for (uint32 index = 0; index < NUM_SOURCE_BUFFERS; ++index)
-	{
-		if (m_source[index].IsFull())
-		{
-			sourceBufferFull = true;
-	//		printf("[full]  ");
-		}
-		else
-		{
-	//		printf("[empty] ");
-		}
-	}
-	//printf("\n");
-
-	if (sourceBufferFull)
+	if (m_source[m_fullSourceBufferIndex].IsFull())
 	{
 		ALuint nextBuffer;
 		ALint processed;
@@ -115,7 +105,12 @@ void CSound::Update(uint32 tstates, float volume)
 
 		if (processed > 0)
 		{
-			printf("processed %d\n", processed);
+			static double lastProcessed = glfwGetTime();
+			double timeNow = glfwGetTime();
+			double diff = timeNow - lastProcessed;
+			lastProcessed = timeNow;
+
+			printf("processed %d, %f\n", processed, diff);
 			while (processed--)
 			{
 				alSourceUnqueueBuffers(m_alSource, 1, &nextBuffer);
@@ -123,45 +118,30 @@ void CSound::Update(uint32 tstates, float volume)
 				{
 					if (m_alBuffer[index] == nextBuffer)
 					{
-						printf("destination buffer %d free\n", index);
 						m_bufferInUse[index] = false;
 					}
 				}
 			}
 		}
-		else
-		{
-			printf("processed 0\n");
-		}
 
 		bool freeBufferFound = false;
-		printf("destination buffer ");
-		if (!freeBufferFound)
+		for (uint32 index = 0; index < NUM_DESTINATION_BUFFERS; ++index)
 		{
-			for (uint32 index = 0; index < NUM_DESTINATION_BUFFERS; ++index)
+			if (m_bufferInUse[index] == false)
 			{
-				if (m_bufferInUse[index] == false)
-				{
-					printf("_");
-					m_bufferInUse[index] = true;
-					nextBuffer = m_alBuffer[index];
-					freeBufferFound = true;
-					break;
-				}
-				else
-				{
-					printf("X");
-				}
+				m_bufferInUse[index] = true;
+				nextBuffer = m_alBuffer[index];
+				freeBufferFound = true;
+				break;
 			}
-			printf("\n");
 		}
 
 		if (freeBufferFound)
 		{
-			uint32 sourceBufferToUse = (m_sourceBufferIndex - 1) % NUM_SOURCE_BUFFERS;
-			alBufferData(nextBuffer, g_format, m_source[sourceBufferToUse].m_buffer, BUFFER_SIZE * BUFFER_ELEMENT_SIZE, g_frequency);
+			alBufferData(nextBuffer, g_format, m_source[m_fullSourceBufferIndex].m_buffer, BUFFER_SIZE * BUFFER_ELEMENT_SIZE, g_frequency);
 			alSourceQueueBuffers(m_alSource, 1, &nextBuffer);
-			m_source[sourceBufferToUse].Reset();
+			m_source[m_fullSourceBufferIndex].Reset();
+			++m_currentSourceBufferIndex %= NUM_SOURCE_BUFFERS;
 
 			ALuint error = alGetError();
 			if (error != AL_NO_ERROR)
