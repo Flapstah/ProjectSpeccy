@@ -93,6 +93,7 @@ ELSE (WIN32)
       PATHS /opt/graphics/OpenGL/lib
             /usr/openwin/lib
             /usr/shlib /usr/X11R6/lib
+						/usr/lib32
             ${HPUX_IA_OPENGL_LIB_PATH}
     )
 
@@ -118,6 +119,7 @@ ELSE (WIN32)
             /opt/graphics/OpenGL/lib
             /usr/openwin/lib
             /usr/shlib /usr/X11R6/lib
+						/usr/lib32
     )
 
   ENDIF(APPLE)
