@@ -109,8 +109,11 @@ void CSound::Update(uint32 tstates, float volume)
 			double timeNow = glfwGetTime();
 			double diff = timeNow - lastProcessed;
 			lastProcessed = timeNow;
+			if (processed > 2)
+			{
+				printf("processed %d, %f\n", processed, diff);
+			}
 
-			printf("processed %d, %f\n", processed, diff);
 			while (processed--)
 			{
 				alSourceUnqueueBuffers(m_alSource, 1, &nextBuffer);
@@ -154,13 +157,18 @@ void CSound::Update(uint32 tstates, float volume)
 			alGetSourcei(m_alSource, AL_SOURCE_STATE, &state);
 			if (state != AL_PLAYING)
 			{
-				printf("forcing buffer to play\n");
+				// TODO: why does this keep happening? This is what makes the
+				// pops/clicks.
+				// Happens even when we've not freed a buffer so perhaps we're not
+				// adding new buffers quickly enough?  Need to log how many full source
+				// buffers there were when forcing buffer to play...
+				printf("forcing buffer to play (processed %d)\n", processed);
 				alSourcePlay(m_alSource);
 			}
 		}
 		else
 		{
-			printf("no free buffer found\n");
+			printf("no free buffer\n");
 		}
 	}
 }
