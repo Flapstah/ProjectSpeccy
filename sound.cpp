@@ -7,21 +7,9 @@
 #include <GL/glfw.h>
 #include "sound.h"
 
-// Sound buffers are played at 44100Hz
-// Screen refresh is (64+192+56)*224=69888 T states long
-// 3.5Mhz/69888=50.080128205128205128205128205128Hz refresh rate
-// 44100/50.080128205128205128205128205128=880.5888 bytes per screen refresh
-// 69888/880.5888=79.365079365079365079365079365079 tstates per byte
-// 79.365079365079365079365079365079*65536=5201269.8412698412698412698412698
-// 5201269/65536=79.3650665283203125 => nearly 5 decimal places of accuracy
-
-#define TSTATE_BITSHIFT (16)
-#define TSTATE_MULTIPLIER (1 << TSTATE_BITSHIFT)
-#define TSTATE_FIXED_FLOATING_POINT (79.365079365079365079365079365079*TSTATE_MULTIPLIER)
-
 //=============================================================================
 
-static const ALuint g_frequency = 44100;
+static const ALuint g_frequency = FREQUENCY;
 static const ALenum g_format = AL_FORMAT_MONO8;
 static const BUFFER_TYPE g_levelHigh = 0x3F;
 static const BUFFER_TYPE g_levelLow = 0x00;
@@ -75,14 +63,12 @@ bool CSound::Initialise(void)
 }
 
 //=============================================================================
-
-void CSound::Update(uint32 tstates, float volume)
-{
-	// need to rewrite all this - too much duplication of work
-
-	m_soundCycles += (tstates << TSTATE_BITSHIFT);
-	if (m_soundCycles >= TSTATE_FIXED_FLOATING_POINT)
+	
+	void CSound::Update(uint32 tstates, float volume)
 	{
+		m_soundCycles += (tstates << TSTATE_BITSHIFT);
+		if (m_soundCycles >= TSTATE_FIXED_FLOATING_POINT)
+		{
 		m_soundCycles -= TSTATE_FIXED_FLOATING_POINT;
 
 		// TODO: need to fix how volume works when using 16 bit samples
@@ -105,15 +91,6 @@ void CSound::Update(uint32 tstates, float volume)
 
 		if (processed > 0)
 		{
-			static double lastProcessed = glfwGetTime();
-			double timeNow = glfwGetTime();
-			double diff = timeNow - lastProcessed;
-			lastProcessed = timeNow;
-			if (processed > 2)
-			{
-				printf("processed %d, %f\n", processed, diff);
-			}
-
 			while (processed--)
 			{
 				alSourceUnqueueBuffers(m_alSource, 1, &nextBuffer);
@@ -141,7 +118,7 @@ void CSound::Update(uint32 tstates, float volume)
 
 		if (freeBufferFound)
 		{
-			alBufferData(nextBuffer, g_format, m_source[m_fullSourceBufferIndex].m_buffer, BUFFER_SIZE * BUFFER_ELEMENT_SIZE, g_frequency);
+			alBufferData(nextBuffer, g_format, m_source[m_fullSourceBufferIndex].m_buffer, SOURCE_BUFFER_SIZE * BUFFER_ELEMENT_SIZE, g_frequency);
 			alSourceQueueBuffers(m_alSource, 1, &nextBuffer);
 			m_source[m_fullSourceBufferIndex].Reset();
 			++m_currentSourceBufferIndex %= NUM_SOURCE_BUFFERS;
@@ -162,7 +139,17 @@ void CSound::Update(uint32 tstates, float volume)
 				// Happens even when we've not freed a buffer so perhaps we're not
 				// adding new buffers quickly enough?  Need to log how many full source
 				// buffers there were when forcing buffer to play...
-				printf("forcing buffer to play (processed %d)\n", processed);
+				//
+				// Perhaps we need to fix the buffering of data to be dynamically sized
+				// and do the sound the other way round, i.e. when a buffer is freed by
+				// OpenAL, just buffer up what we have accumulated in the source buffer.
+				uint8 numFullSourceBuffers = 0;
+				for (uint8 index = 0; index < NUM_SOURCE_BUFFERS; ++index)
+				{
+					if (m_source[index].IsFull())
+						++numFullSourceBuffers;
+				}
+				printf("forcing buffer to play (processed %d)(%d full source buffers)\n", processed, numFullSourceBuffers);
 				alSourcePlay(m_alSource);
 			}
 		}
