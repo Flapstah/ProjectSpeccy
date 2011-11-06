@@ -10,7 +10,7 @@
 
 #define BUFFER_TYPE int8
 #define BUFFER_ELEMENT_SIZE (sizeof(BUFFER_TYPE))
-#define NUM_DESTINATION_BUFFERS (3)
+#define NUM_DESTINATION_BUFFERS (4)
 
 // Sound buffers are played at 44100Hz
 // Screen refresh is (64+192+56)*224=69888 T states long

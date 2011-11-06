@@ -13,6 +13,8 @@ static const ALenum g_format = AL_FORMAT_MONO8;
 static const BUFFER_TYPE g_levelHigh = 0x3F;
 static const BUFFER_TYPE g_levelLow = 0x00;
 
+static uint32 g_buffersUsed = 0;
+
 //=============================================================================
 
 CSound::CSound(void)
@@ -72,6 +74,10 @@ void CSound::Update(uint32 tstates, float volume)
 		// TODO: need to fix how volume works when using 16 bit samples
 		BUFFER_TYPE data = (volume * g_levelHigh);
 		bool isFull = m_source.AddSample(data);
+		if (isFull)
+		{
+			printf("source buffer is full %f\n", glfwGetTime());
+		}
 
 		ALuint nextBuffer;
 		ALint processed;
@@ -82,6 +88,8 @@ void CSound::Update(uint32 tstates, float volume)
 		{
 			if (processed > 0)
 			{
+				printf("destination buffer is processed %f\n", glfwGetTime());
+
 				if (processed == NUM_DESTINATION_BUFFERS)
 				{
 					printf("processed ALL destination buffers\n");
@@ -89,6 +97,8 @@ void CSound::Update(uint32 tstates, float volume)
 
 				while (processed--)
 				{
+					--g_buffersUsed;
+
 					alSourceUnqueueBuffers(m_alSource, 1, &nextBuffer);
 					SetBufferInUse(nextBuffer, false);
 					freeBufferFound = true;
@@ -101,7 +111,9 @@ void CSound::Update(uint32 tstates, float volume)
 
 			if (freeBufferFound)
 			{
-				printf("buffering %d elements in buffer %d, %d\n", m_source.Size(), nextBuffer, SOURCE_BUFFER_SIZE);
+				++g_buffersUsed;
+
+				printf("buffering %d elements in buffer %d\n", m_source.Size(), nextBuffer);
 				alBufferData(nextBuffer, g_format, m_source.m_buffer, m_source.Size(), FREQUENCY);
 				alSourceQueueBuffers(m_alSource, 1, &nextBuffer);
 				m_source.Reset();
@@ -113,19 +125,21 @@ void CSound::Update(uint32 tstates, float volume)
 					fprintf(stderr, "[Sound]: CSound::Update() OpenAL error %X\n", error);
 					exit(0);
 				}
+
+				ALint state;
+				alGetSourcei(m_alSource, AL_SOURCE_STATE, &state);
+				if (state != AL_PLAYING)
+				{
+					printf("forcing buffer to play %f\n", glfwGetTime());
+					alSourcePlay(m_alSource);
+				}
+				else
+				{
+					//				printf("still playing\n");
+				}
 			}
 
-			ALint state;
-			alGetSourcei(m_alSource, AL_SOURCE_STATE, &state);
-			if (state != AL_PLAYING)
-			{
-				printf("forcing buffer to play (processed %d)\n", processed);
-				alSourcePlay(m_alSource);
-			}
-			else
-			{
-//				printf("still playing\n");
-			}
+			printf("buffers used %d\n", g_buffersUsed);
 		}
 	}
 }
@@ -164,7 +178,7 @@ bool CSound::FindFreeBufferIndex(ALuint& bufferId) const
 		if (m_bufferInUse[index] == false)
 		{
 			bufferId = m_alBuffer[index];
-			printf("found free buffer id %d\n", bufferId);
+//			printf("found free buffer id %d\n", bufferId);
 			found = true;
 			break;
 		}
@@ -186,7 +200,7 @@ void CSound::SetBufferInUse(ALuint bufferId, bool inUse)
 	{
 		if (m_alBuffer[index] == bufferId)
 		{
-			printf("set buffer in use id %d, set %s\n", bufferId, (inUse) ? "TRUE" : "FALSE");
+//			printf("set buffer in use id %d, set %s\n", bufferId, (inUse) ? "TRUE" : "FALSE");
 			m_bufferInUse[index] = inUse;
 			break;
 		}
