@@ -10,7 +10,8 @@
 
 #define BUFFER_TYPE int8
 #define BUFFER_ELEMENT_SIZE (sizeof(BUFFER_TYPE))
-#define NUM_DESTINATION_BUFFERS (4)
+#define NUM_DESTINATION_BUFFERS (5)
+#define NUM_SOURCE_BUFFERS (2)
 
 // Sound buffers are played at 44100Hz
 // Screen refresh is (64+192+56)*224=69888 T states long
@@ -81,7 +82,7 @@ class CSound
 
 			BUFFER_TYPE m_buffer[SOURCE_BUFFER_SIZE];
 			uint32 m_pos;
-		} m_source;
+		} m_source[NUM_SOURCE_BUFFERS];
 
 		ALCdevice* m_pOpenALDevice;
 		ALCcontext* m_pOpenALContext;
@@ -91,6 +92,8 @@ class CSound
 		bool m_initialised;
 		ALuint m_alSource;
 
+		uint32 m_currentSourceBufferIndex;
+		uint32 m_fullSourceBufferIndex;
 		uint64 m_soundCycles;
 };
 

@@ -19,6 +19,8 @@ static uint32 g_buffersUsed = 0;
 
 CSound::CSound(void)
 : m_initialised(false)
+, m_currentSourceBufferIndex(0)
+, m_fullSourceBufferIndex(0)
 , m_soundCycles(0)
 {
 }
@@ -73,50 +75,58 @@ void CSound::Update(uint32 tstates, float volume)
 
 		// TODO: need to fix how volume works when using 16 bit samples
 		BUFFER_TYPE data = (volume * g_levelHigh);
-		bool isFull = m_source.AddSample(data);
-		if (isFull)
+		if (m_source[m_currentSourceBufferIndex].AddSample(data))
 		{
-			printf("source buffer is full %f\n", glfwGetTime());
+			++m_currentSourceBufferIndex %= NUM_SOURCE_BUFFERS;
+			if (m_source[m_currentSourceBufferIndex].IsFull())
+			{
+				fprintf(stderr, "[Sound]: CSound::Update() all source buffers full!\n");
+			}
+		}
+	}
+
+	ALuint nextBuffer;
+	ALint processed;
+	bool freeBufferFound = false;
+	alGetSourcei(m_alSource, AL_BUFFERS_PROCESSED, &processed);
+
+	if ((m_source[m_fullSourceBufferIndex].IsFull()) || (processed > 0))
+	{
+		if (processed > 0)
+		{
+			printf("%d destination buffers processed %f (tstates %d)\n", processed, glfwGetTime(), tstates);
+
+			if (processed == NUM_DESTINATION_BUFFERS)
+			{
+				printf("processed ALL destination buffers\n");
+			}
+
+			while (processed--)
+			{
+				--g_buffersUsed;
+
+				alSourceUnqueueBuffers(m_alSource, 1, &nextBuffer);
+				SetBufferInUse(nextBuffer, false);
+				freeBufferFound = true;
+			}
+		}
+		else
+		{
+			freeBufferFound = FindFreeBufferIndex(nextBuffer);
 		}
 
-		ALuint nextBuffer;
-		ALint processed;
-		bool freeBufferFound = false;
-		alGetSourcei(m_alSource, AL_BUFFERS_PROCESSED, &processed);
-
-		if (isFull || (processed > 0))
+		if (freeBufferFound)
 		{
-			if (processed > 0)
-			{
-				printf("destination buffer is processed %f\n", glfwGetTime());
-
-				if (processed == NUM_DESTINATION_BUFFERS)
-				{
-					printf("processed ALL destination buffers\n");
-				}
-
-				while (processed--)
-				{
-					--g_buffersUsed;
-
-					alSourceUnqueueBuffers(m_alSource, 1, &nextBuffer);
-					SetBufferInUse(nextBuffer, false);
-					freeBufferFound = true;
-				}
-			}
-			else
-			{
-				freeBufferFound = FindFreeBufferIndex(nextBuffer);
-			}
-
-			if (freeBufferFound)
+			uint32 size = m_source[m_fullSourceBufferIndex].Size();
+			if (size > 0)
 			{
 				++g_buffersUsed;
 
-				printf("buffering %d elements in buffer %d\n", m_source.Size(), nextBuffer);
-				alBufferData(nextBuffer, g_format, m_source.m_buffer, m_source.Size(), FREQUENCY);
+				printf("buffering %d elements in buffer %d\n", size, nextBuffer);
+				alBufferData(nextBuffer, g_format, m_source[m_fullSourceBufferIndex].m_buffer, size, FREQUENCY);
 				alSourceQueueBuffers(m_alSource, 1, &nextBuffer);
-				m_source.Reset();
+				m_source[m_fullSourceBufferIndex].Reset();
+				++m_fullSourceBufferIndex %= NUM_SOURCE_BUFFERS;
 				SetBufferInUse(nextBuffer, true);
 
 				ALuint error = alGetError();
@@ -131,6 +141,15 @@ void CSound::Update(uint32 tstates, float volume)
 				if (state != AL_PLAYING)
 				{
 					printf("forcing buffer to play %f\n", glfwGetTime());
+					// TODO: why does this keep happening? This is what makes the
+					// pops/clicks.
+					// Happens even when we've not freed a buffer so perhaps we're not
+					// adding new buffers quickly enough?  Need to log how many full source
+					// buffers there were when forcing buffer to play...
+					//
+					// Perhaps we need to fix the buffering of data to be dynamically sized
+					// and do the sound the other way round, i.e. when a buffer is freed by
+					// OpenAL, just buffer up what we have accumulated in the source buffer.
 					alSourcePlay(m_alSource);
 				}
 				else
@@ -139,8 +158,9 @@ void CSound::Update(uint32 tstates, float volume)
 				}
 			}
 
-			printf("buffers used %d\n", g_buffersUsed);
 		}
+
+		printf("buffers used %d\n", g_buffersUsed);
 	}
 }
 

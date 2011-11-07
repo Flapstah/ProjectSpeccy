@@ -247,8 +247,9 @@ bool CZXSpectrum::Update(void)
 			{
 				UpdateScanline(tstates);
 				UpdateTape(tstates);
-				m_pSound->Update(tstates, ((m_writePortFE & PC_EAR_OUT) | (m_readPortFE & PC_EAR_IN)) ? 1.0f : 0.0f);
 			}
+
+			m_pSound->Update(tstates, ((m_writePortFE & PC_EAR_OUT) | (m_readPortFE & PC_EAR_IN)) ? 1.0f : 0.0f);
 		}
 		else
 		{
