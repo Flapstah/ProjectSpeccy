@@ -24,8 +24,10 @@
 #define FREQUENCY (44100)
 #define FRAME_RATE (3500000 / 69888)
 #define FRAME_SIZE (FREQUENCY/FRAME_RATE)
-#define TSTATE_COUNT (69888/FRAME_SIZE)
-#define SOURCE_BUFFER_SIZE (uint32)(FRAME_SIZE)
+//#define TSTATE_COUNT (69888/FRAME_SIZE)
+#define TSTATE_COUNT (79.365079365079365079365079365079)
+//#define SOURCE_BUFFER_SIZE (uint32)(FRAME_SIZE)
+#define SOURCE_BUFFER_SIZE (uint32)(882)
 
 #define TSTATE_BITSHIFT (16)
 #define TSTATE_MULTIPLIER (1 << TSTATE_BITSHIFT)
@@ -46,7 +48,7 @@ class CSound
 
 	protected:
 		bool FindFreeBufferIndex(ALuint& bufferId) const;
-		void SetBufferInUse(ALuint bufferId, bool inUse);
+		void SetBufferInUse(ALuint bufferId, bool inUse, uint32 count);
 
 		struct SSourceBuffer
 		{
@@ -87,14 +89,15 @@ class CSound
 		ALCdevice* m_pOpenALDevice;
 		ALCcontext* m_pOpenALContext;
 
-		ALuint m_alBuffer[NUM_DESTINATION_BUFFERS];
-		bool m_bufferInUse[NUM_DESTINATION_BUFFERS];
-		bool m_initialised;
-		ALuint m_alSource;
-
+		uint64 m_soundCycles;
 		uint32 m_currentSourceBufferIndex;
 		uint32 m_fullSourceBufferIndex;
-		uint64 m_soundCycles;
+		uint32 m_buffersUsed;
+		ALuint m_alBuffer[NUM_DESTINATION_BUFFERS];
+		ALuint m_alSource;
+		uint32 m_bufferInUseCapacity[NUM_DESTINATION_BUFFERS];
+		bool m_bufferInUse[NUM_DESTINATION_BUFFERS];
+		bool m_initialised;
 };
 
 #endif // !defined(__SOUND_H__)
