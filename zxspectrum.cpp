@@ -887,6 +887,40 @@ void CZXSpectrum::UpdateTape(uint32 tstates)
 								}
 								break;
 
+							case 0x14:
+								fprintf(stdout, "[ZX Spectrum]: TZX block ID 14 (Pure Data)\n");
+								if (ReadTapeWord(m_tapeBlockInfo.m_bit0PulseLength))
+								{
+									if (ReadTapeWord(m_tapeBlockInfo.m_bit1PulseLength))
+									{
+										if (ReadTapeByte(m_tapeBlockInfo.m_lastByteBitMask))
+										{
+											m_tapeBlockInfo.m_lastByteBitMask = ~(0xFF >> m_tapeBlockInfo.m_lastByteBitMask);
+											if (ReadTapeWord(m_tapeBlockInfo.m_pauseLength))
+											{
+												if (ReadTapeWord(blockSize))
+												{
+													m_tapeBlockInfo.m_blockSize = blockSize;
+													if (ReadTapeByte(m_tapeByte))
+													{
+														m_tapeBlockInfo.m_blockSize |= (m_tapeByte << 16);
+
+														if (ReadTapeByte(m_tapeByte))
+														{
+															// m_tapeByte now has the block type byte
+															// (which is the first byte of data)
+															m_tapePulseCounter = 2;
+															m_tapeDataBitMask = 0x80;
+															m_tapeState = TC_STATE_GENERATING_DATA;
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+								break;
+
 							case 0x20:
 								fprintf(stdout, "[ZX Spectrum]: TZX block ID 20 (Pause/Stop the Tape)\n");
 								if (ReadTapeWord(m_tapeBlockInfo.m_pauseLength))
