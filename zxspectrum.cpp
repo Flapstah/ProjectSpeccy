@@ -864,6 +864,29 @@ void CZXSpectrum::UpdateTape(uint32 tstates)
 								}
 								break;
 
+							case 0x13:
+								fprintf(stdout, "[ZX Spectrum]: TZX block ID 13 (Pulse Sequence)\n");
+								{
+									uint8 count = 0;
+									if (ReadTapeByte(count))
+									{
+										m_tapeBlockInfo.m_pilotPulseCount = count;
+										if (m_tapeBlockInfo.m_pilotPulseCount > 0)
+										{
+											if (ReadTapeWord(m_tapeBlockInfo.m_pilotPulseLength))
+											{
+												m_tapeState = TC_STATE_GENERATING_PULSE;
+												m_tapePulseCounter = 1;
+											}
+										}
+										else
+										{
+											m_tapeState = TC_STATE_READING_BLOCK;
+										}
+									}
+								}
+								break;
+
 							case 0x20:
 								fprintf(stdout, "[ZX Spectrum]: TZX block ID 20 (Pause/Stop the Tape)\n");
 								if (ReadTapeWord(m_tapeBlockInfo.m_pauseLength))
@@ -934,6 +957,7 @@ void CZXSpectrum::UpdateTape(uint32 tstates)
 				case TC_STATE_GENERATING_DATA:
 				case TC_STATE_GENERATING_PAUSE:
 				case TC_STATE_GENERATING_TONE:
+				case TC_STATE_GENERATING_PULSE:
 					if (UpdateBlock() && (m_tapeState != TC_STATE_STOP_TAPE))
 					{
 						m_tapeState = TC_STATE_READING_BLOCK;
@@ -1099,6 +1123,21 @@ bool CZXSpectrum::UpdateBlock(void)
 			if (UpdatePulse(m_tapeBlockInfo.m_pilotPulseLength))
 			{
 				blockDone = true;
+			}
+			break;
+
+		case TC_STATE_GENERATING_PULSE:
+			if (UpdatePulse(m_tapeBlockInfo.m_pilotPulseLength))
+			{
+				if (--m_tapeBlockInfo.m_pilotPulseCount)
+				{
+					ReadTapeWord(m_tapeBlockInfo.m_pilotPulseLength);
+					m_tapePulseCounter = 1;
+				}
+				else
+				{
+					blockDone = true;
+				}
 			}
 			break;
 	}
