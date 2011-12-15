@@ -23,7 +23,7 @@ static CKeyboard g_keyboard;
 
 CZXSpectrum::CZXSpectrum(void)
 	: m_frameStart(0.0)
- 	, m_frameRate(3500000 / 69888)
+ 	, m_frameRate(3500000.0 / 69888.0)
  	, m_frameTime(1.0 / m_frameRate)
 	, m_clockRate(1.0f)
 	, m_pDisplay(NULL)
@@ -647,7 +647,6 @@ void CZXSpectrum::UpdateTape(uint32 tstates)
 {
 	// TODO: refactor this out into a tape class
 	uint16 blockSize = 0;
-	uint16 pauseMS = 0;
 	bool stopTape = false;
 	m_tapeError = 0;
 
@@ -722,7 +721,8 @@ void CZXSpectrum::UpdateTape(uint32 tstates)
 				case TC_STATE_GENERATING_SYNC_PULSE_0:
 				case TC_STATE_GENERATING_SYNC_PULSE_1:
 				case TC_STATE_GENERATING_DATA:
-				case TC_STATE_GENERATING_PAUSE:
+				case TC_STATE_GENERATING_PAUSE0:
+				case TC_STATE_GENERATING_PAUSE1:
 					if (UpdateBlock() && (m_tapeState != TC_STATE_STOP_TAPE))
 					{
 						m_tapeState = TC_STATE_READING_FORMAT;
@@ -822,6 +822,7 @@ void CZXSpectrum::UpdateTape(uint32 tstates)
 														if (ReadTapeByte(m_tapeBlockInfo.m_lastByteBitMask))
 														{
 															m_tapeBlockInfo.m_lastByteBitMask = ~(0xFF >> m_tapeBlockInfo.m_lastByteBitMask);
+
 															if (ReadTapeWord(m_tapeBlockInfo.m_pauseLength))
 															{
 																if (ReadTapeWord(blockSize))
@@ -854,6 +855,7 @@ void CZXSpectrum::UpdateTape(uint32 tstates)
 
 							case 0x12:
 								fprintf(stdout, "[ZX Spectrum]: TZX block ID 12 (Pure Tone)\n");
+
 								if (ReadTapeWord(m_tapeBlockInfo.m_pilotPulseLength))
 								{
 									if (ReadTapeWord(m_tapeBlockInfo.m_pilotPulseCount))
@@ -889,6 +891,7 @@ void CZXSpectrum::UpdateTape(uint32 tstates)
 
 							case 0x14:
 								fprintf(stdout, "[ZX Spectrum]: TZX block ID 14 (Pure Data)\n");
+
 								if (ReadTapeWord(m_tapeBlockInfo.m_bit0PulseLength))
 								{
 									if (ReadTapeWord(m_tapeBlockInfo.m_bit1PulseLength))
@@ -925,8 +928,7 @@ void CZXSpectrum::UpdateTape(uint32 tstates)
 								fprintf(stdout, "[ZX Spectrum]: TZX block ID 20 (Pause/Stop the Tape)\n");
 								if (ReadTapeWord(m_tapeBlockInfo.m_pauseLength))
 								{
-									m_readPortFE &= ~PC_EAR_IN;
-									m_tapeState = TC_STATE_GENERATING_PAUSE;
+									m_tapeState = TC_STATE_GENERATING_PAUSE0;
 								}
 								break;
 
@@ -1052,13 +1054,14 @@ void CZXSpectrum::UpdateTape(uint32 tstates)
 								break;
 						}
 					}
-					break;
+					// intentional fall-through
 
 				case TC_STATE_GENERATING_PILOT:
 				case TC_STATE_GENERATING_SYNC_PULSE_0:
 				case TC_STATE_GENERATING_SYNC_PULSE_1:
 				case TC_STATE_GENERATING_DATA:
-				case TC_STATE_GENERATING_PAUSE:
+				case TC_STATE_GENERATING_PAUSE0:
+				case TC_STATE_GENERATING_PAUSE1:
 				case TC_STATE_GENERATING_TONE:
 				case TC_STATE_GENERATING_PULSE:
 					if (UpdateBlock() && (m_tapeState != TC_STATE_STOP_TAPE))
@@ -1096,6 +1099,7 @@ void CZXSpectrum::UpdateTape(uint32 tstates)
 		fprintf(stdout, "[ZX Spectrum]: tape rewound and stopped\n");
 		fseek(m_pFile, 0, SEEK_SET);
 		m_tapePlaying	= false;
+		m_tapeTstates = 0;
 	}
 }
 
@@ -1124,6 +1128,7 @@ bool CZXSpectrum::UpdatePulse(uint32 length)
 bool CZXSpectrum::UpdateBlock(void)
 {
 	bool blockDone = false;
+	uint64 oneMS = (3500 << 16);
 
 	switch (m_tapeState)
 	{
@@ -1177,7 +1182,7 @@ bool CZXSpectrum::UpdateBlock(void)
 					}
 					else
 					{
-						m_tapeState = TC_STATE_GENERATING_PAUSE;
+						m_tapeState = TC_STATE_GENERATING_PAUSE0;
 					}
 					break;
 				}
@@ -1203,21 +1208,21 @@ bool CZXSpectrum::UpdateBlock(void)
 			}
 			break;
 
-		case TC_STATE_GENERATING_PAUSE:
+		case TC_STATE_GENERATING_PAUSE0:
+			if (m_tapeTstates >= oneMS)
 			{
-				uint64 cycleCount = (3500 << 16);
+				m_readPortFE &= ~PC_EAR_IN;
+				m_tapeState = TC_STATE_GENERATING_PAUSE1;
+			}
+			// intentional fall-through
+
+		case TC_STATE_GENERATING_PAUSE1:
+			{
+				uint64 cycleCount = oneMS * m_tapeBlockInfo.m_pauseLength;
 				if (m_tapeTstates >= cycleCount)
 				{
-					m_readPortFE &= ~PC_EAR_IN;
-
-					cycleCount *= m_tapeBlockInfo.m_pauseLength;
-					if (m_tapeTstates >= cycleCount)
-					{
-						printf("1 m_tapeTstates %lu, pause len %d, %lu\n", m_tapeTstates, m_tapeBlockInfo.m_pauseLength, cycleCount);
-						m_tapeTstates -= cycleCount;
-						printf("2 m_tapeTstates %lu, pause len %d, %lu\n", m_tapeTstates, m_tapeBlockInfo.m_pauseLength, cycleCount);
-						blockDone = true;
-					}
+					m_tapeTstates -= cycleCount;
+					blockDone = true;
 				}
 			}
 			break;
