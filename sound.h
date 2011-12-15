@@ -10,7 +10,7 @@
 
 #define BUFFER_TYPE int8
 #define BUFFER_ELEMENT_SIZE (sizeof(BUFFER_TYPE))
-#define NUM_DESTINATION_BUFFERS (5)
+#define NUM_DESTINATION_BUFFERS (3)
 #define NUM_SOURCE_BUFFERS (2)
 
 // Sound buffers are played at 44100Hz
@@ -22,17 +22,17 @@
 // 5201269/65536=79.3650665283203125 => nearly 5 decimal places of accuracy
 
 #define FREQUENCY (44100)
-#define FRAME_RATE (3500000 / 69888)
+#define FRAME_RATE (3500000/69888)
 #define FRAME_SIZE (FREQUENCY/FRAME_RATE)
-//#define TSTATE_COUNT (69888/FRAME_SIZE)
+#define TSTATE_COUNT (69888/FRAME_SIZE)
 //#define TSTATE_COUNT (79.365079365079365079365079365079)
-#define TSTATE_COUNT (80)
-//#define SOURCE_BUFFER_SIZE (uint32)(FRAME_SIZE)
-#define SOURCE_BUFFER_SIZE (uint32)(882)
+//#define TSTATE_COUNT (80)
+#define SOURCE_BUFFER_SIZE (uint32)(FRAME_SIZE)
+//#define SOURCE_BUFFER_SIZE (uint32)(882)
 
 #define TSTATE_BITSHIFT (16)
 #define TSTATE_MULTIPLIER (1 << TSTATE_BITSHIFT)
-#define TSTATE_FIXED_FLOATING_POINT ((TSTATE_COUNT-1)*TSTATE_MULTIPLIER)
+#define TSTATE_FIXED_FLOATING_POINT (TSTATE_COUNT*TSTATE_MULTIPLIER)
 
 
 //=============================================================================
@@ -45,10 +45,10 @@ class CSound
 
 		bool				Initialise(void);
 		void				Update(uint32 tstates, float volume);
-		bool				Uninitialise(void);
+		void				Uninitialise(void);
 
 	protected:
-		bool FindFreeBufferIndex(ALuint& bufferId) const;
+		bool FindFreeBufferIndex(ALuint& bufferId);
 		void SetBufferInUse(ALuint bufferId, bool inUse, uint32 count);
 
 		struct SSourceBuffer
@@ -92,11 +92,10 @@ class CSound
 
 		uint64 m_soundCycles;
 		uint32 m_currentSourceBufferIndex;
-		uint32 m_fullSourceBufferIndex;
+		uint32 m_sourceBufferToQueueIndex;
 		uint32 m_buffersUsed;
 		ALuint m_alBuffer[NUM_DESTINATION_BUFFERS];
 		ALuint m_alSource;
-		uint32 m_bufferInUseCapacity[NUM_DESTINATION_BUFFERS];
 		bool m_bufferInUse[NUM_DESTINATION_BUFFERS];
 		bool m_initialised;
 };
