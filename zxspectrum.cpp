@@ -977,6 +977,75 @@ void CZXSpectrum::UpdateTape(uint32 tstates)
 								}
 								break;
 
+							case 0x32:
+								{
+									fprintf(stdout, "[ZX Spectrum]: TZX block ID 32 (Archive Info)\n");
+									uint8 buffer[256];
+									memset(buffer, 0, sizeof(buffer));
+									uint16 length = 0;
+									if (ReadTapeWord(length))
+									{
+										uint8 count = 0;
+										if (ReadTapeByte(count))
+										{
+											for (uint8 index = 0; index < count; ++index)
+											{
+												if (ReadTapeByte(m_tapeByte))
+												{
+													switch (m_tapeByte)
+													{
+													case 0x00:
+														fprintf(stdout, "[ZX Spectrum]: TZX block ID 32 (Text): [Full Title]");
+														break;
+													case 0x01:
+														fprintf(stdout, "[ZX Spectrum]: TZX block ID 32 (Text): [Software house/Publisher]");
+														break;
+													case 0x02:
+														fprintf(stdout, "[ZX Spectrum]: TZX block ID 32 (Text): [Author(s)]");
+														break;
+													case 0x03:
+														fprintf(stdout, "[ZX Spectrum]: TZX block ID 32 (Text): [Year of Publication]");
+														break;
+													case 0x04:
+														fprintf(stdout, "[ZX Spectrum]: TZX block ID 32 (Text): [Language]");
+														break;
+													case 0x05:
+														fprintf(stdout, "[ZX Spectrum]: TZX block ID 32 (Text): [Game/Utility Type]");
+														break;
+													case 0x06:
+														fprintf(stdout, "[ZX Spectrum]: TZX block ID 32 (Text): [Price]");
+														break;
+													case 0x07:
+														fprintf(stdout, "[ZX Spectrum]: TZX block ID 32 (Text): [Protection Scheme/Loader]");
+														break;
+													case 0x08:
+														fprintf(stdout, "[ZX Spectrum]: TZX block ID 32 (Text): [Origin]");
+														break;
+													case 0xff:
+														fprintf(stdout, "[ZX Spectrum]: TZX block ID 32 (Text): [Comments]");
+														break;
+													}
+												}
+
+												if (ReadTapeByte(m_tapeByte))
+												{
+													if (fread(buffer, m_tapeByte, 1, m_pFile))
+													{
+														buffer[m_tapeByte] = 0;
+														fprintf(stdout, " %s\n", buffer);
+													}
+													else
+													{
+														m_tapeError = ferror(m_pFile);
+														m_tapeState = TC_STATE_STOP_TAPE;
+													}
+												}
+											}
+										}
+									}
+								}
+								break;
+
 							default:
 								fprintf(stdout, "[ZX Spectrum]: Unhandled TZX block ID %02X\n", m_tapeByte);
 								m_tapeState = TC_STATE_STOP_TAPE;
