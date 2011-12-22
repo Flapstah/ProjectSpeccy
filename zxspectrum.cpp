@@ -329,11 +329,19 @@ void CZXSpectrum::WritePort(uint16 address, uint8 byte)
 			// |   |   |   | E | M |  Border   |
 			// +---+---+---+---+---+---+---+---+
 			m_writePortFE = byte & PC_OUTPUT_MASK;
-//			fprintf(stdout, "ear %d mic %d\n", (m_writePortFE & PC_EAR_OUT) ? 1 : 0, (m_writePortFE & PC_MIC_OUT) ? 1 : 0);
+			//fprintf(stderr, "[ZX Spectrum]: WritePort for address %04X, data %02X [%d%d%d %d %d %d%d%d]\n", address, byte,
+			//	(byte & 0x80) >> 7, (byte & 0x40) >> 6, (byte & 0x20) >> 5,
+			//	(byte & 0x10) >> 4,
+			//	(byte & 0x08) >> 3,
+			//	(byte & 0x04) >> 2, (byte & 0x02) >> 1, (byte & 0x01));
 			break;
 
 		default:
-			fprintf(stderr, "[ZX Spectrum]: WritePort for unhandled address %04X, data %02X\n", address, byte);
+			fprintf(stderr, "[ZX Spectrum]: WritePort for unhandled address %04X, data %02X [%d%d%d %d %d %d%d%d]\n", address, byte,
+				(byte & 0x80) >> 7, (byte & 0x40) >> 6, (byte & 0x20) >> 5,
+				(byte & 0x10) >> 4,
+				(byte & 0x08) >> 3,
+				(byte & 0x04) >> 2, (byte & 0x02) >> 1, (byte & 0x01));
 			break;
 	}
 }
